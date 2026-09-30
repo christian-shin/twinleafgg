@@ -1,3 +1,4 @@
+import { TimburrBLKPool, VullabyWHTPool } from './pool-additions';
 import { Card } from '../../../game/store/card/card';
 import { Alomomola } from './alomomola';
 import { Amoongus } from './amoongus';
@@ -355,4 +356,6 @@ export const setSV11: Card[] = [
 
   //SV11W WR
   new ReshiramexWR(),
+  new TimburrBLKPool(),
+  new VullabyWHTPool(),
 ];

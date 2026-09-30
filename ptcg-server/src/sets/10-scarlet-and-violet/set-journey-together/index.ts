@@ -1,3 +1,4 @@
+import { MinccinoJTGPool } from './pool-additions';
 import { Card } from '../../../game/store/card/card';
 import { Accelgor } from './accelgor';
 import { Bagon } from './bagon';
@@ -211,4 +212,5 @@ export const setJourneyTogether: Card[] = [
 
   new ProfessorsResearchJTG(),
   new BlackBeltsTrainingJTG(),
+  new MinccinoJTGPool(),
 ];

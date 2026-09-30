@@ -1,3 +1,4 @@
+import { GrookeyMEPPool } from './pool-additions';
 import {
   MeganiumMEP,
   InteleonMEP,
@@ -97,4 +98,5 @@ export const setMegaEvolutionPromos: Card[] = [
   new ToxelMEP(),
   new CharmeleonMEP(),
   new FennekinMEP(),
+  new GrookeyMEPPool(),
 ];
