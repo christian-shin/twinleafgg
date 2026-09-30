@@ -35,9 +35,6 @@ function* useStadium(
 
   // Look through all known cards to find out if Pokemon can evolve
   const cm = CardManager.getInstance();
-  const evolutions = cm.getAllCards().filter((c) => {
-    return c instanceof PokemonCard && c.stage !== Stage.BASIC;
-  }) as PokemonCard[];
 
   // Build possible evolution card names
   const evolutionNames: string[] = [];
@@ -47,7 +44,7 @@ function* useStadium(
     if (card.stage !== Stage.BASIC || playedTurnEffect.pokemonPlayedTurn === state.turn) {
       return;
     }
-    const valid = evolutions.filter((e) => e.evolvesFrom === card.name);
+    const valid = (cm.getEvolutionsFrom(card.name) as PokemonCard[]);
     valid.forEach((c) => {
       if (!evolutionNames.includes(c.name)) {
         evolutionNames.push(c.name);
@@ -147,7 +144,7 @@ function* useStadium(
   target.pokemonPlayedTurn = state.turn;
 
   // Check if there's a Stage 2 evolution available
-  const stage2Evolutions = evolutions.filter((e) => e.evolvesFrom === evolution.name);
+  const stage2Evolutions = (cm.getEvolutionsFrom(evolution.name) as PokemonCard[]);
   if (stage2Evolutions.length > 0) {
     // Blocking pokemon cards, that cannot be valid evolutions
     const blockedStage2: number[] = [];

@@ -14,6 +14,37 @@ type Entry =
   | { kind: 'map'; target: Map<any, any>; entries: [any, any][] }
   | { kind: 'set'; target: Set<any>; values: any[] };
 
+/**
+ * Arrays that never change in place once a game is set up, and the objects
+ * they hold: a card's attacks (with their cost arrays), powers, retreat,
+ * weakness, resistance and evolution / archetype metadata. Twinleaf reassigns
+ * some of these properties but never edits them in place (effects copy costs;
+ * `tags` is edited in place, so it is not listed). Snapshots treat them as
+ * leaves: the owning card's own properties are still recorded, so a
+ * reassignment is undone.
+ */
+const IMMUTABLE = new WeakSet<object>();
+const STATIC_ARRAYS = ['attacks', 'powers', 'retreat', 'weakness', 'resistance',
+  'archetype', 'evolvesTo', 'evolvesToStage', 'evolvesFromBase', 'cardTag'];
+
+function markCardStatics(card: any): void {
+  for (const key of STATIC_ARRAYS) {
+    const arr = card[key];
+    if (!Array.isArray(arr) || IMMUTABLE.has(arr)) {
+      continue;
+    }
+    IMMUTABLE.add(arr);
+    for (const item of arr) {
+      if (item !== null && typeof item === 'object') {
+        IMMUTABLE.add(item);
+        if (Array.isArray(item.cost)) {
+          IMMUTABLE.add(item.cost);
+        }
+      }
+    }
+  }
+}
+
 export class Snapshot {
   private entries: Entry[] = [];
 
@@ -26,8 +57,11 @@ export class Snapshot {
         continue;
       }
       seen.add(obj);
-      if (this.skip(obj)) {
+      if (IMMUTABLE.has(obj) || this.skip(obj)) {
         continue;
+      }
+      if (typeof obj.fullName === 'string' && typeof obj.superType === 'number') {
+        markCardStatics(obj);
       }
       if (Array.isArray(obj)) {
         const items = obj.slice();
@@ -74,18 +108,19 @@ export class Snapshot {
       switch (e.kind) {
         case 'obj': {
           const t = e.target;
-          const keys = Object.keys(t);
-          let same = keys.length === e.props.length;
-          if (same) {
-            for (let i = 0; i < e.props.length; i++) {
-              const [k, v] = e.props[i];
-              if (keys[i] !== k || t[k] !== v) {
-                same = false;
-                break;
-              }
+          // Fast path: every recorded value unchanged and no key added or
+          // removed (key order can't change without a delete, which changes
+          // the count or a recorded value).
+          let same = true;
+          for (let i = 0; i < e.props.length; i++) {
+            const p = e.props[i];
+            if (t[p[0]] !== p[1] || !Object.prototype.hasOwnProperty.call(t, p[0])) {
+              same = false;
+              break;
             }
           }
-          if (same) {
+          const keys = Object.keys(t);
+          if (same && keys.length === e.props.length) {
             break;
           }
           const recorded = new Set(e.props.map(p => p[0]));

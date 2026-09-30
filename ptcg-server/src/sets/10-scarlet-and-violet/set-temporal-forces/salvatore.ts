@@ -1,5 +1,5 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { Stage, SuperType, TrainerType } from '../../../game/store/card/card-types';
+import { SuperType, TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
@@ -31,14 +31,11 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
 
   // Look through all known cards to find out if Pokemon can evolve
   const cm = CardManager.getInstance();
-  const evolutions = cm.getAllCards().filter(c => {
-    return c instanceof PokemonCard && c.stage !== Stage.BASIC;
-  }) as PokemonCard[];
 
   // Build possible evolution card names
   const evolutionNames: string[] = [];
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
-    const valid = evolutions.filter(e => e.evolvesFrom === card.name);
+    const valid = (cm.getEvolutionsFrom(card.name) as PokemonCard[]);
     valid.forEach(c => {
       if (!evolutionNames.includes(c.name)) {
         evolutionNames.push(c.name);
@@ -142,12 +139,9 @@ export class Salvatore extends TrainerCard {
       return false;
     }
     const cm = CardManager.getInstance();
-    const evolutions = cm.getAllCards().filter(c =>
-      c instanceof PokemonCard && c.stage !== Stage.BASIC
-    ) as PokemonCard[];
     const evolutionNames: string[] = [];
     player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card) => {
-      evolutions.filter(e => e.evolvesFrom === card.name).forEach(c => {
+      (cm.getEvolutionsFrom(card.name) as PokemonCard[]).forEach(c => {
         if (!evolutionNames.includes(c.name)) {
           evolutionNames.push(c.name);
         }

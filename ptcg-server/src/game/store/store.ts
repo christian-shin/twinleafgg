@@ -246,6 +246,11 @@ export class Store implements StoreLike {
   }
 
   public log(state: State, message: GameLog, params?: StateLogParam, client?: number): void {
+    // Oracle trials / look-ahead are rolled back, and nothing reads state.logs,
+    // so skip building log entries (the locale timestamp is costly) while simulating.
+    if (Chance.inSim) {
+      return;
+    }
     const timestamp = new Date().toLocaleTimeString('en-US', {
       hour12: true,
       hour: '2-digit',

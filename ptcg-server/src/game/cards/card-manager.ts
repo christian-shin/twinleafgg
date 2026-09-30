@@ -57,7 +57,44 @@ export class CardManager {
     return errors;
   }
 
+  // Static lookups over the card database for cards that search "all known
+  // cards" on every legality check (Salvatore, Grand Tree, ...). Rebuilt
+  // whenever a set is defined.
+  private nonBasicCache: any[] | undefined;
+  private evolvesFromCache: Map<string, any[]> | undefined;
+
+  /** All Pokémon cards that are not Basic, in getAllCards() order. */
+  public getNonBasicPokemon(): any[] {
+    if (this.nonBasicCache === undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { PokemonCard } = require('../store/card/pokemon-card');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { Stage } = require('../store/card/card-types');
+      this.nonBasicCache = this.getAllCards().filter(c => c instanceof PokemonCard && (c as any).stage !== Stage.BASIC);
+    }
+    return this.nonBasicCache;
+  }
+
+  /** Non-Basic Pokémon whose evolvesFrom is `name`, in getAllCards() order. */
+  public getEvolutionsFrom(name: string): any[] {
+    if (this.evolvesFromCache === undefined) {
+      const m = new Map<string, any[]>();
+      for (const c of this.getNonBasicPokemon()) {
+        const list = m.get(c.evolvesFrom);
+        if (list) {
+          list.push(c);
+        } else {
+          m.set(c.evolvesFrom, [c]);
+        }
+      }
+      this.evolvesFromCache = m;
+    }
+    return this.evolvesFromCache.get(name) || [];
+  }
+
   public defineSet(set: Card[]): void {
+    this.nonBasicCache = undefined;
+    this.evolvesFromCache = undefined;
     for (const card of set) {
       if (this.cardIndex[card.fullName] !== undefined) {
         throw new Error('Multiple cards with the same name: ' + card.fullName);
