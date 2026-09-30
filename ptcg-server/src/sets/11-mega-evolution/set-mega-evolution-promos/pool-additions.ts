@@ -3,6 +3,22 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 
+export class ChikoritaMEPPool extends PokemonCard {
+  public stage: Stage = Stage.BASIC;
+  public cardType: CardType[] = [G];
+  public hp: number = 70;
+  public weakness = [{ type: R }];
+  public resistance = [];
+  public retreat = [C];
+  public attacks = [{ name: "Razor Leaf", cost: [G, C], damage: 30, text: '' }];
+  public regulationMark = "J";
+  public set: string = 'MEP';
+  public setNumber: string = '46';
+  public cardImage: string = 'assets/cardback.png';
+  public name: string = "Chikorita";
+  public fullName: string = "Chikorita MEP 46";
+}
+
 export class GrookeyMEPPool extends PokemonCard {
   public stage: Stage = Stage.BASIC;
   public cardType: CardType[] = [G];

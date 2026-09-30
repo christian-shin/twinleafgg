@@ -1,4 +1,5 @@
-import { GrookeyMEPPool } from './pool-additions';
+import { SlowpokeMEP86Pool } from './slowpoke-86-pool';
+import { ChikoritaMEPPool, GrookeyMEPPool } from './pool-additions';
 import {
   MeganiumMEP,
   InteleonMEP,
@@ -99,6 +100,8 @@ export const setMegaEvolutionPromos: Card[] = [
   new ToxelMEP(),
   new CharmeleonMEP(),
   new FennekinMEP(),
-  new GrookeyMEPPool(),
   new CottoneeMEPPool(),
+  new ChikoritaMEPPool(),
+  new GrookeyMEPPool(),
+  new SlowpokeMEP86Pool(),
 ];

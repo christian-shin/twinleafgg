@@ -170,9 +170,9 @@ export const setPrismaticEvolution: Card[] = [
   new WalkingWakeexUR(),
   new PikachuexUR(),
   new TerapagosexUR(),
+  new OgresMaskPREPool(),
+  new PyroarPREPool(),
   new SlowpokePREPool(),
   new BunearyPREPool(),
   new NoibatPREPool(),
-  new OgresMaskPREPool(),
-  new PyroarPREPool(),
 ];

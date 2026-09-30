@@ -196,11 +196,11 @@ export const setStellarCrown: Card[] = [
   new Crabominable2SCR(),
   new Gulpin2SCR(),
   new DipplinSCR13(),
+  new FidoughSCRPool(),
+  new PayapaBerrySCRPool(),
   new CharcadetSCRPool(),
   new FroakieSCRPool(),
   new FrogadierSCRPool(),
   new FlittleSCRPool(),
   new RioluSCRPool(),
-  new FidoughSCRPool(),
-  new PayapaBerrySCRPool(),
 ];

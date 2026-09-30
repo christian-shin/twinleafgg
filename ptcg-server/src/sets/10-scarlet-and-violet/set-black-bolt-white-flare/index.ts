@@ -361,11 +361,11 @@ export const setSV11: Card[] = [
 
   //SV11W WR
   new ReshiramexWR(),
-  new TimburrBLKPool(),
-  new VullabyWHTPool(),
   new CofagrigusWHTPool(),
   new CrustleBLKPool(),
   new GurdurrBLKPool(),
   new MandibuzzWHTPool(),
   new PetililBLKPool(),
+  new TimburrBLKPool(),
+  new VullabyWHTPool(),
 ];

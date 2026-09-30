@@ -1,3 +1,4 @@
+import { PaldeanTaurosSSP39Pool } from './paldean-tauros-39-pool';
 import { Feebas as FeebasSSP41 } from './feebas';
 import { Card } from '../../../game/store/card/card';
 import { Annihilape } from './annihilape';
@@ -287,4 +288,5 @@ export const setSurgingSparks: Card[] = [
   new MankeySSPPool(),
   new PassimianSSPPool(),
   new SwabluSSPPool(),
+  new PaldeanTaurosSSP39Pool(),
 ];

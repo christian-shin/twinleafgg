@@ -213,6 +213,6 @@ export const setJourneyTogether: Card[] = [
 
   new ProfessorsResearchJTG(),
   new BlackBeltsTrainingJTG(),
-  new MinccinoJTGPool(),
   new DhelmiseJTGPool(),
+  new MinccinoJTGPool(),
 ];

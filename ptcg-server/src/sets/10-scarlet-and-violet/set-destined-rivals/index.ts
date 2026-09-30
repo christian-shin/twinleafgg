@@ -352,8 +352,8 @@ export const setDestinedRivals: Card[] = [
   new TeamRocketsCrobatex4DRI(),
   new JammingTowerDRI(),
   new LevinciaDRI(),
-  new TeamRocketsHoundourDRIPool(),
   new EthansSudowoodoDRIPool(),
   new TeamRocketsBotherBotDRIPool(),
   new TeamRocketsHoundoomDRIPool(),
+  new TeamRocketsHoundourDRIPool(),
 ];
