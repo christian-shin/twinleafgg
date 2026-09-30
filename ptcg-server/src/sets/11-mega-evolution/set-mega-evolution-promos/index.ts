@@ -49,6 +49,7 @@ import { Pikachuex2 } from './pikachu-ex-2';
 import { Grisham } from './grisham';
 import { MegaTatsugiriex } from './mega-tatsugiri-ex';
 import { Lida } from './lida';
+import { CottoneeMEPPool } from './cottonee-pool';
 
 export const setMegaEvolutionPromos: Card[] = [
   new Psyduck(),
@@ -99,4 +100,5 @@ export const setMegaEvolutionPromos: Card[] = [
   new CharmeleonMEP(),
   new FennekinMEP(),
   new GrookeyMEPPool(),
+  new CottoneeMEPPool(),
 ];

@@ -97,6 +97,8 @@ import { Toedscool } from "./toedscool";
 import { AntiqueRootFossil } from './antique-root-fossil';
 import { Cradily } from './cradily';
 import { Lileep } from './lileep';
+import { FidoughSCRPool } from './fidough-pool';
+import { PayapaBerrySCRPool } from './payapa-berry-pool';
 export const setStellarCrown: Card[] = [
   new AntiqueRootFossil(),
   new Applin(),
@@ -199,4 +201,6 @@ export const setStellarCrown: Card[] = [
   new FrogadierSCRPool(),
   new FlittleSCRPool(),
   new RioluSCRPool(),
+  new FidoughSCRPool(),
+  new PayapaBerrySCRPool(),
 ];

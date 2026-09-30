@@ -55,6 +55,7 @@ import { Toxtricity } from './toxtricity';
 import { Wigglytuff } from './wigglytuff';
 import { WonderPatch } from './wonder-patch';
 import { Zacian } from './zacian';
+import { PawmotPFLPool } from './pawmot-pool';
 
 export const setPhantasmalFlames: Card[] = [
   new Aipom(),
@@ -137,4 +138,5 @@ export const setPhantasmalFlames: Card[] = [
   new Dawn3PFL(),
   new Blowtorch2PFL(),
   new MegaCharizardXex4PFL(),
+  new PawmotPFLPool(),
 ];

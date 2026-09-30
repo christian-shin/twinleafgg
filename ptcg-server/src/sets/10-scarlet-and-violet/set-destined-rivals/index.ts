@@ -140,6 +140,9 @@ import { TeamRocketsZapdos } from './team-rockets-zapdos';
 import { TeamRocketsZubat } from './team-rockets-zubat';
 import { Torchic } from './torchic';
 import { TMMachine } from './tm-machine';
+import { EthansSudowoodoDRIPool } from './ethans-sudowoodo-pool';
+import { TeamRocketsBotherBotDRIPool } from './team-rockets-bother-bot-pool';
+import { TeamRocketsHoundoomDRIPool } from './team-rockets-houndoom-pool';
 
 export const setDestinedRivals: Card[] = [
   new Taillow(),
@@ -350,4 +353,7 @@ export const setDestinedRivals: Card[] = [
   new JammingTowerDRI(),
   new LevinciaDRI(),
   new TeamRocketsHoundourDRIPool(),
+  new EthansSudowoodoDRIPool(),
+  new TeamRocketsBotherBotDRIPool(),
+  new TeamRocketsHoundoomDRIPool(),
 ];

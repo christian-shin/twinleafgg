@@ -14,6 +14,8 @@ export interface ChoosePrizeOptions {
   useOpponentPrizes: boolean;
   allowCancel: boolean;
   destination?: CardList;
+  /** Only face-down Prize cards may be chosen (e.g. "turn 1 of your face-down Prize cards face up"). */
+  faceDownOnly?: boolean;
 }
 
 export class ChoosePrizePrompt extends Prompt<CardList[]> {
@@ -97,6 +99,9 @@ export class ChoosePrizePrompt extends Prompt<CardList[]> {
     }
     const hasEmpty = result.some(p => !p || p.cards.length === 0);
     if (hasEmpty) {
+      return false;
+    }
+    if (this.options.faceDownOnly && result.some(p => p.faceUpPrize)) {
       return false;
     }
     return true;

@@ -95,6 +95,11 @@ import { Zeraora } from './zeraora';
 import { CiphermaniacsCodebreaking } from './cryptomaniacs-deciphering';
 import { Sawsbuck } from './sawsbuck';
 import { Whimsicott } from './whimsicott';
+import { BeheeyemTEFPool } from './beheeyem-pool';
+import { DhelmiseTEFPool } from './dhelmise-pool';
+import { IronBoulderexTEFPool } from './iron-boulder-ex-pool';
+import { IronTreadsTEFPool } from './iron-treads-pool';
+import { ScreamTailTEFPool } from './scream-tail-pool';
 
 export const setTemporalForces: Card[] = [
 
@@ -233,4 +238,9 @@ export const setTemporalForces: Card[] = [
   new Girafarig(),
   new Farigirafex(),
   new GreatTusk2(),
+  new BeheeyemTEFPool(),
+  new DhelmiseTEFPool(),
+  new IronBoulderexTEFPool(),
+  new IronTreadsTEFPool(),
+  new ScreamTailTEFPool(),
 ];

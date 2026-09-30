@@ -29,6 +29,8 @@ import { TreasureTracker } from './treasure-tracker';
 import { Tyranitarex } from './tyranitar-ex';
 import { Umbreonex } from './umbreon-ex';
 import { Vaporeonex } from './vaporeon-ex';
+import { OgresMaskPREPool } from './ogres-mask-pool';
+import { PyroarPREPool } from './pyroar-pool';
 
 export const setPrismaticEvolution: Card[] = [
   new Amarys(),
@@ -171,4 +173,6 @@ export const setPrismaticEvolution: Card[] = [
   new SlowpokePREPool(),
   new BunearyPREPool(),
   new NoibatPREPool(),
+  new OgresMaskPREPool(),
+  new PyroarPREPool(),
 ];

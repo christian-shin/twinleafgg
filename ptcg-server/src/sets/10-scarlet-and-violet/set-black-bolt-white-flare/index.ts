@@ -166,6 +166,11 @@ import { Zorua } from './zorua';
 import { Hydreigonex } from './hydreigon-ex';
 import { Zweilous } from './zweilous';
 import { Deino } from './deino';
+import { CofagrigusWHTPool } from './cofagrigus-pool';
+import { CrustleBLKPool } from './crustle-pool';
+import { GurdurrBLKPool } from './gurdurr-pool';
+import { MandibuzzWHTPool } from './mandibuzz-pool';
+import { PetililBLKPool } from './petilil-pool';
 
 export const setSV11: Card[] = [
   new Harlequin(),
@@ -358,4 +363,9 @@ export const setSV11: Card[] = [
   new ReshiramexWR(),
   new TimburrBLKPool(),
   new VullabyWHTPool(),
+  new CofagrigusWHTPool(),
+  new CrustleBLKPool(),
+  new GurdurrBLKPool(),
+  new MandibuzzWHTPool(),
+  new PetililBLKPool(),
 ];

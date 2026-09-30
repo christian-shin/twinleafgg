@@ -10,6 +10,7 @@ import { Scrafty } from './scrafty';
 import { Tinkatonex } from './tinkaton-ex';
 import { Toxtricityex } from './toxtricity-ex';
 import { Pikachuex } from './pikachu-ex';
+import { ZacianexSVPPool } from './zacian-ex-pool';
 
 
 export const setScarletAndVioletPromos: Card[] = [
@@ -138,4 +139,5 @@ export const setScarletAndVioletPromos: Card[] = [
   new ProfessorsResearch2SVP(),
   new ProfessorsResearch3SVP(),
   new CelebratoryFanfareSVP(),
+  new ZacianexSVPPool(),
 ];

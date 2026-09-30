@@ -87,6 +87,7 @@ import { Wailmer } from './wailmer';
 import { Wailord } from './wailord';
 import { Butterfree } from './butterfree';
 import { Rockruff } from './rockruff';
+import { DhelmiseJTGPool } from './dhelmise-pool';
 export const setJourneyTogether: Card[] = [
 
   new SuperPotionJTG(),
@@ -213,4 +214,5 @@ export const setJourneyTogether: Card[] = [
   new ProfessorsResearchJTG(),
   new BlackBeltsTrainingJTG(),
   new MinccinoJTGPool(),
+  new DhelmiseJTGPool(),
 ];

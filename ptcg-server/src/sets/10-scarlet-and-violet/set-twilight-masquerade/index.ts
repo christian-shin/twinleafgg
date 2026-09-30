@@ -105,6 +105,15 @@ import { WalkingWake } from './walking-wake';
 import { WellspringMaskOgerponex } from './wellspring-mask-ogerpon-ex';
 import { Whirlipede } from './whirlipede';
 import { Zapdos } from './zapdos';
+import { ChandelureTWMPool } from './chandelure-pool';
+import { EeveeTWMPool } from './eevee-pool';
+import { GlalieTWMPool } from './glalie-pool';
+import { LampentTWMPool } from './lampent-pool';
+import { LitwickTWMPool } from './litwick-pool';
+import { LucianTWMPool } from './lucian-pool';
+import { MiloticTWMPool } from './milotic-pool';
+import { TealMaskOgerponTWMPool } from './teal-mask-ogerpon-pool';
+import { VolbeatTWMPool } from './volbeat-pool';
 
 export const setTwilightMasquerade: Card[] = [
   new Aggron(),
@@ -263,4 +272,13 @@ export const setTwilightMasquerade: Card[] = [
   new RescueBoardHR(),
   new LuminousEnergyHR(),
   new ChiYuTWM39(),
+  new ChandelureTWMPool(),
+  new EeveeTWMPool(),
+  new GlalieTWMPool(),
+  new LampentTWMPool(),
+  new LitwickTWMPool(),
+  new LucianTWMPool(),
+  new MiloticTWMPool(),
+  new TealMaskOgerponTWMPool(),
+  new VolbeatTWMPool(),
 ];

@@ -97,6 +97,10 @@ import { Waitress } from './waitress';
 import { BossOrdersASC } from './other-prints';
 import { NsVanillite } from './ns-vanillite';
 import { NsVanillish } from './ns-vanillish';
+import { GalarianObstagoonASCPool } from './galarian-obstagoon-pool';
+import { HopsPhantumpASCPool } from './hops-phantump-pool';
+import { HopsTrevenantASCPool } from './hops-trevenant-pool';
+import { ThickScaleASCPool } from './thick-scale-pool';
 
 export const setAscendedHeroes: Card[] = [
   //Start Deck 100 Reprints
@@ -351,4 +355,8 @@ export const setAscendedHeroes: Card[] = [
   new Surfer2ASC(),
   new MegaCharizardYex2ASC(),
   new MegaDragoniteex4ASC(),
+  new GalarianObstagoonASCPool(),
+  new HopsPhantumpASCPool(),
+  new HopsTrevenantASCPool(),
+  new ThickScaleASCPool(),
 ];

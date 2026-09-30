@@ -124,6 +124,12 @@ import { Zarude } from './zarude';
 import { Zweilous } from './zweilous';
 import { Exeggutor } from './exeggutor';
 import { Turtonator } from './turtonator';
+import { BabiriBerrySSPPool } from './babiri-berry-pool';
+import { BouffalantSSPPool } from './bouffalant-pool';
+import { BronzorSSPPool } from './bronzor-pool';
+import { MankeySSPPool } from './mankey-pool';
+import { PassimianSSPPool } from './passimian-pool';
+import { SwabluSSPPool } from './swablu-pool';
 
 export const setSurgingSparks: Card[] = [
   new Dialga(),
@@ -275,4 +281,10 @@ export const setSurgingSparks: Card[] = [
   new NightStretcherUR(),
   new JetEnergyUR(),
   new FeebasSSP41(),
+  new BabiriBerrySSPPool(),
+  new BouffalantSSPPool(),
+  new BronzorSSPPool(),
+  new MankeySSPPool(),
+  new PassimianSSPPool(),
+  new SwabluSSPPool(),
 ];
