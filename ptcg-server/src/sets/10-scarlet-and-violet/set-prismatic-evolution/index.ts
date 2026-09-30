@@ -1,5 +1,5 @@
 import { Card } from '../../../game/store/card/card';
-import { ApplinPRE, DipplinPRE, HydrappleexPRE, TealMaskOgerponexPRE, HearthflameMaskOgerponexPRE, GoldeenPRE, WellspringMaskOgerponexPRE, JolteonPRE, IronHandsexPRE, IronThornsexPRE, DuskullPRE, DusclopsPRE, DusknoirPRE, ScreamTailPRE, FlutterManePRE, MunkidoriPRE, FezandipitiPRE, IronBoulderPRE, GroudonPRE, BloodmoonUrsalunaPRE, GreatTuskPRE, SandyShocksexPRE, OkidogiPRE, CornerstoneMaskOgerponexPRE, RoaringMoonPRE, DuraludonPRE, ArchaludonPRE, DreepyPRE, DrakloakPRE, DragapultexPRE, EeveePRE, NoctowlPRE, DunsparcePRE, DudunsparcePRE, FanRotomPRE, TerapagosexPRE, AreaZeroUnderdepthsPRE, BindingMochiPRE, BriarPRE, BuddyBuddyPoffinPRE, BugCatchingSetPRE, CarminePRE, CyphermaniacsCodebreakingPRE, CrispinPRE, EarthenVesselPRE, ExplorersGuidancePRE, FestivalGroundsPRE, GlassTrumpetPRE, KieranPRE, MaximumBeltPRE, PrimeCatcherPRE, ProfessorSadasVitalityPRE, ProfessorTurosScenarioPRE, RescueBoardPRE, ScoopUpCyclonePRE, SparklingCrystalPRE, TechnoRadarPRE, ProfessorsResearchO, ProfessorsResearchE, ProfessorsResearchR, ProfessorsResearchS } from './alt-arts';
+import { ApplinPRE, DipplinPRE, HydrappleexPRE, TealMaskOgerponexPRE, HearthflameMaskOgerponexPRE, GoldeenPRE, WellspringMaskOgerponexPRE, JolteonPRE, IronHandsexPRE, IronThornsexPRE, DuskullPRE, DusclopsPRE, DusknoirPRE, ScreamTailPRE, FlutterManePRE, MunkidoriPRE, FezandipitiPRE, IronBoulderPRE, GroudonPRE, BloodmoonUrsalunaPRE, GreatTuskPRE, SandyShocksexPRE, OkidogiPRE, CornerstoneMaskOgerponexPRE, RoaringMoonPRE, DuraludonPRE, ArchaludonPRE, DreepyPRE, DrakloakPRE, DragapultexPRE, EeveePRE, NoctowlPRE, DunsparcePRE, DudunsparcePRE, FanRotomPRE, TerapagosexPRE, AreaZeroUnderdepthsPRE, BindingMochiPRE, BriarPRE, BuddyBuddyPoffinPRE, BugCatchingSetPRE, CarminePRE, CyphermaniacsCodebreakingPRE, CrispinPRE, EarthenVesselPRE, ExplorersGuidancePRE, FestivalGroundsPRE, GlassTrumpetPRE, JaninesSecretArt, KieranPRE, MaximumBeltPRE, PrimeCatcherPRE, ProfessorSadasVitalityPRE, ProfessorTurosScenarioPRE, RescueBoardPRE, ScoopUpCyclonePRE, SparklingCrystalPRE, TechnoRadarPRE, ProfessorsResearchO, ProfessorsResearchE, ProfessorsResearchR, ProfessorsResearchS } from './alt-arts';
 import { Amarys } from './amarys';
 import { BlackBeltsTraining } from './black-belts-training';
 import { Bronzor } from './bronzor';
@@ -107,6 +107,7 @@ export const setPrismaticEvolution: Card[] = [
   new ExplorersGuidancePRE(),
   new FestivalGroundsPRE(),
   new GlassTrumpetPRE(),
+  new JaninesSecretArt(),
   new KieranPRE(),
   new MaximumBeltPRE(),
   new PrimeCatcherPRE(),

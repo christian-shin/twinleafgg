@@ -6,6 +6,7 @@
  *   node output/oracle/cli.js play <deckA.txt> <deckB.txt> <seed> <policyA,policyB> [out.json]
  *   node output/oracle/cli.js determinism <deckA.txt> <deckB.txt> <seeds> <policyA,policyB>
  *   node output/oracle/cli.js corpus <spec.json> <outDir> <start> <count>
+ *   node output/oracle/cli.js replay <scouted.json> <outDir> [start] [count]
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -125,6 +126,36 @@ function main(argv: string[]): void {
     const t = runner.run();
     const out = k < 0 ? { s: t.start.s, e: t.start.e } : { s: t.steps[k]?.s, e: t.steps[k]?.e, d: t.steps[k]?.d };
     process.stdout.write(JSON.stringify(out, null, 1));
+    return;
+  }
+  if (cmd === 'replay') {
+    // Replay scouted games (seed, decks, answers) chosen by the Rust `scout`
+    // tool: every oracle game spent is one that exercises the target cards.
+    const games: { seed: number, decks: [string[], string[]], deckNames?: string[], answers: any[] }[] =
+      JSON.parse(fs.readFileSync(argv[1], 'utf8'));
+    const outDir = argv[2];
+    const start = parseInt(argv[3] ?? '0', 10);
+    const count = parseInt(argv[4] ?? String(games.length), 10);
+    fs.mkdirSync(outDir, { recursive: true });
+    for (let i = start; i < Math.min(games.length, start + count); i++) {
+      const g = games[i];
+      const t0 = Date.now();
+      let trace: Trace;
+      try {
+        trace = new GameRunner({ seed: g.seed, decks: g.decks, policy: ['replay', 'replay'], answers: g.answers, effects: true }).run();
+      } catch (e: any) {
+        console.log(`game ${g.seed} crashed: ${e?.message}`);
+        continue;
+      }
+      (trace.header as any).deckNames = g.deckNames;
+      if (process.env.NODE_V8_COVERAGE) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require('v8').takeCoverage();
+        fs.writeFileSync(path.join(process.env.NODE_V8_COVERAGE, `game-${g.seed}.marker`), '');
+      }
+      fs.writeFileSync(path.join(outDir, `g${String(g.seed).padStart(6, '0')}.json`), JSON.stringify(trace));
+      console.log(`game ${g.seed} replay: ${summary(trace)} ${Date.now() - t0}ms`);
+    }
     return;
   }
   if (cmd === 'corpus') {

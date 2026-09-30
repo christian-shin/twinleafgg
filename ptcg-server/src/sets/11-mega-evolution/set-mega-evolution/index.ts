@@ -79,7 +79,7 @@ import { Xerneas } from './xerneas';
 import { Yungoos } from './yungoos';
 import { Yveltal } from './yveltal';
 import { IronDefender } from './iron-defender';
-import { RepelMEG, BossOrdersMEG, EnergySwitchPKMEG, RareCandyMEG, SwitchMEG, UltraBallMEG, Bulbasaur2MEG, Ivysaur2MEG, Ninjask2MEG, Snover2MEG, Clawitizer2MEG, Inteleon2MEG, Houndstone2MEG, Garganacl2MEG, Steelix2MEG, Gumshoos2MEG, MegaVenusaurEx2MEG, MegaCameruptEx2MEG, MegaAbomasnowEx2MEG, MegaManectricEx2MEG, MegaGardevoirex2MEG, MegaLucarioex2MEG, MegaAbsolex2MEG, MegaMawileEx2MEG, MegaLatiasex2MEG, MegaKangaskhanex2MEG, AirBalloonMEG, BuddyBuddyPoffinMEG, FightingGong2MEG, LilliesDetermination2MEG, MegaSignal2MEG, MysteryGarden2MEG, NightlyStretcherMEG, PowerProtein2MEG, RareCandy2MEG, WallysCompassion2MEG, MegaVenusaurEx3MEG, MegaGardevoirex3MEG, MegaLucarioex3MEG, MegaAbsolex3MEG, MegaLatiasex3MEG, MegaKangaskhanex3MEG, LilliesDetermination3MEG, WallysCompassion3MEG, MegaGardevoirex4MEG, MegaLucarioex4MEG, AcerolasMischiefFA, AcerolasMischiefSIR } from './other-prints';
+import { RepelMEG, BossOrdersMEG, EnergySwitchPKMEG, PokemonCenterLadyMEG, RareCandyMEG, SwitchMEG, UltraBallMEG, Bulbasaur2MEG, Ivysaur2MEG, Ninjask2MEG, Snover2MEG, Clawitizer2MEG, Inteleon2MEG, Houndstone2MEG, Garganacl2MEG, Steelix2MEG, Gumshoos2MEG, MegaVenusaurEx2MEG, MegaCameruptEx2MEG, MegaAbomasnowEx2MEG, MegaManectricEx2MEG, MegaGardevoirex2MEG, MegaLucarioex2MEG, MegaAbsolex2MEG, MegaMawileEx2MEG, MegaLatiasex2MEG, MegaKangaskhanex2MEG, AirBalloonMEG, BuddyBuddyPoffinMEG, FightingGong2MEG, LilliesDetermination2MEG, MegaSignal2MEG, MysteryGarden2MEG, NightlyStretcherMEG, PowerProtein2MEG, RareCandy2MEG, WallysCompassion2MEG, MegaVenusaurEx3MEG, MegaGardevoirex3MEG, MegaLucarioex3MEG, MegaAbsolex3MEG, MegaLatiasex3MEG, MegaKangaskhanex3MEG, LilliesDetermination3MEG, WallysCompassion3MEG, MegaGardevoirex4MEG, MegaLucarioex4MEG, AcerolasMischiefFA, AcerolasMischiefSIR } from './other-prints';
 import { Tangela } from './tangela';
 import { Tangrowth } from './tangrowth';
 
@@ -178,6 +178,7 @@ export const setMegaEvolution: Card[] = [
   // new RareCandyM1S(),
   new BossOrdersMEG(),
   new EnergySwitchPKMEG(),
+  new PokemonCenterLadyMEG(),
   new RareCandyMEG(),
   new SwitchMEG(),
   new UltraBallMEG(),

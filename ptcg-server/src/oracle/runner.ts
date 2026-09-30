@@ -313,6 +313,26 @@ export class GameRunner {
       this.botOffList++;
     }
     const passIdx = options.findIndex(o => o.desc.a === 'pass');
+    if (this.policyOf(playerIdx) === 'heur') {
+      // Cheap "sensible" play without look-ahead (bot games are 5-50x
+      // slower): develop the board first (play cards, abilities, stadium),
+      // then attack, rarely retreat or pass early.
+      const idx = (k: string[]) => options.map((o, i) => (k.includes(o.desc.a) ? i : -1)).filter(i => i !== -1);
+      const develop = idx(['play', 'ability', 'trainerAbility', 'energyAbility', 'stadium']);
+      const attack = idx(['attack']);
+      const retreat = idx(['retreat']);
+      const r = this.policyRng.float();
+      if (develop.length > 0 && r < 0.8) {
+        return develop[this.policyRng.below(develop.length)];
+      }
+      if (attack.length > 0 && r < 0.97) {
+        return attack[this.policyRng.below(attack.length)];
+      }
+      if (retreat.length > 0 && r < 0.99) {
+        return retreat[this.policyRng.below(retreat.length)];
+      }
+      return passIdx !== -1 ? passIdx : this.policyRng.below(options.length);
+    }
     const others = options.map((_, i) => i).filter(i => i !== passIdx);
     if (others.length === 0 || (passIdx !== -1 && this.policyRng.float() < 0.08)) {
       return passIdx;
