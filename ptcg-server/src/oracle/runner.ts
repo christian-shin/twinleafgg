@@ -31,6 +31,7 @@ import {
   allSimpleTactics, allPromptResolvers, defaultStateScores, defaultArbiterOptions,
 } from '../simple-bot/simple-bot-definitions';
 import { loadAllCards } from './load-cards';
+import { oracleCopyAttackSessions } from '../game/store/prefabs/copy-attack-delegation';
 
 export const PLAYER_IDS = [1, 2];
 
@@ -196,10 +197,10 @@ export class GameRunner {
   /** Legal turn options for the active player, by trial dispatch. */
   public legalTurnOptions(player: Player): TurnOption[] {
     const store = this.store;
-    const candidates = withRollback([store], () => Chance.sim(() => turnCandidates(store, store.state, player)));
+    const candidates = withRollback([store, oracleCopyAttackSessions()], () => Chance.sim(() => turnCandidates(store, store.state, player)));
     const seen = new Set<string>();
     const legal: TurnOption[] = [];
-    const snap = new Snapshot([store]);
+    const snap = new Snapshot([store, oracleCopyAttackSessions()]);
     for (const cand of candidates) {
       const key = stableStringify(cand.desc);
       if (seen.has(key)) {
@@ -208,7 +209,18 @@ export class GameRunner {
       seen.add(key);
       let ok = true;
       try {
-        Chance.sim(() => store.dispatch(cand.action));
+        Chance.sim(() => {
+          store.dispatch(cand.action);
+          // Resolve info prompts (e.g. an ability's animation wait) so checks
+          // that run after them count toward legality; stop at chance/decisions.
+          for (let guard = 0; guard < 100; guard++) {
+            const next = store.state.prompts.find(p => p.result === undefined && classifyPrompt(p) !== 'decision');
+            if (next === undefined || classifyPrompt(next) !== 'info' || store.state.phase === GamePhase.FINISHED) {
+              break;
+            }
+            store.dispatch(new ResolvePromptAction(next.id, infoAnswer(next)));
+          }
+        });
       } catch {
         ok = false;
       }
@@ -238,7 +250,7 @@ export class GameRunner {
 
   private botAction(playerIdx: number): any {
     const store = this.store;
-    return withRollback([store], () => Chance.sim(() => {
+    return withRollback([store, oracleCopyAttackSessions()], () => Chance.sim(() => {
       try {
         return this.bots[playerIdx].decodeNextAction(store.state);
       } catch {

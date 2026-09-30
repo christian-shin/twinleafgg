@@ -96,6 +96,23 @@ function main(argv: string[]): void {
     process.exitCode = bad > 0 ? 1 : 0;
     return;
   }
+  if (cmd === 'regen') {
+    // Re-run traces from their headers (seed, decks, policies) in place.
+    for (const file of argv.slice(1)) {
+      const old: Trace = JSON.parse(fs.readFileSync(file, 'utf8'));
+      let trace: Trace;
+      try {
+        trace = playOnce(old.header.decks, old.header.seed, old.header.policy as [PolicyName, PolicyName]);
+      } catch (e: any) {
+        console.log(`${file} crashed: ${e?.message}`);
+        continue;
+      }
+      (trace.header as any).deckNames = (old.header as any).deckNames;
+      fs.writeFileSync(file, JSON.stringify(trace));
+      console.log(`${file}: ${summary(trace)}`);
+    }
+    return;
+  }
   if (cmd === 'state') {
     // Replay a trace's answers and print the canonical state after step k (-1 = start).
     const trace: Trace = JSON.parse(fs.readFileSync(argv[1], 'utf8'));

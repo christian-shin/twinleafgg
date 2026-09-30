@@ -117,6 +117,11 @@ interface CopyAttackSession {
 
 const copyAttackSessions: CopyAttackSession[] = [];
 
+/** Oracle: module state that trial-dispatch rollback must snapshot. */
+export function oracleCopyAttackSessions(): unknown[] {
+  return copyAttackSessions;
+}
+
 const DEFAULT_END_TURN_BUDGET = 4;
 
 function isCopycatInPlay(state: State, copycatCard: PokemonCard): boolean {
