@@ -1,3 +1,4 @@
+import { Chance } from '../../../game/core/chance';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
@@ -35,7 +36,7 @@ export class Snorunt extends PokemonCard {
       const opponent = StateUtils.getOpponent(state, player);
 
       if (opponent.hand.cards.length > 0) {
-        const randomIndex = Math.floor(Math.random() * opponent.hand.cards.length);
+        const randomIndex = Chance.index(opponent.hand.cards.length);
         const randomCard = opponent.hand.cards[randomIndex];
         SHOW_CARDS_TO_PLAYER(store, state, player, [randomCard]);
         MOVE_CARD_TO(state, randomCard, opponent.deck);

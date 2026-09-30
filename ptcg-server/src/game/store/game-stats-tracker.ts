@@ -1,3 +1,4 @@
+const GameStatsTrackerUid = { n: 0 };
 import { Card } from './card/card';
 import { PokemonCard } from './card/pokemon-card';
 import { PokemonCardList } from './state/pokemon-card-list';
@@ -175,7 +176,7 @@ export class GameStatsTracker {
    */
   private static assignUniqueIdToCardList(pokemonCardList: any): string {
     if (!pokemonCardList.__uniqueId) {
-      pokemonCardList.__uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      pokemonCardList.__uniqueId = `uid_${++GameStatsTrackerUid.n}`;
     }
     return pokemonCardList.__uniqueId;
   }

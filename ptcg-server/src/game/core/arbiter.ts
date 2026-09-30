@@ -1,3 +1,4 @@
+import { Chance } from './chance';
 import { CardList } from '../store/state/card-list';
 import { CoinFlipPrompt } from '../store/prompts/coin-flip-prompt';
 import { Prompt } from '../store/prompts/prompt';
@@ -26,7 +27,7 @@ export class Arbiter {
     }
 
     if (prompt instanceof CoinFlipPrompt) {
-      const result = Math.round(Math.random()) === 0;
+      const result = Chance.coin();
       const message = result
         ? GameLog.LOG_PLAYER_FLIPS_HEADS
         : GameLog.LOG_PLAYER_FLIPS_TAILS;
@@ -36,20 +37,7 @@ export class Arbiter {
   }
 
   private shuffle(cards: CardList): number[] {
-    const len = cards.cards.length;
-    const order: number[] = [];
-    // Initialize the order array with indices 0 to len - 1
-    for (let i = 0; i < len; i++) {
-      order.push(i);
-    }
-    // Fisher-Yates Shuffle
-    for (let i = len - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = order[i];
-      order[i] = order[j];
-      order[j] = tmp;
-    }
-    return order;
+    return Chance.shuffle(cards.cards.length);
   }
 
   public cleanup(): void {

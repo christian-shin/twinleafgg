@@ -1,3 +1,4 @@
+import { Chance } from '../../../game/core/chance';
 import { PokemonCard, Stage, CardType, StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
@@ -37,7 +38,7 @@ export class Furfrou extends PokemonCard {
 
       // Discard random cards until hand size is 5
       while (opponent.hand.cards.length > 5) {
-        const randomIndex = Math.floor(Math.random() * opponent.hand.cards.length);
+        const randomIndex = Chance.index(opponent.hand.cards.length);
         const randomCard = opponent.hand.cards[randomIndex];
         MOVE_CARDS(store, state, opponent.hand, opponent.discard, { cards: [randomCard], sourceCard: this });
       }

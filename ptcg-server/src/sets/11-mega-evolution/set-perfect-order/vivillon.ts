@@ -1,3 +1,4 @@
+import { Chance } from '../../../game/core/chance';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, GameError, GameMessage, StateUtils, CardList, PowerType, Player } from '../../../game';
@@ -81,9 +82,6 @@ export class Vivillon extends PokemonCard {
     const hand = player.hand.cards;
 
     // Shuffle the hand using the Fisher-Yates shuffle algorithm
-    for (let i = hand.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [hand[i], hand[j]] = [hand[j], hand[i]];
-    }
+    { const __perm = Chance.shuffle(hand.length); const __copy = hand.slice(); for (let i = 0; i < __perm.length; i++) { hand[i] = __copy[__perm[i]]; } }
   }
 }

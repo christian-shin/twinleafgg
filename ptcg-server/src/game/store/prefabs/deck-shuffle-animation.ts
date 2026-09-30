@@ -1,3 +1,4 @@
+import { Chance } from '../../core/chance';
 import { StoreLike } from '../store-like';
 
 /** Keep in sync with ptcg-play-react BOARD_DECK_SHUFFLE_SERVER_WAIT_MS / SHUFFLE_DURATION. */
@@ -28,15 +29,5 @@ export function emitDeckShuffleAnimation(store: StoreLike, playerId: number): vo
 
 /** Fisher–Yates permutation of indices `[0 .. length)`. */
 export function fisherYatesOrder(length: number): number[] {
-  const order: number[] = [];
-  for (let i = 0; i < length; i++) {
-    order.push(i);
-  }
-  for (let i = length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = order[i];
-    order[i] = order[j];
-    order[j] = tmp;
-  }
-  return order;
+  return Chance.shuffle(length);
 }

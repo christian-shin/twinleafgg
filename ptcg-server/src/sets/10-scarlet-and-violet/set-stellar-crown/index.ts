@@ -1,3 +1,4 @@
+import { Dipplin as DipplinSCR13 } from './dipplin';
 import {
   VenusaurexSCR,
   BlastoiseexSCR,
@@ -191,4 +192,5 @@ export const setStellarCrown: Card[] = [
   new YamaskSCR(),
   new Crabominable2SCR(),
   new Gulpin2SCR(),
+  new DipplinSCR13(),
 ];

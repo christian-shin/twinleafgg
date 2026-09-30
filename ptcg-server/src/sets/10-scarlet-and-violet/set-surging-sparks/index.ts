@@ -1,3 +1,4 @@
+import { Feebas as FeebasSSP41 } from './feebas';
 import { Card } from '../../../game/store/card/card';
 import { Annihilape } from './annihilape';
 import { AlolanDiglett } from './alolan-diglett';
@@ -273,4 +274,5 @@ export const setSurgingSparks: Card[] = [
   new CounterGainUR(),
   new NightStretcherUR(),
   new JetEnergyUR(),
+  new FeebasSSP41(),
 ];

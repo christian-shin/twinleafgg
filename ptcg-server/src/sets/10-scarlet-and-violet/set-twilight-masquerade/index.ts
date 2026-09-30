@@ -1,3 +1,4 @@
+import { ChiYu as ChiYuTWM39 } from './chi-yu';
 import { Card } from '../../../game/store/card/card';
 import { Abra } from './abra';
 import { Aggron } from './aggron';
@@ -261,4 +262,5 @@ export const setTwilightMasquerade: Card[] = [
   new EnhancedHammerHR(),
   new RescueBoardHR(),
   new LuminousEnergyHR(),
+  new ChiYuTWM39(),
 ];

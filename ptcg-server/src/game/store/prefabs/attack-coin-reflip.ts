@@ -1,3 +1,4 @@
+import { Chance } from '../../core/chance';
 import { GameLog, GameMessage } from '../../game-message';
 import { CoinFlipEffect, CoinFlipSequenceEffect } from '../effects/play-card-effects';
 import { EndTurnEffect } from '../effects/game-phase-effects';
@@ -95,7 +96,7 @@ export function CLEAR_COIN_REFLIP_AGAIN_AT_END_OF_TURN(effect: Effect): void {
 
 /** Default coin flip resolution used by gameReducer when no card intercepts. */
 export function RESOLVE_COIN_FLIP_EFFECT(store: StoreLike, state: State, effect: CoinFlipEffect): State {
-  const result = Math.random() < 0.5;
+  const result = Chance.coin();
   effect.result = result;
   const player = effect.player;
 
@@ -173,7 +174,7 @@ function resolveAttackCoinFlipWithReflipOption(
   config: AttackCoinReflipConfig,
 ): State {
   effect.preventDefault = true;
-  const result = Math.random() < 0.5;
+  const result = Chance.coin();
   effect.result = result;
   const player = effect.player;
 

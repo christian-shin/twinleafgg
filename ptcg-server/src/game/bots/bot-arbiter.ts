@@ -1,3 +1,4 @@
+import { Chance } from '../core/chance';
 import { CardList } from '../store/state/card-list';
 import { CoinFlipPrompt } from '../store/prompts/coin-flip-prompt';
 import { Prompt } from '../store/prompts/prompt';
@@ -66,7 +67,7 @@ export class BotArbiter {
       let result: boolean = false;
       switch (this.options.flipMode) {
         case BotFlipMode.RANDOM:
-          result = Math.round(Math.random()) === 0;
+          result = Chance.coin();
           return new ResolvePromptAction(prompt.id, result);
         case BotFlipMode.ALL_TAILS:
           // Every 10th coin is opposite to avoid infinite loops.
@@ -88,7 +89,7 @@ export class BotArbiter {
     }
 
     for (let i = 0; i < len; i++) {
-      const position = Math.min(len - 1, Math.round(Math.random() * len));
+      const position = Chance.index(len);
       const tmp = order[i];
       order[i] = order[position];
       order[position] = tmp;

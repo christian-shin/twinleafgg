@@ -1,3 +1,4 @@
+import { Chance } from '../../../game/core/chance';
 import { Card, GameError, GameMessage, Player, State, StoreLike, TrainerCard, TrainerType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
@@ -80,9 +81,6 @@ export class RedeemableTicket extends TrainerCard {
   }
 
   private shuffleArray<T>(array: T[]): void {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
+    { const __perm = Chance.shuffle(array.length); const __copy = array.slice(); for (let i = 0; i < __perm.length; i++) { array[i] = __copy[__perm[i]]; } }
   }
 }

@@ -1,4 +1,6 @@
 import { Action } from './actions/action';
+import { Chance } from '../core/chance';
+import { OracleHooks } from '../core/oracle-hooks';
 import { AbortGameAction } from './actions/abort-game-action';
 import { AppendLogAction } from './actions/append-log-action';
 import { ConcedeAction } from './actions/concede-action';
@@ -138,6 +140,9 @@ export class Store implements StoreLike {
   }
 
   public reduceEffect(state: State, effect: Effect): State {
+    if (OracleHooks.onEffect !== undefined) {
+      OracleHooks.onEffect(effect);
+    }
     // Track Active ability-lock activation order before card handlers run.
     if (effect instanceof MovedToActiveEffect) {
       STAMP_ABILITY_LOCK_ACTIVATION(state, effect.player.active, effect.pokemonCard);
@@ -347,7 +352,7 @@ export class Store implements StoreLike {
   }
 
   private reduce(state: State, action: Action): State {
-    const stateBackup = deepClone(state, [Card]);
+    const stateBackup = OracleHooks.noBackup ? state : deepClone(state, [Card]);
     this.promptItems.length = 0;
 
     try {
@@ -397,6 +402,7 @@ export class Store implements StoreLike {
 
     // Set flag to prevent nested calls
     this.calculatingPlayability = true;
+    Chance.enterSim();
 
     // Track prompts before playability check to clean up any created during checks
     const promptItemsBefore = this.promptItems.length;
@@ -459,6 +465,7 @@ export class Store implements StoreLike {
       }
       // Always clear the flag, even if an error occurred
       this.calculatingPlayability = false;
+      Chance.exitSim();
     }
 
     return state;
@@ -534,6 +541,9 @@ export class Store implements StoreLike {
 
     const alreadyBlocked = effectWasBlocked(effect);
 
+    if (OracleHooks.beforeCardReduce !== undefined) {
+      OracleHooks.beforeCardReduce(card, effect);
+    }
     try {
       // Only try override for TrainerCard (for now)
       if ((card as any).trainerType !== undefined) {
@@ -548,6 +558,9 @@ export class Store implements StoreLike {
       return card.reduceEffect(store, state, effect);
     } finally {
       stampEffectBlocker(effect, card, alreadyBlocked);
+      if (OracleHooks.afterCardReduce !== undefined) {
+        OracleHooks.afterCardReduce(card, effect);
+      }
       if (resolvingThisTrainer) {
         this.resolvingTrainer = previous;
       }

@@ -1,3 +1,4 @@
+import { Chance } from '../../../game/core/chance';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, GameError, GameMessage, Player } from '../../../game';
@@ -50,9 +51,6 @@ export class MeddlingMemo extends TrainerCard {
     const hand = player.hand.cards;
 
     // Shuffle the hand using the Fisher-Yates shuffle algorithm
-    for (let i = hand.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [hand[i], hand[j]] = [hand[j], hand[i]];
-    }
+    { const __perm = Chance.shuffle(hand.length); const __copy = hand.slice(); for (let i = 0; i < __perm.length; i++) { hand[i] = __copy[__perm[i]]; } }
   }
 }

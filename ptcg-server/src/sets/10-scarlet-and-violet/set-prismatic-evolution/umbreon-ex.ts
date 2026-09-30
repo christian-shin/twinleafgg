@@ -1,3 +1,4 @@
+import { Chance } from '../../../game/core/chance';
 import {
   PokemonCard,
   CardTag,
@@ -95,12 +96,7 @@ export class Umbreonex extends PokemonCard {
   shuffleFaceDownPrizeCards(array: CardList[]): CardList[] {
     const faceDownPrizeCards = array.filter((p) => p.isSecret && p.cards.length > 0);
 
-    for (let i = faceDownPrizeCards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = faceDownPrizeCards[i];
-      faceDownPrizeCards[i] = faceDownPrizeCards[j];
-      faceDownPrizeCards[j] = temp;
-    }
+    { const __perm = Chance.shuffle(faceDownPrizeCards.length); const __copy = faceDownPrizeCards.slice(); for (let i = 0; i < __perm.length; i++) { faceDownPrizeCards[i] = __copy[__perm[i]]; } }
 
     const prizePositions = [];
 
