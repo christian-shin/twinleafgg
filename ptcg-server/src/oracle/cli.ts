@@ -96,6 +96,20 @@ function main(argv: string[]): void {
     process.exitCode = bad > 0 ? 1 : 0;
     return;
   }
+  if (cmd === 'state') {
+    // Replay a trace's answers and print the canonical state after step k (-1 = start).
+    const trace: Trace = JSON.parse(fs.readFileSync(argv[1], 'utf8'));
+    const k = parseInt(argv[2], 10);
+    const answers = trace.steps.slice(0, k + 1).map(s => s.a);
+    const runner = new GameRunner({
+      seed: trace.header.seed, decks: trace.header.decks, policy: trace.header.policy,
+      answers, keepStates: true, effects: true, maxSteps: k + 1,
+    });
+    const t = runner.run();
+    const out = k < 0 ? { s: t.start.s, e: t.start.e } : { s: t.steps[k]?.s, e: t.steps[k]?.e, d: t.steps[k]?.d };
+    process.stdout.write(JSON.stringify(out, null, 1));
+    return;
+  }
   if (cmd === 'corpus') {
     const spec = JSON.parse(fs.readFileSync(argv[1], 'utf8'));
     const outDir = argv[2];
@@ -118,6 +132,12 @@ function main(argv: string[]): void {
         continue;
       }
       (trace.header as any).deckNames = [a.name, b.name];
+      if (process.env.NODE_V8_COVERAGE) {
+        // One coverage snapshot per game: per-trace branch coverage (PLAN.md 4.5).
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require('v8').takeCoverage();
+        fs.writeFileSync(path.join(process.env.NODE_V8_COVERAGE, `game-${g}.marker`), '');
+      }
       fs.writeFileSync(path.join(outDir, `g${String(g).padStart(6, '0')}.json`), JSON.stringify(trace));
       console.log(`game ${g} ${a.name} vs ${b.name} ${pol}: ${summary(trace)} ${Date.now() - t0}ms`);
     }

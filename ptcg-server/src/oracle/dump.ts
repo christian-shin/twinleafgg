@@ -40,21 +40,28 @@ export function dumpCard(card: Card): any {
     out[key] = data((card as any)[key], 0);
   }
   const methods: string[] = [];
+  const chain: { cls: string, own: string[] }[] = [];
   let proto = Object.getPrototypeOf(card);
   const base = new Set(['constructor']);
   while (proto && proto.constructor && proto.constructor.name !== 'Object') {
-    const own = proto.constructor.name;
-    if (own === 'Card' || own === 'PokemonCard' || own === 'TrainerCard' || own === 'EnergyCard') {
+    const cls = proto.constructor.name;
+    if (cls === 'Card' || cls === 'PokemonCard' || cls === 'TrainerCard' || cls === 'EnergyCard') {
       break;
     }
+    const own: string[] = [];
     for (const name of Object.getOwnPropertyNames(proto)) {
+      if (!base.has(name)) {
+        own.push(name);
+      }
       if (!base.has(name) && !methods.includes(name)) {
         methods.push(name);
       }
     }
+    chain.push({ cls, own });
     proto = Object.getPrototypeOf(proto);
   }
   out.$methods = methods;
+  out.$chain = chain;
   out.$base = Object.getPrototypeOf(Object.getPrototypeOf(card))?.constructor?.name;
   return out;
 }
