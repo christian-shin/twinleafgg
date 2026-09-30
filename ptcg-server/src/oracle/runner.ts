@@ -209,7 +209,7 @@ export class GameRunner {
       seen.add(key);
       let ok = true;
       try {
-        Chance.sim(() => {
+        Chance.trial(() => {
           store.dispatch(cand.action);
           // Resolve info prompts (e.g. an ability's animation wait) so checks
           // that run after them count toward legality; stop at chance/decisions.

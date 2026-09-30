@@ -101,6 +101,25 @@ export class RngSource implements ChanceSource {
   }
 }
 
+/** Fixed outcomes for legality trials: tails, index 0, identity shuffle. */
+export class FixedSource implements ChanceSource {
+  public coin(): boolean {
+    return false;
+  }
+
+  public shuffle(n: number): number[] {
+    const order: number[] = [];
+    for (let i = 0; i < n; i++) {
+      order.push(i);
+    }
+    return order;
+  }
+
+  public index(_n: number): number {
+    return 0;
+  }
+}
+
 export class Chance {
   private static source: ChanceSource = new RngSource(new Rng(0));
   private static simDepth = 0;
@@ -128,6 +147,24 @@ export class Chance {
       return fn();
     } finally {
       Chance.simDepth--;
+    }
+  }
+
+  /**
+   * Legality trials: like `sim`, but every draw is a fixed outcome
+   * (`FixedSource`), so whether an option is legal never depends on chance
+   * (and the Rust engine, which cannot see this module's simulation stream,
+   * draws the same outcomes: `Rng::zero`).
+   */
+  public static trial<T>(fn: () => T): T {
+    const saved = Chance.simSource;
+    Chance.simSource = new FixedSource();
+    Chance.simDepth++;
+    try {
+      return fn();
+    } finally {
+      Chance.simDepth--;
+      Chance.simSource = saved;
     }
   }
 
