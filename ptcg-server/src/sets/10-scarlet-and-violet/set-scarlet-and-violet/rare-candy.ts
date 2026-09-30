@@ -18,7 +18,26 @@ import { EvolveEffect } from '../../../game/store/effects/game-effects';
 import { Player } from '../../../game';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
+// The card database is fixed once loaded, so the Stage 1 list and the
+// (Basic name, Stage 1 name) pairs it implies are computed once. (Scanning all
+// ~14k cards on every legality check made games with Rare Candy 10x slower.)
+let stage1Cache: PokemonCard[] | undefined;
+let pairCache: Set<string> | undefined;
+
+function allStage1(): PokemonCard[] {
+  if (stage1Cache === undefined) {
+    stage1Cache = CardManager.getInstance().getAllCards().filter(c =>
+      c instanceof PokemonCard && c.stage === Stage.STAGE_1
+    ) as PokemonCard[];
+    pairCache = new Set(stage1Cache.map(c => c.evolvesFrom + '\u0000' + c.name));
+  }
+  return stage1Cache;
+}
+
 function isMatchingStage2(stage1: PokemonCard[], basic: PokemonCard, stage2: PokemonCard): boolean {
+  if (stage1 === stage1Cache && pairCache !== undefined) {
+    return pairCache.has(basic.name + '\u0000' + stage2.evolvesFrom);
+  }
   for (const card of stage1) {
     if (card.name === stage2.evolvesFrom && basic.name === card.evolvesFrom) {
       return true;
@@ -35,9 +54,7 @@ function canUseRareCandy(store: StoreLike, state: State, player: Player): boolea
     return false;
   }
 
-  const stage1 = CardManager.getInstance().getAllCards().filter(c =>
-    c instanceof PokemonCard && c.stage === Stage.STAGE_1
-  ) as PokemonCard[];
+  const stage1 = allStage1();
 
   let hasBasicPokemon = false;
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card) => {
@@ -75,9 +92,7 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
   }) as PokemonCard[];
 
   // Look through all known cards to find out if it's a valid Stage 2
-  const stage1 = CardManager.getInstance().getAllCards().filter(c => {
-    return c instanceof PokemonCard && c.stage === Stage.STAGE_1;
-  }) as PokemonCard[];
+  const stage1 = allStage1();
 
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
     if (card.stage === Stage.BASIC && stage2.some(s => isMatchingStage2(stage1, card, s))) {
