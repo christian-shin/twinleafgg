@@ -31,6 +31,7 @@ import {
   allSimpleTactics, allPromptResolvers, defaultStateScores, defaultArbiterOptions,
 } from '../simple-bot/simple-bot-definitions';
 import { loadAllCards } from './load-cards';
+import { Scenario, applyScenario, scenarioTurn } from './scenario';
 import { oracleCopyAttackSessions } from '../game/store/prefabs/copy-attack-delegation';
 
 export const PLAYER_IDS = [1, 2];
@@ -49,6 +50,8 @@ export interface RunOptions {
   keepStates?: boolean;
   /** Replay these answers instead of consulting a policy. */
   answers?: any[];
+  /** Board edits applied at the first turn decision on or after `scenario.turn` (scenario.ts). */
+  scenario?: Scenario;
 }
 
 export interface TraceStep {
@@ -74,10 +77,13 @@ export interface Trace {
     decks: [string[], string[]];
     policy: [string, string];
     twinleaf: string;
+    scenario?: Scenario;
   };
   /** Chance consumed and hash reached before the first decision. */
   start: { c: ChanceEvent[]; h: string; e?: string[]; s?: any };
   steps: TraceStep[];
+  /** Where the scenario edits were applied: before step `step`, giving hash `h`. */
+  scenario?: { step: number; h: string };
   result: {
     status: 'finished' | 'cap' | 'stuck' | 'error';
     winner: number;
@@ -348,6 +354,7 @@ export class GameRunner {
     const maxTurns = opts.maxTurns ?? 120;
     let status: Trace['result']['status'] = 'finished';
     let message: string | undefined;
+    let scenarioAt: Trace['scenario'];
 
     store.dispatch(new AddPlayerAction(PLAYER_IDS[0], 'p1', opts.decks[0]));
     store.dispatch(new AddPlayerAction(PLAYER_IDS[1], 'p2', opts.decks[1]));
@@ -382,6 +389,10 @@ export class GameRunner {
           store.dispatch(new ResolvePromptAction(prompt.id, decoded));
           step = { i: steps.length, p, d, a: raw, c: [], h: '' };
         } else if (state.phase === GamePhase.PLAYER_TURN) {
+          if (opts.scenario && scenarioAt === undefined && state.turn >= scenarioTurn(opts.scenario)) {
+            applyScenario(store, state, opts.scenario);
+            scenarioAt = { step: steps.length, h: this.canonical().h };
+          }
           const player = state.players[state.activePlayer];
           const options = this.legalTurnOptions(player);
           if (options.length === 0) {
@@ -420,9 +431,11 @@ export class GameRunner {
         decks: opts.decks,
         policy: [opts.policy[0], opts.policy[1]],
         twinleaf: TWINLEAF_COMMIT,
+        scenario: opts.scenario,
       },
       start,
       steps,
+      scenario: scenarioAt,
       result: {
         status,
         winner: this.state.winner,

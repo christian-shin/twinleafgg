@@ -174,7 +174,7 @@ function main(argv: string[]): void {
       const t0 = Date.now();
       let trace: Trace;
       try {
-        trace = playOnce([a.cards, b.cards], g, policies(pol));
+        trace = playOnce([a.cards, b.cards], g, policies(pol), spec.scenario ? { scenario: spec.scenario } : {});
       } catch (e: any) {
         console.log(`game ${g} crashed: ${e?.message}`);
         continue;
