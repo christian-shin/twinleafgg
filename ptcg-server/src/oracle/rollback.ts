@@ -15,29 +15,37 @@ type Entry =
   | { kind: 'set'; target: Set<any>; values: any[] };
 
 /**
- * Arrays that never change in place once a game is set up, and the objects
- * they hold: a card's attacks (with their cost arrays), powers, retreat,
- * weakness, resistance and evolution / archetype metadata. Twinleaf reassigns
- * some of these properties but never edits them in place (effects copy costs;
- * `tags` is edited in place, so it is not listed). Snapshots treat them as
- * leaves: the owning card's own properties are still recorded, so a
- * reassignment is undone.
+ * Arrays that never change in place once a game is set up: a card's retreat,
+ * weakness, resistance and evolution / archetype metadata, and the cost
+ * arrays of its attacks and powers. Twinleaf reassigns some of these but
+ * never edits them in place (effects copy costs; `tags` is edited in place,
+ * so it is not listed). Snapshots treat them as leaves: the owning object's
+ * own properties are still recorded, so a reassignment is undone. The
+ * attack / power objects themselves are recorded, because cards set their
+ * fields (Goldeen `attacks[0].barrage = true`, Iron Jugulis
+ * `attacks[1].cost = [...]`).
  */
 const IMMUTABLE = new WeakSet<object>();
-const STATIC_ARRAYS = ['attacks', 'powers', 'retreat', 'weakness', 'resistance',
+const STATIC_ARRAYS = ['retreat', 'weakness', 'resistance',
   'archetype', 'evolvesTo', 'evolvesToStage', 'evolvesFromBase', 'cardTag'];
 
 function markCardStatics(card: any): void {
   for (const key of STATIC_ARRAYS) {
     const arr = card[key];
-    if (!Array.isArray(arr) || IMMUTABLE.has(arr)) {
-      continue;
+    if (Array.isArray(arr) && !IMMUTABLE.has(arr)) {
+      IMMUTABLE.add(arr);
+      for (const item of arr) {
+        if (item !== null && typeof item === 'object') {
+          IMMUTABLE.add(item);
+        }
+      }
     }
-    IMMUTABLE.add(arr);
-    for (const item of arr) {
-      if (item !== null && typeof item === 'object') {
-        IMMUTABLE.add(item);
-        if (Array.isArray(item.cost)) {
+  }
+  for (const key of ['attacks', 'powers']) {
+    const arr = card[key];
+    if (Array.isArray(arr)) {
+      for (const item of arr) {
+        if (item !== null && typeof item === 'object' && Array.isArray(item.cost)) {
           IMMUTABLE.add(item.cost);
         }
       }
