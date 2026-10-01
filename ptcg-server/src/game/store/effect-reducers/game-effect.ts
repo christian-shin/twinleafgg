@@ -112,7 +112,7 @@ function applyWeaknessAndResistance(
  * Fully reset a board slot after its Pokémon leave play.
  * Attachments must already have been moved off the slot before calling this.
  */
-function resetEmptyPokemonSlot(slot: PokemonCardList): void {
+export function resetEmptyPokemonSlot(slot: PokemonCardList): void {
   slot.removeAttackEffects();
   slot.clearEffects();
   slot.damage = 0;

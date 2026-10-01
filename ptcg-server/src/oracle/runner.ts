@@ -117,6 +117,8 @@ export class GameRunner {
   private effectLog: string[] = [];
   private botOffList = 0;
   private answerCursor = 0;
+  /** Scripted decisions from a scenario, used before the policy. */
+  private script: any[] = [];
 
   constructor(public opts: RunOptions) {
     loadAllCards();
@@ -274,6 +276,9 @@ export class GameRunner {
   }
 
   private decidePrompt(prompt: Prompt<any>, playerIdx: number): any {
+    if (this.script.length > 0) {
+      return this.script.shift();
+    }
     if (this.opts.answers) {
       return this.nextAnswer();
     }
@@ -296,6 +301,14 @@ export class GameRunner {
   }
 
   private decideTurn(options: TurnOption[], player: Player, playerIdx: number): number {
+    if (this.script.length > 0) {
+      const want = stableStringify(this.script.shift());
+      const i = options.findIndex(o => stableStringify(o.desc) === want);
+      if (i === -1) {
+        throw new Error('scenario: scripted answer not among options: ' + want);
+      }
+      return i;
+    }
     if (this.opts.answers) {
       const want = stableStringify(this.nextAnswer());
       const i = options.findIndex(o => stableStringify(o.desc) === want);
@@ -391,6 +404,7 @@ export class GameRunner {
         } else if (state.phase === GamePhase.PLAYER_TURN) {
           if (opts.scenario && scenarioAt === undefined && state.turn >= scenarioTurn(opts.scenario)) {
             applyScenario(store, state, opts.scenario);
+            this.script = (opts.scenario.answers ?? []).slice();
             scenarioAt = { step: steps.length, h: this.canonical().h };
           }
           const player = state.players[state.activePlayer];

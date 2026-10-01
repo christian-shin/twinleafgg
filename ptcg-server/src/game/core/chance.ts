@@ -127,6 +127,8 @@ export class Chance {
   public static events: ChanceEvent[] = [];
   /** Number of `Math.random` calls that bypassed this module (real stream only). */
   public static strayCalls = 0;
+  /** Coin results forced by an oracle scenario, used before the real stream. */
+  private static forced: boolean[] = [];
 
   public static reset(seed: number, source?: ChanceSource): void {
     Chance.source = source ?? new RngSource(new Rng(seed));
@@ -134,6 +136,12 @@ export class Chance {
     Chance.simDepth = 0;
     Chance.events = [];
     Chance.strayCalls = 0;
+    Chance.forced = [];
+  }
+
+  /** Force the next real coin flips (scenarios; simulation and trials are unaffected). */
+  public static force(coins: boolean[]): void {
+    Chance.forced = coins.slice();
   }
 
   public static get inSim(): boolean {
@@ -180,7 +188,7 @@ export class Chance {
     if (Chance.simDepth > 0) {
       return Chance.simSource.coin();
     }
-    const v = Chance.source.coin();
+    const v = Chance.forced.length > 0 ? Chance.forced.shift()! : Chance.source.coin();
     Chance.events.push({ k: 'coin', v });
     return v;
   }
