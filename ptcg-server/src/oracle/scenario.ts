@@ -37,6 +37,8 @@
  *   active_played: "this_turn" | "earlier" (default "earlier")
  *   bench: [{card: name | [names], energy, tool, damage, conditions, played}]
  *   supporter_played / energy_attached / retreated: true   this turn's flags
+ *   prizes_left: N               after every other edit, Prizes N..5 go to the
+ *                                bottom of the deck (N Prize cards left)
  *
  * Every card is taken from the deck (first match from the top), else the
  * hand; a missing card is an error. Only the engines' own primitives are used
@@ -82,6 +84,7 @@ export interface ScenarioSide {
   supporter_played?: boolean;
   energy_attached?: boolean;
   retreated?: boolean;
+  prizes_left?: number;
 }
 
 export interface Scenario {
@@ -258,6 +261,14 @@ function applySide(store: StoreLike, state: State, player: Player, side: Scenari
       if (prize.cards.length === 0) {
         player.deck.moveTo(prize, 1);
       }
+    }
+  }
+  if (side.prizes_left !== undefined) {
+    if (side.prizes_left < 0 || side.prizes_left > player.prizes.length) {
+      throw new Error('scenario: prizes_left out of range');
+    }
+    for (let i = side.prizes_left; i < player.prizes.length; i++) {
+      player.prizes[i].moveTo(player.deck);
     }
   }
 }
