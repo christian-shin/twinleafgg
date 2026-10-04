@@ -3,6 +3,7 @@ import { EnergyType, SuperType, TrainerType } from '../../../game/store/card/car
 import { StoreLike, State, StateUtils, GamePhase, CardList, AttachEnergyPrompt, GameMessage, PlayerType, SlotType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
+import { CheckRetreatCostEffect } from '../../../game/store/effects/check-effects';
 import { IS_TOOL_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class HeavyBaton extends TrainerCard {
@@ -49,9 +50,19 @@ export class HeavyBaton extends TrainerCard {
         return state;
       }
 
-      // Check if the Pokemon has a retreat cost of 4 or higher
+      // Only the Active Spot, and only when Knocked Out by damage from an attack
+      if (player.active !== active || !player.marker.hasMarker(player.DAMAGE_DEALT_MARKER)) {
+        return state;
+      }
+
+      // Check if the Pokemon has a retreat cost of exactly 4
       const pokemonCard = active.getPokemonCard();
-      if (!pokemonCard || pokemonCard.retreat.length < 4) {
+      if (!pokemonCard) {
+        return state;
+      }
+      const checkRetreatCost = new CheckRetreatCostEffect(player);
+      store.reduceEffect(state, checkRetreatCost);
+      if (checkRetreatCost.cost.length !== 4) {
         return state;
       }
 
@@ -76,7 +87,7 @@ export class HeavyBaton extends TrainerCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-        { allowCancel: true, min: 0, max: 3, sameTarget: true }
+        { allowCancel: true, min: 0, max: 3 }
       ), transfers => {
         transfers = transfers || [];
         active.marker.removeMarker(this.HEAVY_BATON_MARKER);

@@ -23,11 +23,12 @@ export class TransformationTome extends TrainerCard {
     if (second === undefined) {
       return false;
     }
-    const hasBasicInPlay =
-      player.active.cards.some(c => c instanceof PokemonCard && c.stage === Stage.BASIC) ||
-      player.bench.some(b =>
-        b.cards.some(c => c instanceof PokemonCard && c.stage === Stage.BASIC)
-      );
+    let hasBasicInPlay = false;
+    player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
+      if (card.stage === Stage.BASIC) {
+        hasBasicInPlay = true;
+      }
+    });
     const hasBasicInDiscard = player.discard.cards.some(
       c => c instanceof PokemonCard && c.stage === Stage.BASIC
     );
@@ -45,13 +46,12 @@ export class TransformationTome extends TrainerCard {
       if (second === undefined) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
-      const hasBasicInPlay =
-        player.active.cards.some(
-          (c) => c instanceof PokemonCard && (c as PokemonCard).stage === Stage.BASIC,
-        ) ||
-        player.bench.some((b) =>
-          b.cards.some((c) => c instanceof PokemonCard && (c as PokemonCard).stage === Stage.BASIC),
-        );
+      let hasBasicInPlay = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
+        if (card.stage === Stage.BASIC) {
+          hasBasicInPlay = true;
+        }
+      });
       const hasBasicInDiscard = player.discard.cards.some(
         (c) => c instanceof PokemonCard && (c as PokemonCard).stage === Stage.BASIC,
       );

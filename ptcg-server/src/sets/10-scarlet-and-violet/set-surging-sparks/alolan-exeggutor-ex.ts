@@ -98,9 +98,9 @@ export class AlolanExeggutorex extends PokemonCard {
       const opponentBench = opponent.bench.filter(
         (card) => card.getPokemonCard()?.stage === Stage.BASIC,
       );
-      opponentBench.forEach((card) => {
-        if (!card.isStage(Stage.BASIC)) {
-          blocked.push();
+      opponent.bench.forEach((card, index) => {
+        if (card.cards.length > 0 && card.getPokemonCard()?.stage !== Stage.BASIC) {
+          blocked.push({ player: PlayerType.TOP_PLAYER, slot: SlotType.BENCH, index });
         }
       });
 
@@ -113,7 +113,7 @@ export class AlolanExeggutorex extends PokemonCard {
           }
         }
         if (!result) {
-          if (!opponentBench) {
+          if (opponentBench.length === 0) {
             return state;
           }
           if (opponentBench) {

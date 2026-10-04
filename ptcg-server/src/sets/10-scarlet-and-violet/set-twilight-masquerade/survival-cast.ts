@@ -1,6 +1,6 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { CardTag, TrainerType } from '../../../game/store/card/card-types';
-import { State, StateUtils, GameLog, PlayerType } from '../../../game';
+import { State, StateUtils, GameLog, PlayerType, GamePhase } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
@@ -34,6 +34,12 @@ export class SurvivalCast extends TrainerCard {
   public reduceEffect(store: any, state: State, effect: Effect): State {
     if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
       const player = StateUtils.findOwner(state, effect.target);
+
+      // Only damage from an attack by the opponent's Pokémon
+      if (effect.player === player || state.phase !== GamePhase.ATTACK) {
+        return state;
+      }
+
       if (
         IS_TOOL_BLOCKED(store, state, player, this) ||
         !DAMAGED_FROM_FULL_HP(store, state, effect, player, effect.target)

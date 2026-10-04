@@ -8,6 +8,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { CardTag } from '../../../game/store/card/card-types';
 import {
   AttachEnergyPrompt,
+  CardTarget,
   GameError,
   GameMessage,
   PlayerType,
@@ -59,6 +60,14 @@ export class Miraidon extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
+      // Only Future Pokémon can receive the Energy.
+      const blockedTo: CardTarget[] = [];
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
+        if (!card.hasTag(CardTag.FUTURE)) {
+          blockedTo.push(target);
+        }
+      });
+
       state = store.prompt(
         state,
         new AttachEnergyPrompt(
@@ -68,7 +77,7 @@ export class Miraidon extends PokemonCard {
           PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH, SlotType.ACTIVE],
           { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-          { allowCancel: false, min: 0, max: 2 },
+          { allowCancel: false, min: 0, max: 2, blockedTo },
         ),
         (transfers) => {
           transfers = transfers || [];

@@ -176,6 +176,11 @@ export class Chance {
     }
   }
 
+  /** True inside a legality trial (`trial`), not in other simulations. */
+  public static get inTrial(): boolean {
+    return Chance.simDepth > 0 && Chance.simSource instanceof FixedSource;
+  }
+
   public static enterSim(): void {
     Chance.simDepth++;
   }
