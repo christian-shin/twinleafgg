@@ -52,6 +52,7 @@ function* playCard(
       SHOW_CARDS_TO_PLAYER(store, state, opponent, cards);
 
       MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: effect.trainerCard });
+      next();
     },
   );
 
