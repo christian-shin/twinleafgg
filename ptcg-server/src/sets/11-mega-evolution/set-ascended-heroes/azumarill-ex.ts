@@ -13,7 +13,10 @@ import {
   SuperType,
   StateUtils,
   GameError,
+  CardType,
+  CardTarget,
 } from '../../../game';
+import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import {WAS_POWER_USED, ABILITY_USED, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -58,6 +61,17 @@ export class Azumarillex extends PokemonCard {
     if (WAS_POWER_USED(effect, 0, this)) {
       const player = effect.player;
 
+      // Move from 1 of the other Pokémon to this Pokémon only
+      const blockedFrom: CardTarget[] = [];
+      const blockedTo: CardTarget[] = [];
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
+        if (card === this) {
+          blockedFrom.push(target);
+        } else {
+          blockedTo.push(target);
+        }
+      });
+
       return store.prompt(
         state,
         new MoveEnergyPrompt(
@@ -66,7 +80,7 @@ export class Azumarillex extends PokemonCard {
           PlayerType.BOTTOM_PLAYER,
           [SlotType.ACTIVE, SlotType.BENCH],
           { superType: SuperType.ENERGY },
-          { allowCancel: true, min: 0, max: 1 },
+          { allowCancel: true, min: 0, max: 1, blockedFrom, blockedTo },
         ),
         (transfers) => {
           transfers = transfers || [];
@@ -93,12 +107,11 @@ export class Azumarillex extends PokemonCard {
       const player = effect.player;
       let psychicEnergyCount = 0;
 
-      player.active.energies.cards.forEach((card) => {
-        if (card.superType === SuperType.ENERGY) {
-          const energyCard = card as any;
-          if (energyCard.energyType === 'P' || energyCard.provides?.includes('P')) {
-            psychicEnergyCount++;
-          }
+      const checkProvidedEnergyEffect = new CheckProvidedEnergyEffect(player, player.active);
+      store.reduceEffect(state, checkProvidedEnergyEffect);
+      checkProvidedEnergyEffect.energyMap.forEach((energy) => {
+        if (energy.provides.includes(CardType.PSYCHIC)) {
+          psychicEnergyCount++;
         }
       });
 
