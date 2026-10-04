@@ -47,8 +47,6 @@ export class BlackBeltsTraining extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
-      supporterTurn == 1;
-
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
       ADD_MARKER(this.BLACK_BELTS_TRAINING_MARKER, player, this);
     }
