@@ -34,9 +34,6 @@ export class RustSyndicateGrunt extends TrainerCard {
     if (player.supporterTurn > 0) {
       return false;
     }
-    if (player.hand.cards.filter((c) => c !== this).length > 0) {
-      return false;
-    }
     if (!WAS_POKEMON_KNOCKED_OUT_DURING_OPPONENTS_LAST_TURN(player)) {
       return false;
     }
@@ -71,11 +68,6 @@ function playRust(
 
   if (player.supporterTurn > 0) {
     throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
-  }
-
-  const otherCards = player.hand.cards.filter((c) => c !== effect.trainerCard);
-  if (otherCards.length > 0) {
-    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
   if (!WAS_POKEMON_KNOCKED_OUT_DURING_OPPONENTS_LAST_TURN(player)) {

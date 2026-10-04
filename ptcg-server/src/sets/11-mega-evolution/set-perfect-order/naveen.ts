@@ -54,7 +54,7 @@ export class Naveen extends TrainerCard {
         GameMessage.CHOOSE_CARD_TO_DISCARD,
         handTemp,
         {},
-        { min: 0, max: player.hand.cards.length, allowCancel: false }
+        { min: Math.max(0, handTemp.cards.length - 4), max: player.hand.cards.length, allowCancel: false }
       ), selected => {
         selected = selected || [];
         MOVE_CARDS(store, state, player.hand, player.discard, { cards: selected });
