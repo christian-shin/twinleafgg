@@ -30,21 +30,27 @@ export class LisiasAppeal extends TrainerCard {
     if (effect instanceof TrainerEffect && effect.trainerCard === this) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
-      const hasBench = opponent.bench.some(b => b.cards.length > 0);
 
-      if (!hasBench) {
-        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      if (player.supporterTurn > 0) {
+        throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
       const blocked: CardTarget[] = [];
+      let hasBasicOnBench = false;
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card, target) => {
         if (target.slot !== SlotType.BENCH) {
           return;
         }
         if (card === undefined || card.stage !== Stage.BASIC) {
           blocked.push(target);
+        } else {
+          hasBasicOnBench = true;
         }
       });
+
+      if (!hasBasicOnBench) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
 
       // Legacy implementation:
       // - Used a manual ChoosePokemonPrompt with non-Basic opponent Bench blocked.
