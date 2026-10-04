@@ -1,6 +1,6 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType, EnergyType, Stage, SuperType } from '../../../game/store/card/card-types';
-import { StoreLike, State, GameMessage, StateUtils, AttachEnergyPrompt, PlayerType, SlotType, Player } from '../../../game';
+import { StoreLike, State, GameMessage, StateUtils, AttachEnergyPrompt, PlayerType, SlotType, Player, CardTarget } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { GameError } from '../../../game/game-error';
@@ -89,14 +89,22 @@ Attach up to 2 Basic Energy cards from your discard pile to 1 of your Stage 2 Po
 
       const maxToAttach = Math.min(2, basicEnergyInDiscard.length);
 
+      // Only Stage 2 Pokémon can be chosen (the Energy cards have no stage to filter on)
+      const blockedTo: CardTarget[] = [];
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
+        if (card.stage !== Stage.STAGE_2) {
+          blockedTo.push(target);
+        }
+      });
+
       return store.prompt(state, new AttachEnergyPrompt(
         player.id,
         GameMessage.ATTACH_ENERGY_CARDS,
         player.discard,
         PlayerType.BOTTOM_PLAYER,
         [SlotType.ACTIVE, SlotType.BENCH],
-        { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, stage: Stage.STAGE_2 },
-        { allowCancel: false, min: 0, max: maxToAttach, sameTarget: true }
+        { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
+        { allowCancel: false, min: 0, max: maxToAttach, sameTarget: true, blockedTo }
       ), transfers => {
         transfers = transfers || [];
         for (const transfer of transfers) {
