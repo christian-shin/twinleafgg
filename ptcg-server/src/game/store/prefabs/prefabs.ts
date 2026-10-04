@@ -86,7 +86,6 @@ import {
   DECK_SHUFFLE_ANIMATION_WAIT_MS,
 } from './deck-shuffle-animation';
 import { CAN_PLAY_TRAINER_CARD } from './trainer-prefabs';
-
 export {
   IS_TRAINER_TARGET,
   BLOCK_TRAINER_TARGET,
@@ -1392,6 +1391,14 @@ export function SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH(
   const slots = GET_PLAYER_BENCH_SLOTS(player);
   BLOCK_IF_NO_SLOTS(slots);
   filter.superType = SuperType.POKEMON;
+
+  // Only as many Pokémon as there are empty Bench spaces can be put onto the Bench.
+  if (options.max !== undefined && options.max > slots.length) {
+    options = { ...options, max: slots.length };
+  }
+  if (options.min !== undefined && options.min > slots.length) {
+    options = { ...options, min: slots.length };
+  }
 
   return store.prompt(
     state,
