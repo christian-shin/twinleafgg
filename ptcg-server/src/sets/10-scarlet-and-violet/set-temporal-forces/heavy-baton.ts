@@ -49,6 +49,11 @@ export class HeavyBaton extends TrainerCard {
         return state;
       }
 
+      // Only the Active Spot, and only when Knocked Out by damage from an attack
+      if (player.active !== active || !player.marker.hasMarker(player.DAMAGE_DEALT_MARKER)) {
+        return state;
+      }
+
       // Check if the Pokemon has a retreat cost of 4 or higher
       const pokemonCard = active.getPokemonCard();
       if (!pokemonCard || pokemonCard.retreat.length < 4) {
@@ -76,7 +81,7 @@ export class HeavyBaton extends TrainerCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-        { allowCancel: true, min: 0, max: 3, sameTarget: true }
+        { allowCancel: true, min: 0, max: 3 }
       ), transfers => {
         transfers = transfers || [];
         active.marker.removeMarker(this.HEAVY_BATON_MARKER);
