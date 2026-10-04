@@ -43,7 +43,6 @@ export class Joltik extends PokemonCard {
           allowCancel: true,
           min: 0,
           max: 4,
-          differentTypes: true,
           validCardTypes: [CardType.GRASS, CardType.LIGHTNING],
           maxPerType: 2
         },
