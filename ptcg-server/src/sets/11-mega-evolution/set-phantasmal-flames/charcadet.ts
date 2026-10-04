@@ -4,8 +4,8 @@ import { State } from '../../../game/store/state/state';
 
 import { StoreLike } from '../../../game/store/store-like';
 import { Effect } from '../../../game/store/effects/effect';
-import { ChooseCardsPrompt, GameError, GameMessage } from '../../../game';
-import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { ChooseCardsPrompt, GameMessage, ShowCardsPrompt, StateUtils } from '../../../game';
+import { MOVE_CARDS, SHUFFLE_DECK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Charcadet extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -38,8 +38,10 @@ export class Charcadet extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
+      const opponent = StateUtils.getOpponent(state, player);
+
       if (player.deck.cards.length === 0) {
-        throw new GameError(GameMessage.CANNOT_USE_ATTACK);
+        return state;
       }
 
       return store.prompt(state, new ChooseCardsPrompt(
@@ -52,7 +54,13 @@ export class Charcadet extends PokemonCard {
         cards = cards || [];
         if (cards.length > 0) {
           MOVE_CARDS(store, state, player.deck, player.hand, { cards, sourceCard: this });
+          store.prompt(state, new ShowCardsPrompt(
+            opponent.id,
+            GameMessage.CARDS_SHOWED_BY_THE_OPPONENT,
+            cards
+          ), () => { });
         }
+        SHUFFLE_DECK(store, state, player);
       });
     }
 
