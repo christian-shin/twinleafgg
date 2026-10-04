@@ -29,7 +29,6 @@ export class MaximumBelt extends TrainerCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof DealDamageEffect && effect.source.tools.includes(this)) {
-      const player = effect.player;
       const opponent = StateUtils.getOpponent(state, effect.player);
 
       // Try to reduce ToolEffect, to check if something is blocking the tool from working
@@ -40,7 +39,7 @@ export class MaximumBelt extends TrainerCard {
         return state;
       }
 
-      if (effect.target !== player.active && effect.target !== opponent.active) {
+      if (effect.target !== opponent.active) {
         return state;
       }
 
