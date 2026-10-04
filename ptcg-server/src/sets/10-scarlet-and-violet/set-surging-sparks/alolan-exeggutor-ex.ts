@@ -95,12 +95,15 @@ export class AlolanExeggutorex extends PokemonCard {
       const blocked: CardTarget[] = [];
 
       const opponentActive = opponent.active.getPokemonCard();
-      const opponentBench = opponent.bench.filter(
-        (card) => card.getPokemonCard()?.stage === Stage.BASIC,
-      );
-      opponentBench.forEach((card) => {
-        if (!card.isStage(Stage.BASIC)) {
-          blocked.push();
+      let hasBenchedBasic = false;
+      opponent.bench.forEach((card, index) => {
+        if (card.cards.length === 0) {
+          return;
+        }
+        if (card.getPokemonCard()?.stage === Stage.BASIC) {
+          hasBenchedBasic = true;
+        } else {
+          blocked.push({ player: PlayerType.TOP_PLAYER, slot: SlotType.BENCH, index });
         }
       });
 
@@ -113,27 +116,25 @@ export class AlolanExeggutorex extends PokemonCard {
           }
         }
         if (!result) {
-          if (!opponentBench) {
+          if (!hasBenchedBasic) {
             return state;
           }
-          if (opponentBench) {
-            return store.prompt(
-              state,
-              new ChoosePokemonPrompt(
-                player.id,
-                GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
-                PlayerType.TOP_PLAYER,
-                [SlotType.BENCH],
-                { min: 1, max: 1, allowCancel: false, blocked: blocked },
-              ),
-              (selected) => {
-                const targets = selected || [];
-                targets.forEach((target) => {
-                  KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect, target);
-                });
-              },
-            );
-          }
+          return store.prompt(
+            state,
+            new ChoosePokemonPrompt(
+              player.id,
+              GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
+              PlayerType.TOP_PLAYER,
+              [SlotType.BENCH],
+              { min: 1, max: 1, allowCancel: false, blocked: blocked },
+            ),
+            (selected) => {
+              const targets = selected || [];
+              targets.forEach((target) => {
+                KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect, target);
+              });
+            },
+          );
         }
       });
     }
