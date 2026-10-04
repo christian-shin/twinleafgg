@@ -75,7 +75,7 @@ export class Cresselia extends PokemonCard {
             state = store.prompt(state, new ChoosePrizePrompt(
               player.id,
               GameMessage.CHOOSE_POKEMON,
-              { count: 1, allowCancel: true, faceDownOnly: true },
+              { count: 1, allowCancel: false, faceDownOnly: true },
             ), chosenPrize => {
               if (chosenPrize === null || chosenPrize.length === 0) {
                 return state;
