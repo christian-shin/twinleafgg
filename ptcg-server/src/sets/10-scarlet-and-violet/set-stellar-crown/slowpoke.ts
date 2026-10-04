@@ -1,4 +1,4 @@
-import { PokemonCard, Stage, CardType, State, StoreLike, GameError, GameMessage, ChooseCardsPrompt, Card, SuperType, CardList } from '../../../game';
+import { PokemonCard, Stage, CardType, State, StoreLike, GameError, GameMessage, ChooseCardsPrompt, SuperType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
@@ -38,10 +38,10 @@ export class Slowpoke extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
-      const hasCardInDiscard = player.discard.cards.some(c => {
-        return c instanceof Card;
+      const hasPokemonInDiscard = player.discard.cards.some(c => {
+        return c.superType === SuperType.POKEMON;
       });
-      if (!hasCardInDiscard) {
+      if (!hasPokemonInDiscard) {
         throw new GameError(GameMessage.CANNOT_USE_ATTACK);
       }
 
@@ -53,11 +53,8 @@ export class Slowpoke extends PokemonCard {
           { superType: SuperType.POKEMON },
           { min: 1, max: 1, allowCancel: false }
         )], selected => {
-          const cards = new CardList();
-          if (selected) {
-            cards.cards = selected;
-          }
-          MOVE_CARDS(store, state, cards, player.hand);
+          const cards = selected || [];
+          MOVE_CARDS(store, state, player.discard, player.hand, { cards });
         });
     }
 
