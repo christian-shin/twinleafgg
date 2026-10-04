@@ -70,12 +70,17 @@ export class Kyurem extends PokemonCard {
       discardEnergy.target = player.active;
       state = store.reduceEffect(state, discardEnergy);
 
+      const opponent = StateUtils.getOpponent(state, player);
+      let targetCount = 0;
+      opponent.forEachPokemon(PlayerType.BOTTOM_PLAYER, () => { targetCount++; });
+      const count = Math.min(3, targetCount);
+
       return store.prompt(state, new ChoosePokemonPrompt(
         player.id,
         GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
         PlayerType.TOP_PLAYER,
         [SlotType.ACTIVE, SlotType.BENCH],
-        { min: 1, max: 3, allowCancel: false }
+        { min: count, max: count, allowCancel: false }
       ), selected => {
         const targets = selected || [];
         DAMAGE_OPPONENT_POKEMON(store, state, effect, 110, targets);
