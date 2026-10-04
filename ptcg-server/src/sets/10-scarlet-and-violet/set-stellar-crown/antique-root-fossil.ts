@@ -1,9 +1,10 @@
 import { CardTag, CardType, GameError, GameLog, GameMessage, Player, PokemonCard, PokemonType, Power, PowerType, Stage, State, StateUtils, StoreLike, TrainerCard, TrainerType } from "../../../game";
 import { AddSpecialConditionsEffect } from "../../../game/store/effects/attack-effects";
+import { CheckAttackCostEffect } from "../../../game/store/effects/check-effects";
 import { Effect } from "../../../game/store/effects/effect";
 import { RetreatEffect } from "../../../game/store/effects/game-effects";
 import { PlayItemEffect, PlayPokemonEffect } from "../../../game/store/effects/play-card-effects";
-import {WAS_POWER_USED, MOVE_CARDS } from "../../../game/store/prefabs/prefabs";
+import {WAS_POWER_USED, MOVE_CARDS, IS_ABILITY_BLOCKED } from "../../../game/store/prefabs/prefabs";
 
 export class AntiqueRootFossil extends TrainerCard {
   public trainerType = TrainerType.ITEM;
@@ -80,6 +81,22 @@ export class AntiqueRootFossil extends TrainerCard {
         emptySlots[0],
       );
       store.reduceEffect(state, playPokemonEffect);
+    }
+
+    // Primal Root
+    if (effect instanceof CheckAttackCostEffect) {
+      const attacker = effect.player;
+      const opponent = StateUtils.getOpponent(state, attacker);
+      if (opponent.active.getPokemonCard() === (this as unknown as PokemonCard)) {
+        const attackingCard = attacker.active.getPokemonCard();
+        if (
+          attackingCard !== undefined &&
+          attackingCard.stage === Stage.BASIC &&
+          !IS_ABILITY_BLOCKED(store, state, opponent, this as unknown as PokemonCard)
+        ) {
+          effect.cost.push(CardType.COLORLESS);
+        }
+      }
     }
 
     // Prevent retreat
