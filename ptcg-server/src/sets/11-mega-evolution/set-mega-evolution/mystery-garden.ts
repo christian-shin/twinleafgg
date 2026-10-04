@@ -1,6 +1,7 @@
-import { Card, CardType, GameError, GameMessage, PlayerType, PokemonCard, State, StateUtils, StoreLike, SuperType, TrainerCard, TrainerType, pokemonHasCardType } from '../../../game';
+import { Card, CardType, GameError, GameMessage, PlayerType, State, StateUtils, StoreLike, SuperType, TrainerCard, TrainerType } from '../../../game';
 import { UseStadiumEffect } from '../../../game/store/effects/game-effects';
 import { Effect } from '../../../game/store/effects/effect';
+import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prompt';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -30,13 +31,15 @@ function* useStadium(next: Function, store: StoreLike, state: State, effect: Use
   MOVE_CARDS(store, state, player.hand, player.discard, { cards: cards, sourceCard: effect.stadium });
 
   let psychicPokemon = 0;
-  player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-    if (card instanceof PokemonCard && pokemonHasCardType(card, CardType.PSYCHIC)) {
+  player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
+    const checkPokemonType = new CheckPokemonTypeEffect(cardList);
+    store.reduceEffect(state, checkPokemonType);
+    if (checkPokemonType.cardTypes.includes(CardType.PSYCHIC)) {
       psychicPokemon++;
     }
   });
 
-  const cardsToDraw = psychicPokemon - player.hand.cards.length;
+  const cardsToDraw = Math.min(psychicPokemon - player.hand.cards.length, player.deck.cards.length);
   if (cardsToDraw > 0) {
     MOVE_CARDS(store, state, player.deck, player.hand, { count: cardsToDraw, sourceCard: effect.stadium });
   }
