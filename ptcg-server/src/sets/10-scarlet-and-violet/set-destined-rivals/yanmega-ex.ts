@@ -131,6 +131,12 @@ export class Yanmegaex extends PokemonCard {
 
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
+      const hasBench = player.bench.some((b) => b.cards.length > 0);
+      const energyCount = player.active.cards.filter((c) => c.superType === SuperType.ENERGY).length;
+      if (!hasBench || energyCount === 0) {
+        return state;
+      }
+      const moveCount = Math.min(3, energyCount);
       return store.prompt(
         state,
         new AttachEnergyPrompt(
@@ -140,7 +146,7 @@ export class Yanmegaex extends PokemonCard {
           PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH],
           { superType: SuperType.ENERGY },
-          { allowCancel: false, min: 3, max: 3, sameTarget: true },
+          { allowCancel: false, min: moveCount, max: moveCount, sameTarget: true },
         ),
         (transfers) => {
           transfers = transfers || [];
