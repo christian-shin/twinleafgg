@@ -103,7 +103,8 @@ function main(argv: string[]): void {
       const old: Trace = JSON.parse(fs.readFileSync(file, 'utf8'));
       let trace: Trace;
       try {
-        trace = playOnce(old.header.decks, old.header.seed, old.header.policy as [PolicyName, PolicyName]);
+        const scenario = (old.header as any).scenario;
+        trace = playOnce(old.header.decks, old.header.seed, old.header.policy as [PolicyName, PolicyName], scenario ? { scenario } : {});
       } catch (e: any) {
         console.log(`${file} crashed: ${e?.message}`);
         continue;
