@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
-import { StoreLike, State, PlayerType } from '../../../game';
+import { StoreLike, State } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
@@ -32,7 +32,7 @@ export class HoOh extends PokemonCard {
       cost: [CardType.FIRE, CardType.FIRE, CardType.COLORLESS],
       damage: 100,
       damageCalculation: '+',
-      text: 'If you have a Tera Pokémon in play, this attack does 100 more damage.',
+      text: 'If you have any Tera Pokémon on your Bench, this attack does 100 more damage.',
     },
   ];
 
@@ -50,14 +50,12 @@ export class HoOh extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
 
-      let hasTeraPokemonInPlay = false;
-      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-        if (card.hasTag(CardTag.POKEMON_TERA)) {
-          hasTeraPokemonInPlay = true;
-        }
+      const hasTeraPokemonOnBench = player.bench.some(b => {
+        const card = b.getPokemonCard();
+        return card !== undefined && card.hasTag(CardTag.POKEMON_TERA);
       });
 
-      if (hasTeraPokemonInPlay) {
+      if (hasTeraPokemonOnBench) {
         effect.damage += 100;
       }
     }
