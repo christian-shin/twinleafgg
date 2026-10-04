@@ -11,7 +11,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { EvolveEffect } from '../../../game/store/effects/game-effects';
-import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Palafinex extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -48,9 +48,9 @@ export class Palafinex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof EvolveEffect && effect.pokemonCard === this) {
-      if (!IS_ABILITY_BLOCKED(store, state, effect.player, this)) {
-        throw new GameError(GameMessage.CANNOT_EVOLVE);
-      }
+      // Zero to Hero moves this Pokémon into play without an EvolveEffect, so any other way to evolve is illegal.
+      // (A lock on the card in the hand, e.g. Iron Thorns ex, does not lift the restriction.)
+      throw new GameError(GameMessage.CANNOT_EVOLVE);
     }
 
     // Giga Impact
