@@ -34,7 +34,9 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
 
   // Build possible evolution card names
   const evolutionNames: string[] = [];
+  const pokemonInPlayNames: string[] = [];
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
+    pokemonInPlayNames.push(card.name);
     const valid = (cm.getEvolutionsFrom(card.name) as PokemonCard[]);
     valid.forEach(c => {
       if (!evolutionNames.includes(c.name)) {
@@ -48,13 +50,14 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
-  // Blocking pokemon cards, that cannot be valid evolutions
+  // Blocking pokemon cards that do not evolve from a Pokemon in play, and Pokemon with an Ability
   const blocked: number[] = [];
   player.deck.cards.forEach((card, index) => {
-    if (card instanceof PokemonCard && !evolutionNames.includes(card.name)) {
+    if (card instanceof PokemonCard) {
       const powersEffect = new CheckPokemonPowersEffect(player, card);
       state = store.reduceEffect(state, powersEffect);
-      if (powersEffect.powers.some(power => power.powerType === PowerType.ABILITY)) {
+      if (!pokemonInPlayNames.includes(card.evolvesFrom)
+        || powersEffect.powers.some(power => power.powerType === PowerType.ABILITY)) {
         blocked.push(index);
       }
     }

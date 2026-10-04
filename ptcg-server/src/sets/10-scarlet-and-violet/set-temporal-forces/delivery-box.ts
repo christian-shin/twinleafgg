@@ -37,19 +37,22 @@ export class DeliveryBox extends TrainerCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       let cards: Card[] = [];
+      const hasItemInDeck = player.deck.cards.some(c => {
+        return c instanceof TrainerCard && c.trainerType === TrainerType.ITEM;
+      });
       store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_HAND,
         player.deck,
         { superType: SuperType.TRAINER, trainerType: TrainerType.ITEM },
-        { min: 1, max: 2, allowCancel: false }
+        { min: hasItemInDeck ? 1 : 0, max: 2, allowCancel: false }
       ), selected => {
         cards = selected || [];
 
         MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: this });
 
         if (cards.length > 0) {
-          return store.prompt(state, new ShowCardsPrompt(
+          store.prompt(state, new ShowCardsPrompt(
             opponent.id,
             GameMessage.CARDS_SHOWED_BY_THE_OPPONENT,
             cards

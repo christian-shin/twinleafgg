@@ -11,10 +11,10 @@ function* useKingsOrder(next: Function, store: StoreLike, state: State,
   const slots: PokemonCardList[] = player.bench.filter(b => b.cards.length === 0);
   const max = Math.min(slots.length, 3);
 
-  const hasDuskullInDiscard = player.hand.cards.some(c => {
+  const hasDuskullInDiscard = player.discard.cards.some(c => {
     return c instanceof PokemonCard && c.name === 'Duskull';
   });
-  if (!hasDuskullInDiscard) {
+  if (!hasDuskullInDiscard || slots.length === 0) {
     throw new GameError(GameMessage.CANNOT_USE_POWER);
   }
 
