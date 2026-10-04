@@ -76,6 +76,7 @@ export class NsDarmanitan extends PokemonCard {
 
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
 
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
@@ -86,6 +87,11 @@ export class NsDarmanitan extends PokemonCard {
       store.reduceEffect(state, discardEnergy);
 
       const max = Math.min(1);
+
+      // No Benched Pokémon to damage
+      if (!opponent.bench.some((b) => b.cards.length > 0)) {
+        return state;
+      }
 
       return store.prompt(
         state,
