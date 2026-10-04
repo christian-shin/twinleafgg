@@ -55,14 +55,9 @@ export class Crispin extends TrainerCard {
         GameMessage.CHOOSE_CARD_TO_HAND,
         player.deck,
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-        { min: 0, max: 2, allowCancel: false }
+        { min: 0, max: 2, allowCancel: false, differentTypes: true }
       ), selected => {
         const cards = selected || [];
-        if (cards.length > 1) {
-          if (cards[0].name === cards[1].name) {
-            throw new GameError(GameMessage.CAN_ONLY_SELECT_TWO_DIFFERENT_ENERGY_TYPES);
-          }
-        }
 
         store.prompt(state, new ShowCardsPrompt(
           opponent.id,
