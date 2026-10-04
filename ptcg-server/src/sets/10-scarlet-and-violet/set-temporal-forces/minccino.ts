@@ -109,7 +109,7 @@ export class Minccino extends PokemonCard {
   public fullName: string = 'Minccino TEF';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (WAS_ATTACK_USED(effect, 1, this)) {
       const generator = useCleaningUp(() => generator.next(), store, state, effect);
       return generator.next().value;
     }
