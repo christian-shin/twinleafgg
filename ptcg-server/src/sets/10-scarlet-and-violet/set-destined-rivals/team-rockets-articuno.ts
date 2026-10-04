@@ -69,7 +69,7 @@ export class TeamRocketsArticuno extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       if (
         effect.player.active.cards.some(
-          (c) => c.superType === SuperType.ENERGY && c.name === 'Team Rocket Energy',
+          (c) => c.superType === SuperType.ENERGY && c.name === "Team Rocket's Energy",
         )
       ) {
         effect.damage += 60;
