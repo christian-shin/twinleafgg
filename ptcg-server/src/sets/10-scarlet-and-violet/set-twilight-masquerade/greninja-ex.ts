@@ -9,7 +9,6 @@ import {
   PlayerType,
   SlotType,
   ShuffleDeckPrompt,
-  GameError,
   StateUtils,
   ConfirmPrompt,
 } from '../../../game';
@@ -59,7 +58,7 @@ export class Greninjaex extends PokemonCard {
       const player = effect.player;
 
       if (player.deck.cards.length === 0) {
-        throw new GameError(GameMessage.CANNOT_USE_POWER);
+        return state;
       }
 
       state = store.prompt(
