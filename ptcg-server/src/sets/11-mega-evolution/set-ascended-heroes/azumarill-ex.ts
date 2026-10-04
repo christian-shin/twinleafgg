@@ -13,7 +13,6 @@ import {
   SuperType,
   StateUtils,
   GameError,
-  CardType,
   CardTarget,
 } from '../../../game';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
