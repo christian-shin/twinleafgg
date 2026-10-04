@@ -25,6 +25,11 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
+  // No other card in hand to trade
+  if (player.hand.cards.every(c => c === effect.trainerCard)) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
+
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
 

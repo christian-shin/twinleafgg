@@ -104,7 +104,7 @@ export class Volcanionex extends PokemonCard {
           player.id,
           GameMessage.ATTACH_ENERGY_TO_BENCH,
           player.active,
-          PlayerType.TOP_PLAYER,
+          PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH],
           { superType: SuperType.ENERGY },
           { allowCancel: false, min: 1, max: 1 },

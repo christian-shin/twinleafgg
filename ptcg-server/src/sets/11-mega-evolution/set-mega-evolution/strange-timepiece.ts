@@ -68,13 +68,20 @@ export class StrangeTimepiece extends TrainerCard {
         ),
         (results) => {
           if (results && results.length > 0 && results[0].getPokemons().length > 0) {
-            // Choose how far to devolve
+            // Choose how far to devolve: the Basic can't be put into the hand
+            const basic = results[0].getPokemons()[0];
+            const blockedCards: number[] = [];
+            results[0].cards.forEach((c, index) => {
+              if (c === basic) {
+                blockedCards.push(index);
+              }
+            });
             store.prompt(state, new ChooseCardsPrompt(
               effect.player,
               GameMessage.CHOOSE_POKEMON_TO_PICK_UP,
               results[0],
               { superType: SuperType.POKEMON },
-              { min: 1, max: 1, allowCancel: false }
+              { min: 1, max: 1, allowCancel: false, blocked: blockedCards }
             ), selected => {
               if (selected && selected.length > 0) {
                 const pokemons = results[0].getPokemons();

@@ -12,6 +12,7 @@ import { CardTag, TrainerType } from '../card/card-types';
 import { Player } from '../state/player';
 import { TrainerCard } from '../card/trainer-card';
 import { CoinFlipEffect } from '../effects/play-card-effects';
+import { Chance } from '../../core/chance';
 
 function getTrainerCleanupTarget(player: Player, trainerCard: TrainerCard) {
   return trainerCard.tags.includes(CardTag.PRISM_STAR) ? player.lostzone : player.discard;
@@ -58,7 +59,8 @@ function finalizeTrainerCleanup(
 
 /**
  * Dizzying Wind-style: when playing a Trainer, flip a coin; on tails discard
- * with no effect. On heads (or when the flag is inactive), run `onContinue`.
+ * with no effect. On heads (or when the flag is inactive, or in a legality
+ * trial), run `onContinue`.
  */
 function withOptionalCoinFlipCancelTrainer(
   store: StoreLike,
@@ -68,6 +70,12 @@ function withOptionalCoinFlipCancelTrainer(
   onContinue: () => State,
 ): State {
   if (player.coinFlipCancelTrainerPlayTurnsRemaining <= 0) {
+    return onContinue();
+  }
+
+  // Legality trial: a fixed tails would discard the card without ever running
+  // its checks, so an unplayable card would look legal. Check the heads path.
+  if (Chance.inTrial) {
     return onContinue();
   }
 

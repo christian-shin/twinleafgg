@@ -50,7 +50,8 @@ function canUseRareCandy(store: StoreLike, state: State, player: Player): boolea
   const stage2 = player.hand.cards.filter(c =>
     c instanceof PokemonCard && c.stage === Stage.STAGE_2
   ) as PokemonCard[];
-  if (stage2.length === 0) {
+  // Evolution Jammer (Bronzong TEF): the player can't evolve, so the Stage 2 can't be put onto a Pokémon
+  if (stage2.length === 0 || player.cannotEvolvePokemonCards) {
     return false;
   }
 

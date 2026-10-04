@@ -4,7 +4,6 @@ import {
   StoreLike,
   State,
   StateUtils,
-  GameError,
   GameMessage,
   PlayerType,
   PowerType,
@@ -68,6 +67,12 @@ export class HopsDubwool extends PokemonCard {
       if (IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }
+
+      // Nothing to switch in: don't offer the ability
+      if (!StateUtils.getOpponent(state, player).bench.some((b) => b.cards.length > 0)) {
+        return state;
+      }
+
       state = store.prompt(
         state,
         new ConfirmPrompt(effect.player.id, GameMessage.WANT_TO_USE_ABILITY),
@@ -75,11 +80,6 @@ export class HopsDubwool extends PokemonCard {
           if (wantToUse) {
             const player = effect.player;
             const opponent = StateUtils.getOpponent(state, player);
-            const hasBench = opponent.bench.some((b) => b.cards.length > 0);
-
-            if (!hasBench) {
-              throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
-            }
 
             return store.prompt(
               state,
