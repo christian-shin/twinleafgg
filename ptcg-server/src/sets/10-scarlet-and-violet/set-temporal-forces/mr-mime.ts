@@ -56,27 +56,38 @@ export class MrMime extends PokemonCard {
       const opponent = StateUtils.getOpponent(state, player);
       const cardList = StateUtils.findCardList(state, this) as PokemonCardList;
 
-      if (cardList.specialConditions.length > 0) {
-        throw new GameError(GameMessage.CANNOT_USE_POWER);
-      }
       if (cardList !== player.active) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 
-      return store.prompt(state, new ChooseCardsPrompt(
+      const chooseSupporter = (blocked: number[]): State => store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_COPY_EFFECT,
         opponent.hand,
         { superType: SuperType.TRAINER, trainerType: TrainerType.SUPPORTER },
-        { allowCancel: false, min: 0, max: 1 }
+        { allowCancel: false, min: 0, max: 1, blocked }
       ), cards => {
         if (cards === null || cards.length === 0) {
           return;
         }
         const trainerCard = cards[0] as TrainerCard;
-        const playTrainerEffect = new TrainerEffect(player, trainerCard);
-        store.reduceEffect(state, playTrainerEffect);
+        // Using the effect of a Supporter is not playing it: a Supporter already played this turn doesn't stop it.
+        const supporterTurn = player.supporterTurn;
+        player.supporterTurn = 0;
+        try {
+          const playTrainerEffect = new TrainerEffect(player, trainerCard);
+          store.reduceEffect(state, playTrainerEffect);
+        } catch (error) {
+          if (!(error instanceof GameError)) {
+            throw error;
+          }
+          // The effect of this Supporter can't be used right now: choose another one.
+          chooseSupporter([...blocked, opponent.hand.cards.indexOf(trainerCard)]);
+        } finally {
+          player.supporterTurn = supporterTurn;
+        }
       });
+      return chooseSupporter([]);
     }
 
     if (WAS_ATTACK_USED(effect, 1, this)) {

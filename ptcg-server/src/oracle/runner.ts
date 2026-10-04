@@ -12,6 +12,7 @@ import { State, GamePhase } from '../game/store/state/state';
 import { AddPlayerAction } from '../game/store/actions/add-player-action';
 import { ResolvePromptAction } from '../game/store/actions/resolve-prompt-action';
 import { Prompt } from '../game/store/prompts/prompt';
+import { GameMessage } from '../game/game-message';
 import { ShuffleDeckPrompt } from '../game/store/prompts/shuffle-prompt';
 import { CoinFlipPrompt } from '../game/store/prompts/coin-flip-prompt';
 import { ShufflePrizesPrompt } from '../game/store/prompts/shuffle-prizes-prompt';
@@ -221,12 +222,21 @@ export class GameRunner {
           store.dispatch(cand.action);
           // Resolve info prompts (e.g. an ability's animation wait) so checks
           // that run after them count toward legality; stop at chance/decisions.
+          // The one exception is the Confusion flip: its heads branch runs the
+          // attack, so it is resolved as heads (a Confused attacker must not be
+          // offered an attack that throws once the flip succeeds).
           for (let guard = 0; guard < 100; guard++) {
             const next = store.state.prompts.find(p => p.result === undefined && classifyPrompt(p) !== 'decision');
-            if (next === undefined || classifyPrompt(next) !== 'info' || store.state.phase === GamePhase.FINISHED) {
+            if (next === undefined || store.state.phase === GamePhase.FINISHED) {
               break;
             }
-            store.dispatch(new ResolvePromptAction(next.id, infoAnswer(next)));
+            if (classifyPrompt(next) === 'info') {
+              store.dispatch(new ResolvePromptAction(next.id, infoAnswer(next)));
+            } else if (next instanceof CoinFlipPrompt && next.message === GameMessage.FLIP_CONFUSION) {
+              store.dispatch(new ResolvePromptAction(next.id, true));
+            } else {
+              break;
+            }
           }
         });
       } catch {
@@ -437,6 +447,9 @@ export class GameRunner {
     } catch (error: any) {
       status = 'error';
       message = String(error?.message ?? error);
+      if (process.env.PTCG_ORACLE_STACK) {
+        console.error(error?.stack ?? message);
+      }
     }
 
     return {

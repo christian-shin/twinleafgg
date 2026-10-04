@@ -84,7 +84,35 @@ function withSourceMarkerConstants<T>(
   }
 }
 
+/** The copycat whose copied attack's source code is running right now (delegateToSource). */
+let delegatingCopycat: PokemonCard | undefined;
+
+/**
+ * A copied attack gives the copycat the attack only, not the source's Abilities:
+ * source code run for the copycat treats the copycat's Ability as blocked.
+ */
+export function isDelegatingCopycat(card: PokemonCard): boolean {
+  return delegatingCopycat === card;
+}
+
 function delegateToSource(
+  copycatCard: PokemonCard,
+  sourceCard: PokemonCard,
+  clonedAttacks: Attack[],
+  store: StoreLike,
+  state: State,
+  effect: Effect,
+): State {
+  const savedCopycat = delegatingCopycat;
+  delegatingCopycat = copycatCard;
+  try {
+    return delegateToSourceNow(copycatCard, sourceCard, clonedAttacks, store, state, effect);
+  } finally {
+    delegatingCopycat = savedCopycat;
+  }
+}
+
+function delegateToSourceNow(
   copycatCard: PokemonCard,
   sourceCard: PokemonCard,
   clonedAttacks: Attack[],

@@ -87,7 +87,7 @@ export class Tatsugiri extends PokemonCard {
         GameMessage.CHOOSE_CARD_TO_HAND,
         deckTop,
         { superType: SuperType.TRAINER, trainerType: TrainerType.SUPPORTER },
-        { min: 0, max: 1, allowCancel: true }
+        { min: 0, max: 1, allowCancel: false }
       ), selected => {
 
         player.marker.addMarker(this.CROWD_PULLER_MARKER, this);
@@ -102,7 +102,7 @@ export class Tatsugiri extends PokemonCard {
         MOVE_CARDS(store, state, deckTop, player.deck, { sourceCard: this });
 
         if (selected.length > 0) {
-          return store.prompt(state, new ShowCardsPrompt(
+          store.prompt(state, new ShowCardsPrompt(
             opponent.id,
             GameMessage.CARDS_SHOWED_BY_THE_OPPONENT,
             selected

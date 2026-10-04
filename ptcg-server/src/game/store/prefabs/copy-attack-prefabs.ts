@@ -10,10 +10,11 @@ import {
   StateUtils,
   StoreLike,
 } from '../..';
-import { CardType } from '../card/card-types';
+import { CardType, SpecialCondition } from '../card/card-types';
 import { PokemonCard } from '../card/pokemon-card';
 import { Attack } from '../card/pokemon-types';
 import { CheckAttackCostEffect, CheckProvidedEnergyEffect } from '../effects/check-effects';
+import { EnergyMap } from '../prompts/choose-energy-prompt';
 import { AttackEffect, PowerEffect, UseAttackEffect } from '../effects/game-effects';
 import { PokemonCardList } from '../state/pokemon-card-list';
 import { ChoosePokemonPrompt } from '../prompts/choose-pokemon-prompt';
@@ -79,6 +80,36 @@ export function blockCannotUseAttacksNextTurn(
 
 function isAttackLockedNextTurn(player: Player, attack: Attack): boolean {
   return (player.active.cannotUseAttacksNextTurn || []).includes(attack.name);
+}
+
+/**
+ * The checks `useAttack` makes before running an attack, so an Ability that
+ * uses another Pokémon's attack (COPY_ATTACK_VIA_ABILITY) does not offer an
+ * attack that would throw once chosen. Energy is checked separately.
+ */
+function cannotUseAttackNow(state: State, player: Player, attack: Attack, energyMap: EnergyMap[]): boolean {
+  if (state.turn === 1 && attack.canUseOnFirstTurn !== true && state.rules.attackFirstTurn == false) {
+    return true;
+  }
+  const sp = player.active.specialConditions;
+  if (sp.includes(SpecialCondition.PARALYZED) || sp.includes(SpecialCondition.ASLEEP)) {
+    return true;
+  }
+  const attackingPokemon = player.active;
+  if (attackingPokemon.cannotAttackNextTurn || player.cannotAttackTurnsRemaining > 0) {
+    return true;
+  }
+  if (player.cannotAttackMaxEnergyTurnsRemaining > 0 && player.cannotAttackMaxEnergy !== null) {
+    const energyCount = energyMap.reduce((sum, entry) => sum + entry.provides.length, 0);
+    if (energyCount <= player.cannotAttackMaxEnergy) {
+      return true;
+    }
+  }
+  if (attackingPokemon.blockedAttackNameNextTurn === attack.name
+    || attackingPokemon.blockedAttackNameUntilLeavesActive === attack.name) {
+    return true;
+  }
+  return false;
 }
 
 function* copyAttackFromPokemonListGenerator(
@@ -349,7 +380,7 @@ export function buildAttackListWithEnergyBlocking(
     pokemonCards.push(card);
     const locked = new Set(player.active.cannotUseAttacksNextTurn || []);
     card.attacks.forEach(attack => {
-      if (!affordableAttacks.includes(attack) || locked.has(attack.name)) {
+      if (!affordableAttacks.includes(attack) || locked.has(attack.name) || cannotUseAttackNow(state, player, attack, energyMap)) {
         blocked.push({ index, attack: attack.name });
       }
     });
@@ -415,6 +446,23 @@ export function COPY_ATTACK_VIA_ABILITY(
     throw new GameError(GameMessage.CANNOT_USE_POWER);
   }
 
+  // No attack can be used right now (no Energy, first turn, ...): the Ability would do nothing.
+  const isBlocked = (index: number, attack: Attack) => blocked.some(b => b.index === index && b.attack === attack.name);
+  if (!pokemonCards.some((card, index) => card.attacks.some(attack => !isBlocked(index, attack)))) {
+    throw new GameError(GameMessage.CANNOT_USE_POWER);
+  }
+
+  return promptAttackToCopyViaAbility(store, state, player, pokemonCards, blocked, allowCancel);
+}
+
+function promptAttackToCopyViaAbility(
+  store: StoreLike,
+  state: State,
+  player: Player,
+  pokemonCards: PokemonCard[],
+  blocked: { index: number; attack: string }[],
+  allowCancel: boolean,
+): State {
   return store.prompt(
     state,
     new ChooseAttackPrompt(
@@ -437,7 +485,20 @@ export function COPY_ATTACK_VIA_ABILITY(
       const useAttackEffect = new UseAttackEffect(player, attack);
       useAttackEffect.delegateFrom = sourceCard;
       useAttackEffect.source = player.active;
-      return store.reduceEffect(state, useAttackEffect);
+      const phase = state.phase;
+      try {
+        return store.reduceEffect(state, useAttackEffect);
+      } catch (error) {
+        if (!(error instanceof GameError)) {
+          throw error;
+        }
+        // The chosen attack cannot be used after all (its own conditions): choose another.
+        state.phase = phase;
+        const index = pokemonCards.findIndex(card => card.attacks.includes(attack));
+        return promptAttackToCopyViaAbility(
+          store, state, player, pokemonCards, [...blocked, { index, attack: attack.name }], allowCancel,
+        );
+      }
     },
   );
 }

@@ -571,6 +571,7 @@ export function THIS_ATTACK_DOES_X_DAMAGE_TO_1_OF_YOUR_OPPONENTS_POKEMON(
     GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
     PlayerType.TOP_PLAYER,
     [SlotType.BENCH, SlotType.ACTIVE],
+    { allowCancel: false },
   ), selected => {
     const target = selected[0];
     let damageEffect: DealDamageEffect | PutDamageEffect;
@@ -603,6 +604,7 @@ export function THIS_ATTACK_DOES_X_DAMAGE_TO_1_OF_YOUR_OPPONENTS_BENCHED_POKEMON
     GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
     PlayerType.TOP_PLAYER,
     [SlotType.BENCH],
+    { allowCancel: false },
   ), selected => {
     const target = selected[0];
     const damageEffect = new PutDamageEffect(effect, damage);
