@@ -41,9 +41,16 @@ export class CynthiasRoserade extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof DealDamageEffect && StateUtils.isPokemonInPlay(effect.player, this)) {
       const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
       const attackingCard = effect.source.getPokemonCard();
 
-      IS_ABILITY_BLOCKED(store, state, player, this);
+      if (IS_ABILITY_BLOCKED(store, state, player, this)) {
+        return state;
+      }
+
+      if (effect.target !== opponent.active) {
+        return state;
+      }
 
       if (attackingCard !== undefined && attackingCard.hasTag(CardTag.CYNTHIAS)) {
         effect.damage += 30;
