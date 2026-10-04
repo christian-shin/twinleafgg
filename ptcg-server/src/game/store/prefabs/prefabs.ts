@@ -2196,7 +2196,7 @@ export function LOOK_AT_TOP_X_CARDS_AND_ATTACH_UP_TO_Y_ENERGY(
       for (const transfer of transfers) {
         const target = StateUtils.getTarget(state, player, transfer.to);
         const energyCard = transfer.card as EnergyCard;
-        const attachEnergyEffect = new AttachEnergyEffect(player, energyCard, target);
+        const attachEnergyEffect = new AttachEnergyEffect(player, energyCard, target, topCards);
         store.reduceEffect(state, attachEnergyEffect);
       }
 

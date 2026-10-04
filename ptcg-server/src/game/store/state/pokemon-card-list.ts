@@ -707,12 +707,34 @@ export class PokemonCardList extends CardList {
 
   // Override the parent CardList's moveTo method to properly handle Pokemon acting as energy
   public moveTo(destination: CardList, count?: number): void {
-    // Move energies CardList to destination before moving cards
-    if (this.energies.cards.length > 0) {
-      this.energies.moveTo(destination);
+    // `energies` is a view of the Energy cards that are also in `cards` (see moveCardsTo),
+    // so moving `cards` moves them. Only an entry that is in `energies` alone (a Pokémon
+    // acting as Energy) has to be moved separately, and only by a full move.
+    const length = this.cards.length;
+    const n = Math.max(0, Math.min(count === undefined ? length : count, length));
+    const full = count === undefined || count >= length;
+    const orphans: Card[] = [];
+    const movedEnergies: Card[] = [];
+    for (const card of this.energies.cards) {
+      if (full && !this.cards.includes(card)) {
+        orphans.push(card);
+        movedEnergies.push(card);
+      } else if (this.cards.slice(0, n).includes(card)) {
+        movedEnergies.push(card);
+      }
     }
+    destination.cards.push(...orphans);
+    this.energies.cards = this.energies.cards.filter((c) => !movedEnergies.includes(c));
 
     super.moveTo(destination, count);
+
+    if (destination instanceof PokemonCardList) {
+      for (const card of movedEnergies) {
+        if (!destination.energies.cards.includes(card)) {
+          destination.energies.cards.push(card);
+        }
+      }
+    }
   }
 
   public moveCardsTo(cards: Card[], destination: CardList): void {

@@ -4,7 +4,7 @@ import { StoreLike, State, StateUtils } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, DISCARD_ALL_ENERGY_FROM_POKEMON } from '../../../game/store/prefabs/prefabs';
 
 export class Ceruledgeex extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -48,15 +48,7 @@ export class Ceruledgeex extends PokemonCard {
     }
 
     if (WAS_ATTACK_USED(effect, 1, this)) {
-      const player = effect.player;
-      const cardList = StateUtils.findCardList(state, this);
-      if (cardList) {
-        const energyCards = cardList.cards.filter((c) => c.superType === SuperType.ENERGY);
-        energyCards.forEach((c) => {
-          player.discard.cards.push(c);
-        });
-        cardList.cards = cardList.cards.filter((c) => c.superType !== SuperType.ENERGY);
-      }
+      DISCARD_ALL_ENERGY_FROM_POKEMON(store, state, effect, this);
     }
 
     if (

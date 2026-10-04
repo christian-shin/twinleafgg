@@ -898,24 +898,28 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
       }
     };
 
+    // Put the cards just moved at the top or the bottom of the destination. They were pushed onto
+    // the end of it, so lift them out first (they used to be duplicated and the destination's
+    // first cards lost).
+    const placeAtEndOfDestination = (moved: Card[]) => {
+      if (!effect.toBottom && !effect.toTop) {
+        return;
+      }
+      const inDestination = moved.filter((card) => destination.cards.includes(card));
+      const others = destination.cards.filter((card) => !inDestination.includes(card));
+      destination.cards = effect.toBottom ? [...others, ...inDestination] : [...inDestination, ...others];
+    };
+
     // If specific cards are specified
     if (effect.cards) {
       moveWithPrismStarCheck(effect.cards, source, destination);
-      if (effect.toBottom) {
-        destination.cards = [...destination.cards.slice(effect.cards.length), ...effect.cards];
-      } else if (effect.toTop) {
-        destination.cards = [...effect.cards, ...destination.cards];
-      }
+      placeAtEndOfDestination(effect.cards);
     }
     // If count is specified
     else if (effect.count !== undefined) {
       const cards = source.cards.slice(0, effect.count);
       moveWithPrismStarCheck(cards, source, destination);
-      if (effect.toBottom) {
-        destination.cards = [...destination.cards.slice(cards.length), ...cards];
-      } else if (effect.toTop) {
-        destination.cards = [...cards, ...destination.cards];
-      }
+      placeAtEndOfDestination(cards);
     }
     // Move all cards
     else {
