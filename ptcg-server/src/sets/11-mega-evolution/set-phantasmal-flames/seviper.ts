@@ -48,14 +48,15 @@ export class Seviper extends PokemonCard {
         return state;
       }
 
-      // Check if player has a [D] Pokemon ex in play
+      // Check if player has a [D] Mega Evolution Pokemon ex in play
       let hasDarkPokemonEx = false;
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
         if (
           card &&
           card instanceof PokemonCard &&
           pokemonHasCardType(card, CardType.DARK) &&
-          card.hasTag(CardTag.POKEMON_ex)
+          card.hasTag(CardTag.POKEMON_ex) &&
+          card.hasTag(CardTag.POKEMON_SV_MEGA)
         ) {
           hasDarkPokemonEx = true;
         }
