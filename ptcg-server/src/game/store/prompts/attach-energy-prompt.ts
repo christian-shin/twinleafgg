@@ -138,7 +138,9 @@ export class AttachEnergyPrompt extends Prompt<CardAssign[]> {
         }
       }
 
-      return onlyValidTypes;
+      if (!onlyValidTypes) {
+        return false;
+      }
     }
 
     // Check if 'different types' restriction is valid
