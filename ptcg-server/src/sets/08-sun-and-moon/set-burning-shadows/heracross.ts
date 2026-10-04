@@ -7,10 +7,10 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { PowerType, StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { CheckHpEffect } from '../../../game/store/effects/check-effects';
 import { PowerEffect } from '../../../game/store/effects/game-effects';
 import { AfterAttackEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT, SWITCH_ACTIVE_WITH_BENCHED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, SWITCH_ACTIVE_WITH_BENCHED } from '../../../game/store/prefabs/prefabs';
+import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Heracross extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -59,18 +59,8 @@ export class Heracross extends PokemonCard {
         return state;
       }
 
-      // Check if this damage would KO
-      const checkHpEffect = new CheckHpEffect(player, effect.target);
-      store.reduceEffect(state, checkHpEffect);
-
-      if (effect.target.damage + effect.damage >= checkHpEffect.hp) {
-        COIN_FLIP_PROMPT(store, state, player, result => {
-          if (result) {
-            // Heads: survive with 10 HP remaining
-            effect.surviveOnTenHPReason = this.powers[0].name;
-          }
-        });
-      }
+      // Would KO: flip a coin; heads: survive with 10 HP remaining
+      SURVIVE_ON_TEN_ON_COIN_FLIP(store, state, effect, player, this.powers[0].name);
     }
 
     // Attack 1: Pitch
