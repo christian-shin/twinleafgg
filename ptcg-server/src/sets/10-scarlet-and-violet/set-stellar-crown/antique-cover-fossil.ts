@@ -86,27 +86,16 @@ export class AntiqueCoverFossil extends TrainerCard {
   public reduceEffect(store: StoreLike, state: State, effect: any): State {
     if (WAS_POWER_USED(effect, 0, this)) {
       const player = effect.player;
-      const pokeDollCardList = StateUtils.findCardList(state, this);
+      const cardList = StateUtils.findCardList(state, this);
 
-      if (player.active.cards[0] !== this) {
-        throw new GameError(GameMessage.CANNOT_USE_POWER);
-      }
-
-      store.log(state, GameLog.LOG_PLAYER_PUTS_CARD_ON_BOTTOM_OF_DECK, {
+      store.log(state, GameLog.LOG_PLAYER_DISCARDS_CARD, {
         name: player.name,
         card: this.name,
+        effect: 'Antique Cover Fossil',
       });
 
-      // Move Lillie's Poke Doll to bottom of deck
-      state = MOVE_CARDS(store, state, pokeDollCardList, player.deck, {
-        cards: [this],
-        toBottom: true,
-      });
-
-      // Move any attached cards to discard
-      state = MOVE_CARDS(store, state, pokeDollCardList, player.discard, {
-        cards: pokeDollCardList.cards.filter((c) => c !== this),
-      });
+      // Discard this card from play; the cards attached to it go with it
+      state = MOVE_CARDS(store, state, cardList, player.discard, { sourceCard: this });
     }
 
     if (effect instanceof PlayItemEffect && effect.trainerCard === this) {

@@ -36,11 +36,14 @@ export class AttachEnergyEffect implements Effect {
   public player: Player;
   public energyCard: EnergyCard;
   public target: PokemonCardList;
+  /** Where the Energy card comes from when it is not in a list of the game state (e.g. the cards just looked at). */
+  public sourceList?: CardList;
 
-  constructor(player: Player, energyCard: EnergyCard, target: PokemonCardList) {
+  constructor(player: Player, energyCard: EnergyCard, target: PokemonCardList, sourceList?: CardList) {
     this.player = player;
     this.energyCard = energyCard;
     this.target = target;
+    this.sourceList = sourceList;
   }
 }
 

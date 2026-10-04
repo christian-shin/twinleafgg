@@ -2,6 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, PokemonCardList, StateUtils, Resistance, ConfirmPrompt, GameMessage, ShuffleDeckPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
+import { AfterAttackEffect } from '../../../game/store/effects/game-phase-effects';
 
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -45,8 +46,10 @@ export class Gholdengo extends PokemonCard {
           effect.damage += 90;
         }
       }
-      //From Mew V FST
-    } else if (WAS_ATTACK_USED(effect, 1, this)) {
+    }
+
+    // Surf Back (From Mew V FST): after the damage, so that the Pokémon is still there while it is dealt
+    if (effect instanceof AfterAttackEffect && effect.attack === this.attacks[1]) {
       const player = effect.player;
       return store.prompt(state, new ConfirmPrompt(player.id, GameMessage.WANT_TO_USE_ABILITY), wantToUse => {
         if (wantToUse) {

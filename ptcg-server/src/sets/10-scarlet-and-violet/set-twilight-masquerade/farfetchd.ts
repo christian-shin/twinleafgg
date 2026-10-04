@@ -82,6 +82,11 @@ export class Farfetchd extends PokemonCard {
 
         if (cards[0] instanceof TrainerCard) {
           MOVE_CARDS(store, state, player.deck, player.bench[benchSlot], { cards: [cards[0]], sourceCard: this });
+          // A Tool lives in tools only (as AttachPokemonToolEffect does); MOVE_CARDS left it in cards too.
+          const toolIndex = player.bench[benchSlot].cards.indexOf(cards[0]);
+          if (toolIndex !== -1) {
+            player.bench[benchSlot].cards.splice(toolIndex, 1);
+          }
           player.bench[benchSlot].tools.push(cards[0]);
           // state = store.reduceEffect(state, new AttachPokemonToolEffect(player, cards[0] as TrainerCard, player.bench[benchSlot]));
         }

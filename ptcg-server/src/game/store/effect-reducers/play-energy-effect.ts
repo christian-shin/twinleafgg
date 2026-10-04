@@ -8,6 +8,8 @@ import { StoreLike } from '../store-like';
 import { EnergyType, SpecialCondition } from '../card/card-types';
 import { SlotType } from '../actions/play-card-action';
 import { EndTurnEffect } from '../effects/game-phase-effects';
+import { CardList } from '../state/card-list';
+import { StateUtils } from '../state-utils';
 
 /**
  * Helper function to emit animation events
@@ -59,8 +61,23 @@ export function playEnergyReducer(store: StoreLike, state: State, effect: Effect
       card: effect.energyCard.name,
       pokemon: pokemonCard.name
     });
-    // Move card to main PokemonCardList first (so it's in the cards array)
-    effect.player.hand.moveCardTo(effect.energyCard, effect.target);
+    // Move card to main PokemonCardList first (so it's in the cards array).
+    // The Energy card is not always in the hand: it may come from the deck, the discard pile
+    // or the cards just looked at (sourceList). Moving it from the hand only left it where it was.
+    let source: CardList | undefined = effect.sourceList;
+    if (source === undefined || !source.cards.includes(effect.energyCard)) {
+      source = effect.player.hand;
+      if (!source.cards.includes(effect.energyCard)) {
+        try {
+          source = StateUtils.findCardList(state, effect.energyCard);
+        } catch {
+          source = undefined;
+        }
+      }
+    }
+    if (source !== undefined && source !== effect.target) {
+      source.moveCardTo(effect.energyCard, effect.target);
+    }
     // Then also add it to the energies CardList
     if (!effect.target.energies.cards.includes(effect.energyCard)) {
       effect.target.energies.cards.push(effect.energyCard);
