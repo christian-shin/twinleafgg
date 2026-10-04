@@ -72,7 +72,7 @@ export class RedeemableTicket extends TrainerCard {
       }
 
       // Set the new prize cards to be face down
-      player.prizes.forEach(p => p.isSecret = true);
+      player.prizes.forEach(p => { p.isSecret = true; p.isPublic = false; p.faceUpPrize = false; });
       MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [this], sourceCard: this });
       return state;
     }
