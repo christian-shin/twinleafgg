@@ -45,6 +45,11 @@ export class Surfer extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
+      const hasBench = player.bench.some(b => b.cards.length > 0);
+      if (!hasBench) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
       // We will discard this card after prompt confirmation
       effect.preventDefault = true;
