@@ -10,9 +10,9 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { CheckHpEffect } from '../../../game/store/effects/check-effects';
 
-import {IS_ABILITY_BLOCKED, WAS_ATTACK_USED, COIN_FLIP_PROMPT, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {IS_ABILITY_BLOCKED, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class MegaHawluchaex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -59,20 +59,8 @@ export class MegaHawluchaex extends PokemonCard {
         return state;
       }
 
-      // Check if damage would cause knockout
-      const checkHpEffect = new CheckHpEffect(player, effect.target);
-      store.reduceEffect(state, checkHpEffect);
-
-      if (effect.damage >= checkHpEffect.hp) {
-        // Flip a coin to see if we survive
-        return COIN_FLIP_PROMPT(store, state, player, result => {
-          if (result === true) {
-            // If heads, prevent knockout and set HP to 10
-            effect.surviveOnTenHPReason = this.powers[0].name;
-          }
-          return state;
-        });
-      }
+      // Flip a coin if the damage would cause knockout; heads: survive with 10 HP
+      SURVIVE_ON_TEN_ON_COIN_FLIP(store, state, effect, player, this.powers[0].name);
     }
 
     // Somersault Dive attack
