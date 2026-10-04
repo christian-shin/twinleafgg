@@ -430,8 +430,11 @@ function randomAnswerInner(state: State, prompt: Prompt<any>, rng: Rng): any {
     for (let t = 0; t < TRIES; t++) {
       const chosen = pickSubset(rng, energies, between(rng, min, max));
       const fixed = targets[rng.below(targets.length)];
-      const raw = chosen.map(index => ({
-        to: tgt(prompt.options.sameTarget ? fixed : targets[rng.below(targets.length)]),
+      // differentTargets: draw distinct targets, so a full-bench answer is found
+      const distinct = prompt.options.differentTargets && chosen.length <= targets.length
+        ? pickSubset(rng, targets, chosen.length) : undefined;
+      const raw = chosen.map((index, k) => ({
+        to: tgt(distinct ? distinct[k] : prompt.options.sameTarget ? fixed : targets[rng.below(targets.length)]),
         index,
       }));
       if (isValid(state, prompt, raw)) {

@@ -2,6 +2,7 @@ import { CardTarget, ChooseCardsPrompt, ChoosePokemonPrompt, EnergyType, GameErr
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { CLEAN_UP_SUPPORTER } from '../../../game/store/prefabs/trainer-prefabs';
 
 export class Ruffian extends TrainerCard {
   public trainerType: TrainerType = TrainerType.SUPPORTER;
@@ -21,7 +22,8 @@ export class Ruffian extends TrainerCard {
     const opponent = StateUtils.getOpponent(state, player);
     let hasTarget = false;
     opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList) => {
-      if (cardList.energies.cards.length > 0 || cardList.tools.length > 0) {
+      if (cardList.energies.cards.some(c => c.superType === SuperType.ENERGY && c.energyType === EnergyType.SPECIAL)
+        && cardList.tools.length > 0) {
         hasTarget = true;
       }
     });
@@ -43,9 +45,8 @@ export class Ruffian extends TrainerCard {
       let energyOrToolcard = false;
       const blocked: CardTarget[] = [];
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card, target) => {
-        if (cardList.energies.cards.some(c => c.superType === SuperType.ENERGY && c.energyType === EnergyType.SPECIAL)) {
-          energyOrToolcard = true;
-        } else if (cardList.tools.some(c => c instanceof TrainerCard && c.trainerType === TrainerType.TOOL)) {
+        if (cardList.energies.cards.some(c => c.superType === SuperType.ENERGY && c.energyType === EnergyType.SPECIAL)
+          && cardList.tools.some(c => c instanceof TrainerCard && c.trainerType === TrainerType.TOOL)) {
           energyOrToolcard = true;
         } else {
           blocked.push(target);
@@ -56,14 +57,18 @@ export class Ruffian extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
+      effect.preventDefault = true;
+      MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
+
       return store.prompt(state, new ChoosePokemonPrompt(
         player.id,
-        GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
+        GameMessage.CHOOSE_POKEMON_TO_DISCARD_CARDS,
         PlayerType.TOP_PLAYER,
         [SlotType.ACTIVE, SlotType.BENCH],
         { allowCancel: false, blocked }
       ), targets => {
         if (!targets || targets.length === 0) {
+          CLEAN_UP_SUPPORTER(store, effect, player);
           return;
         }
 
@@ -99,10 +104,10 @@ export class Ruffian extends TrainerCard {
                   { min: 1, max: 1, allowCancel: false }
                 ), selected => {
                   MOVE_CARDS(store, state, target, opponent.discard, { cards: selected, sourceCard: this });
-                  MOVE_CARDS(store, state, player.supporter, player.discard, { sourceCard: this });
+                  CLEAN_UP_SUPPORTER(store, effect, player);
                 });
               } else {
-                MOVE_CARDS(store, state, player.supporter, player.discard, { sourceCard: this });
+                CLEAN_UP_SUPPORTER(store, effect, player);
               }
             });
           } else {
@@ -125,10 +130,10 @@ export class Ruffian extends TrainerCard {
             { min: 1, max: 1, allowCancel: false }
           ), selected => {
             MOVE_CARDS(store, state, target, opponent.discard, { cards: selected, sourceCard: this });
-            MOVE_CARDS(store, state, player.supporter, player.discard, { sourceCard: this });
+            CLEAN_UP_SUPPORTER(store, effect, player);
           });
         } else {
-          MOVE_CARDS(store, state, player.supporter, player.discard, { sourceCard: this });
+          CLEAN_UP_SUPPORTER(store, effect, player);
         }
       });
     }

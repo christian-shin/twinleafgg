@@ -98,6 +98,14 @@ export class EthansHoOhex extends PokemonCard {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 
+      const hasBenchedEthans = player.bench.some((b) => {
+        const pokemon = b.getPokemonCard();
+        return pokemon !== undefined && pokemon.hasTag(CardTag.ETHANS);
+      });
+      if (!hasBenchedEthans) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
+
       const cardList = StateUtils.findCardList(state, this);
       if (cardList === undefined) {
         return state;
@@ -119,7 +127,7 @@ export class EthansHoOhex extends PokemonCard {
           PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH],
           { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Fire Energy' },
-          { allowCancel: false, sameTarget: true, min: 0, max: 2, blockedTo: blocked2 },
+          { allowCancel: false, sameTarget: true, min: 1, max: 2, blockedTo: blocked2 },
         ),
         (transfers) => {
           transfers = transfers || [];
