@@ -1,7 +1,7 @@
 import { PokemonCard, Stage, CardType, PowerType, StoreLike, State, PlayerType, StateUtils, pokemonHasCardType } from '../../../game';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
-import { IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { IS_ABILITY_BLOCKED, THIS_POKEMON_CANNOT_ATTACK_NEXT_TURN, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 
 export class Bouffalant extends PokemonCard {
@@ -32,6 +32,11 @@ export class Bouffalant extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
+    // Boundless Power
+    if (WAS_ATTACK_USED(effect, 0, this)) {
+      THIS_POKEMON_CANNOT_ATTACK_NEXT_TURN(effect.player);
+    }
+
     if (effect instanceof PutDamageEffect) {
       const cardList = StateUtils.findCardList(state, this);
       const player = StateUtils.findOwner(state, cardList);
@@ -44,6 +49,11 @@ export class Bouffalant extends PokemonCard {
       });
 
       if (bouffalantCount < 2) {
+        return state;
+      }
+
+      // Only attacks from the opponent's Pokémon
+      if (effect.player === player) {
         return state;
       }
 

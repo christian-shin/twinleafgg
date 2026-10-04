@@ -17,7 +17,7 @@ export class Lampent extends PokemonCard {
   public hp: number = 90;
   public weakness = [{ type: D }];
   public resistance = [{ type: F, value: -30 }];
-  public retreat = [C, C];
+  public retreat = [C];
 
   public attacks = [
     {

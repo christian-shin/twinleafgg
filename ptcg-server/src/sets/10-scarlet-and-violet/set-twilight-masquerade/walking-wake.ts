@@ -42,7 +42,8 @@ export class WalkingWake extends PokemonCard {
     {
       name: 'Undulating Slice',
       cost: [CardType.WATER, CardType.WATER, CardType.COLORLESS],
-      damage: 0,
+      damage: 20,
+      damageCalculation: 'x',
       text: 'Put up to 9 damage counters on this Pokémon. This attack does 20 damage for each damage counter you placed in this way.',
     },
   ];
@@ -104,6 +105,7 @@ function* attack(
     ),
     (targets) => {
       const results = targets || [];
+      effect.damage = 0;
       for (const result of results) {
         const target = StateUtils.getTarget(state, player, result.target);
         const putCountersEffect = new PutCountersEffect(effect, result.damage);

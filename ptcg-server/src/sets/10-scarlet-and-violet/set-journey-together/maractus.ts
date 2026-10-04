@@ -38,7 +38,12 @@ export class Maractus extends PokemonCard {
       const player = StateUtils.findOwner(state, effect.target);
       const pokemonCard = effect.target.getPokemonCard();
 
-      if (pokemonCard !== this || state.phase !== GamePhase.ATTACK || IS_ABILITY_BLOCKED(store, state, player, this)) {
+      // Only while Active, and only from the opponent's attacks
+      if (pokemonCard !== this || player.active !== effect.target || effect.player === player) {
+        return state;
+      }
+
+      if (state.phase !== GamePhase.ATTACK || IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }
 

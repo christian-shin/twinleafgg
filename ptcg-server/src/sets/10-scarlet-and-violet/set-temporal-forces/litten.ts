@@ -9,7 +9,7 @@ import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/p
 export class Litten extends PokemonCard {
   public stage: Stage = Stage.BASIC;
   public cardType: CardType[] = [R];
-  public hp: number = 60;
+  public hp: number = 70;
   public weakness = [{ type: W }];
   public retreat = [C, C];
 

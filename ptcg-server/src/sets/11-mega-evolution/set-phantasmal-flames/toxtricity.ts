@@ -11,7 +11,7 @@ export class Toxtricity extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
   public evolvesFrom = 'Toxel';
   public cardType: CardType[] = [D];
-  public hp: number = 130;
+  public hp: number = 140;
   public weakness = [{ type: F }];
   public retreat = [C, C];
 
@@ -19,7 +19,7 @@ export class Toxtricity extends PokemonCard {
     name: 'Sinister Surge',
     useWhenInPlay: true,
     powerType: PowerType.ABILITY,
-    text: 'Once during your turn, you may search your deck for a Basic [D] Energy card and attach it to 1 of your [D] Pokémon. Then, shuffle your deck. If you attached Energy to a Pokémon in this way, put 2 damage counters on that Pokémon.'
+    text: 'Once during your turn, you may search your deck for a Basic [D] Energy card and attach it to 1 of your Benched [D] Pokémon. Then, shuffle your deck. If you attached Energy to a Pokémon in this way, put 2 damage counters on that Pokémon.'
   }];
 
   public attacks = [{
@@ -63,7 +63,7 @@ export class Toxtricity extends PokemonCard {
         GameMessage.ATTACH_ENERGY_TO_BENCH,
         player.deck,
         PlayerType.BOTTOM_PLAYER,
-        [SlotType.BENCH, SlotType.ACTIVE],
+        [SlotType.BENCH],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Darkness Energy' },
         { allowCancel: true, min: 0, max: 1, blockedTo: blocked2 }
       ), transfers => {

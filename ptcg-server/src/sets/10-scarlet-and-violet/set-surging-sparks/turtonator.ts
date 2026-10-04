@@ -26,7 +26,7 @@ export class Turtonator extends PokemonCard {
     },
     {
       name: 'Steaming Stomp',
-      cost: [CardType.FIRE, CardType.COLORLESS, CardType.COLORLESS],
+      cost: [CardType.FIGHTING, CardType.COLORLESS, CardType.COLORLESS],
       damage: 100,
       text: ''
     }
@@ -46,7 +46,7 @@ export class Turtonator extends PokemonCard {
       const opponentActive = opponent.active;
       const activeCard = opponentActive.getPokemonCard();
       // Only target Pokémon ex
-      if (!activeCard || !activeCard.cardTag.includes(CardTag.POKEMON_ex)) {
+      if (!activeCard || !activeCard.hasTag(CardTag.POKEMON_ex)) {
         return state;
       }
       // Check for any energy attached

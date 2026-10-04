@@ -28,7 +28,7 @@ export class Smoochum extends PokemonCard {
       name: 'Happy Kiss',
       cost: [],
       damage: 0,
-      text: 'Search your deck for up to 2 Basic [P] Energy cards and attach them to your Benched Pokemon in any way you like. Then, shuffle your deck.'
+      text: 'Search your deck for up to 2 Basic [P] Energy cards and attach them to 1 of your Benched Pokémon. Then, shuffle your deck.'
     }
   ];
 
@@ -58,7 +58,7 @@ export class Smoochum extends PokemonCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Psychic Energy' },
-        { allowCancel: false, min: 0, max: 2 },
+        { allowCancel: false, min: 0, max: 2, sameTarget: true },
       ), transfers => {
         transfers = transfers || [];
         // cancelled by user

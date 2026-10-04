@@ -23,6 +23,7 @@ import { AttachEnergyEffect } from '../../../game/store/effects/play-card-effect
 import { WAS_POWER_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Oricorioex extends PokemonCard {
+  protected _tags = [CardTag.POKEMON_ex];
   public stage: Stage = Stage.BASIC;
   public cardType: CardType[] = [R];
   public hp: number = 190;
@@ -58,13 +59,15 @@ export class Oricorioex extends PokemonCard {
     if (WAS_POWER_USED(effect, 0, this)) {
       const player = effect.player;
 
-      const hasMegaEvolutionPokemonInPlay = player.active.cards.some((c) => {
-        return (
-          c instanceof PokemonCard &&
-          c.hasTag(CardTag.POKEMON_ex) &&
-          c.hasTag(CardTag.POKEMON_SV_MEGA) &&
-          pokemonHasCardType(c, CardType.FIRE)
-        );
+      let hasMegaEvolutionPokemonInPlay = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card) => {
+        if (
+          card.hasTag(CardTag.POKEMON_ex) &&
+          card.hasTag(CardTag.POKEMON_SV_MEGA) &&
+          pokemonHasCardType(card, CardType.FIRE)
+        ) {
+          hasMegaEvolutionPokemonInPlay = true;
+        }
       });
       if (!hasMegaEvolutionPokemonInPlay) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);

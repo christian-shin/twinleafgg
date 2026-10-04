@@ -1,5 +1,5 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
-import { CardType, Stage } from '../../../game/store/card/card-types';
+import { CardType, EnergyType, Stage } from '../../../game/store/card/card-types';
 import { StoreLike, State, PowerType, EnergyCard, PlayerType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
@@ -64,7 +64,7 @@ export class Meganium extends PokemonCard {
         }
 
         effect.source.cards.forEach(c => {
-          if (c instanceof EnergyCard && !effect.energyMap.some(e => e.card === c)) {
+          if (c instanceof EnergyCard && c.energyType === EnergyType.BASIC && !effect.energyMap.some(e => e.card === c)) {
             const providedTypes = c.provides.filter(type => type === CardType.GRASS);
             if (providedTypes.length > 0) {
               effect.energyMap.push({ card: c, provides: [CardType.GRASS, CardType.GRASS] });

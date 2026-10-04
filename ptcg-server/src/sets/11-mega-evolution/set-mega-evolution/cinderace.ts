@@ -1,6 +1,5 @@
 import {
   AttachEnergyPrompt,
-  GameError,
   GameMessage,
   PlayerType,
   PowerType,
@@ -58,7 +57,7 @@ export class Cinderace extends PokemonCard {
       const player = effect.player;
 
       if (player.deck.cards.length === 0) {
-        throw new GameError(GameMessage.CANNOT_USE_ATTACK);
+        return state;
       }
 
       state = store.prompt(

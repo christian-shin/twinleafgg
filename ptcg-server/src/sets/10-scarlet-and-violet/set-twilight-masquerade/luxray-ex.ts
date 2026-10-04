@@ -66,7 +66,7 @@ export class Luxrayex extends PokemonCard {
           GameMessage.CHOOSE_CARD_TO_DECK,
           opponent.hand,
           {},
-          { allowCancel: false, min: 0, max: 1 },
+          { allowCancel: false, min: 1, max: 1 },
         ),
         (selectedCard) => {
           const selected = selectedCard || [];

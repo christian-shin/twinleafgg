@@ -8,7 +8,14 @@ import {
   PREVENT_AND_CLEAR_SPECIAL_CONDITIONS,
 } from '../../../game/store/prefabs/prefabs';
 import { State } from '../../../game/store/state/state';
+import { PokemonCardList } from '../../../game/store/state/pokemon-card-list';
 import { StoreLike } from '../../../game/store/store-like';
+
+function pokemonIsWater(store: StoreLike, state: State, target: PokemonCardList): boolean {
+  const checkPokemonType = new CheckPokemonTypeEffect(target);
+  store.reduceEffect(state, checkPokemonType);
+  return checkPokemonType.cardTypes.includes(CardType.WATER);
+}
 
 export class BubbleWaterEnergy extends EnergyCard {
   public provides: CardType[] = [CardType.WATER];
@@ -30,17 +37,20 @@ export class BubbleWaterEnergy extends EnergyCard {
       }
       const checkPokemonType = new CheckPokemonTypeEffect(effect.target);
       store.reduceEffect(state, checkPokemonType);
-      effect.target.removeSpecialCondition(SpecialCondition.ASLEEP);
-      effect.target.removeSpecialCondition(SpecialCondition.PARALYZED);
-      effect.target.removeSpecialCondition(SpecialCondition.CONFUSED);
-      effect.target.removeSpecialCondition(SpecialCondition.POISONED);
-      effect.target.removeSpecialCondition(SpecialCondition.BURNED);
+      if (checkPokemonType.cardTypes.includes(CardType.WATER)) {
+        effect.target.removeSpecialCondition(SpecialCondition.ASLEEP);
+        effect.target.removeSpecialCondition(SpecialCondition.PARALYZED);
+        effect.target.removeSpecialCondition(SpecialCondition.CONFUSED);
+        effect.target.removeSpecialCondition(SpecialCondition.POISONED);
+        effect.target.removeSpecialCondition(SpecialCondition.BURNED);
+      }
     }
     PREVENT_AND_CLEAR_SPECIAL_CONDITIONS(state, effect, {
       shouldApply: (target, owner) =>
         !!owner &&
         target.cards.includes(this) &&
-        !IS_SPECIAL_ENERGY_BLOCKED(store, state, owner, this, target),
+        !IS_SPECIAL_ENERGY_BLOCKED(store, state, owner, this, target) &&
+        pokemonIsWater(store, state, target),
     });
     return state;
   }

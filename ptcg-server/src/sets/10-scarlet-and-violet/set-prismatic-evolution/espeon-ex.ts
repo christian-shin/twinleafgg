@@ -20,7 +20,7 @@ export class Espeonex extends PokemonCard {
 
   public weakness = [{ type: D }];
 
-  public resistance = [{ type: F, value: -20 }];
+  public resistance = [{ type: F, value: -30 }];
 
   public retreat = [C];
 
@@ -70,8 +70,8 @@ export class Espeonex extends PokemonCard {
         }
       });
 
-      return store.prompt(state, new ShuffleDeckPrompt(player.id), (order) => {
-        player.deck.applyOrder(order);
+      return store.prompt(state, new ShuffleDeckPrompt(opponent.id), (order) => {
+        opponent.deck.applyOrder(order);
       });
     }
 

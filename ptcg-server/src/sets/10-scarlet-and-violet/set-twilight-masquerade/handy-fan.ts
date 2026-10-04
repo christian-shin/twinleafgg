@@ -31,7 +31,7 @@ export class HandyFan extends TrainerCard {
 
       // Try to reduce ToolEffect, to check if something is blocking the tool from working
       try {
-        const stub = new ToolEffect(effect.player, this);
+        const stub = new ToolEffect(targetPlayer, this);
         store.reduceEffect(state, stub);
       } catch {
         return state;
@@ -40,9 +40,11 @@ export class HandyFan extends TrainerCard {
       if (state.phase === GamePhase.ATTACK) {
         const player = effect.player;
         const opponent = StateUtils.getOpponent(state, player);
-        const hasBench = opponent.bench.some(b => b.cards.length > 0);
+        // The Energy moves to the attacking player's Bench
+        const hasBench = player.bench.some(b => b.cards.length > 0);
+        const hasEnergy = player.active.cards.some(c => c.superType === SuperType.ENERGY);
 
-        if (hasBench === false) {
+        if (hasBench === false || hasEnergy === false) {
           return state;
         }
 
@@ -53,7 +55,7 @@ export class HandyFan extends TrainerCard {
           PlayerType.TOP_PLAYER,
           [SlotType.BENCH],
           { superType: SuperType.ENERGY },
-          { allowCancel: false, min: 0, max: 1 }
+          { allowCancel: false, min: 1, max: 1 }
         ), transfers => {
           transfers = transfers || [];
           for (const transfer of transfers) {
