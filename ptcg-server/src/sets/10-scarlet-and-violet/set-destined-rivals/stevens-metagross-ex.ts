@@ -88,12 +88,6 @@ export class StevensMetagrossex extends PokemonCard {
         (transfers) => {
           transfers = transfers || [];
           for (const transfer of transfers) {
-            if (transfers.length > 1) {
-              if (transfers[0].card.name === transfers[1].card.name) {
-                throw new GameError(GameMessage.CAN_ONLY_SELECT_TWO_DIFFERENT_ENERGY_TYPES);
-              }
-            }
-
             const target = StateUtils.getTarget(state, player, transfer.to);
             MOVE_CARDS(store, state, player.deck, target, { cards: [transfer.card], sourceCard: this });
           }
