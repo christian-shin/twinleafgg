@@ -74,7 +74,7 @@ export class TeamRocketsZapdos extends PokemonCard {
             (transfers) => {
               transfers = transfers || [];
               for (const transfer of transfers) {
-                const target = StateUtils.getTarget(state, opponent, transfer.to);
+                const target = StateUtils.getTarget(state, player, transfer.to);
                 MOVE_CARDS(store, state, opponent.active, target, { cards: [transfer.card], sourceCard: this });
               }
             },
@@ -87,7 +87,7 @@ export class TeamRocketsZapdos extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       if (
         effect.player.active.cards.some(
-          (c) => c.superType === SuperType.ENERGY && c.name === 'Team Rocket Energy',
+          (c) => c.superType === SuperType.ENERGY && c.name === "Team Rocket's Energy",
         )
       ) {
         effect.damage += 60;
