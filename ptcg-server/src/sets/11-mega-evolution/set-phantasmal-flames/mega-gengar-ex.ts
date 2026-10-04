@@ -95,9 +95,10 @@ export class MegaGengarex extends PokemonCard {
         return state;
       }
 
-      // Prevent stacking if multiple copies are in play (mark the KO target for this resolution)
+      // Prevent stacking if multiple copies are in play (mark the KO target for this resolution;
+      // the check must not depend on which copy added the marker)
       const NON_STACK_MARKER = 'MEGA_GENGAR_SHADOW_HIDING_APPLIED';
-      if (effect.target.marker.hasMarker(NON_STACK_MARKER, this)) {
+      if (effect.target.marker.hasMarker(NON_STACK_MARKER)) {
         return state;
       }
       effect.target.marker.addMarker(NON_STACK_MARKER, this);
