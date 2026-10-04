@@ -79,7 +79,10 @@ export class IronThornsex extends PokemonCard {
         try {
           const targetCardList = StateUtils.findCardList(state, card);
           if (!(targetCardList instanceof PokemonCardList)) {
-            return false;
+            // A Pokémon still in the hand is being played (benched / evolved), so it is in play: no Abilities
+            if (StateUtils.findOwner(state, targetCardList).hand !== targetCardList) {
+              return false;
+            }
           }
         } catch {
           return false;

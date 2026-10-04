@@ -70,7 +70,7 @@ export class HopsChoiceBand extends TrainerCard {
       if (effect.target !== opponent.active) return state;
 
       const sourceCard = effect.source.getPokemonCard();
-      if (sourceCard && sourceCard.hasTag(CardTag.HOPS)) {
+      if (sourceCard && sourceCard.hasTag(CardTag.HOPS) && effect.damage > 0) {
         effect.damage += 30;
       }
     }

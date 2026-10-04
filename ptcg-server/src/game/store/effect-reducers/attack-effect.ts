@@ -48,7 +48,7 @@ function applyPutDamage(store: StoreLike, state: State, effect: PutDamageEffect)
     if (effect.surviveOnTenHPReason !== undefined) {
       const checkHpEffect = new CheckHpEffect(effect.player, target);
       state = store.reduceEffect(state, checkHpEffect);
-      if (target.damage > checkHpEffect.hp) {
+      if (target.damage >= checkHpEffect.hp) {
         store.log(state, GameLog.LOG_SURVIVES_ON_TEN_HP, {
           pokemon: targetCard.name,
           reason: effect.surviveOnTenHPReason,
