@@ -1,7 +1,7 @@
 import { CardTag, CardType, PokemonCard, Stage, State, StoreLike } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import {
-  MOVE_CARDS,
+  DRAW_CARDS,
   THIS_ATTACK_DOES_X_MORE_DAMAGE,
   THIS_POKEMON_HAS_ANY_DAMAGE_COUNTERS_ON_IT,
   WAS_ATTACK_USED,
@@ -41,16 +41,10 @@ export class MegaSharpedoex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const player = effect.player;
-
-      if (player.deck.cards.length === 0) {
-        return state;
-      }
-      MOVE_CARDS(store, state, player.deck, player.hand, { count: 1 });
-      return state;
+      DRAW_CARDS(store, state, effect.player, 2);
     }
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (WAS_ATTACK_USED(effect, 1, this)) {
       if (THIS_POKEMON_HAS_ANY_DAMAGE_COUNTERS_ON_IT(effect, this)) {
         THIS_ATTACK_DOES_X_MORE_DAMAGE(effect, store, state, 150);
       }
