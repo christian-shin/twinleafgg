@@ -485,6 +485,7 @@ function promptAttackToCopyViaAbility(
       const useAttackEffect = new UseAttackEffect(player, attack);
       useAttackEffect.delegateFrom = sourceCard;
       useAttackEffect.source = player.active;
+      const phase = state.phase;
       try {
         return store.reduceEffect(state, useAttackEffect);
       } catch (error) {
@@ -492,7 +493,8 @@ function promptAttackToCopyViaAbility(
           throw error;
         }
         // The chosen attack cannot be used after all (its own conditions): choose another.
-        const index = pokemonCards.indexOf(sourceCard);
+        state.phase = phase;
+        const index = pokemonCards.findIndex(card => card.attacks.includes(attack));
         return promptAttackToCopyViaAbility(
           store, state, player, pokemonCards, [...blocked, { index, attack: attack.name }], allowCancel,
         );
