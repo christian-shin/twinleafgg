@@ -3,10 +3,10 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { GameMessage, PlayerType, PowerType, SlotType, StateUtils, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { CheckHpEffect } from '../../../game/store/effects/check-effects';
 import { PlaceDamageCountersEffect } from '../../../game/store/effects/game-effects';
 import { ChoosePokemonPrompt } from '../../../game/store/prompts/choose-pokemon-prompt';
-import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Annihilape extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -52,18 +52,7 @@ export class Annihilape extends PokemonCard {
         return state;
       }
 
-      const checkHpEffect = new CheckHpEffect(owner, effect.target);
-      store.reduceEffect(state, checkHpEffect);
-
-      if (effect.damage >= checkHpEffect.hp) {
-        return COIN_FLIP_PROMPT(store, state, owner, result => {
-            if (result === true) {
-              effect.surviveOnTenHPReason = this.powers[0].name;
-            }
-            return state;
-          },
-        );
-      }
+      SURVIVE_ON_TEN_ON_COIN_FLIP(store, state, effect, owner, this.powers[0].name);
     }
 
     if (WAS_ATTACK_USED(effect, 0, this)) {
