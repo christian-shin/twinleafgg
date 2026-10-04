@@ -83,8 +83,8 @@ export class PerformanceFlute extends TrainerCard {
 
             MOVE_CARDS(store, state, deckTop, opponent.deck, { sourceCard: this });
 
-            return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
-              player.deck.applyOrder(order);
+            return store.prompt(state, new ShuffleDeckPrompt(opponent.id), order => {
+              opponent.deck.applyOrder(order);
               return state;
             });
           });
