@@ -37,7 +37,7 @@ export class Fezandipiti extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Adrena-Pheromone
     if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
-      const player = effect.player;
+      const player = StateUtils.findOwner(state, effect.target);
       const pokemonCard = effect.target.getPokemonCard();
       const cardList = StateUtils.findCardList(state, this) as PokemonCardList;
 
