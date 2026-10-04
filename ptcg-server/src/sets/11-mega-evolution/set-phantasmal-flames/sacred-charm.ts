@@ -3,10 +3,10 @@ import { TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { DealDamageEffect } from '../../../game/store/effects/attack-effects';
-import { PokemonCard } from '../../../game/store/card/pokemon-card';
+import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { CheckPokemonPowersEffect } from '../../../game/store/effects/check-effects';
-import { PowerType, StateUtils } from '../../../game';
+import { GamePhase, PowerType, StateUtils } from '../../../game';
+import { IS_TOOL_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 export class SacredCharm extends TrainerCard {
   public trainerType: TrainerType = TrainerType.TOOL;
@@ -20,20 +20,33 @@ export class SacredCharm extends TrainerCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (effect instanceof DealDamageEffect && effect.target.tools.includes(this)) {
-      const sourcePokemon = effect.source;
+    // Reduce damage after Weakness and Resistance (PutDamageEffect), like Rigid Band
+    if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
+      if (state.phase !== GamePhase.ATTACK) {
+        return state;
+      }
 
-      // Check if the source Pokemon has any abilities
-      if (sourcePokemon instanceof PokemonCard) {
-        const player = StateUtils.findOwner(state, sourcePokemon);
-        const powersEffect = new CheckPokemonPowersEffect(player, sourcePokemon);
-        state = store.reduceEffect(state, powersEffect);
-        if (powersEffect.powers.some(power => power.powerType === PowerType.ABILITY)) {
-          effect.damage -= 30;
-          if (effect.damage < 0) {
-            effect.damage = 0;
-          }
-        }
+      const owner = StateUtils.findOwner(state, effect.target);
+      if (IS_TOOL_BLOCKED(store, state, owner, this)) {
+        return state;
+      }
+
+      // Only attacks from the opponent's Pokémon
+      const attacker = StateUtils.findOwner(state, effect.source);
+      if (owner === attacker) {
+        return state;
+      }
+
+      // effect.source is the attacker's PokemonCardList: check its Pokémon for any Ability
+      const sourcePokemon = effect.source.getPokemonCard();
+      if (sourcePokemon === undefined) {
+        return state;
+      }
+
+      const powersEffect = new CheckPokemonPowersEffect(attacker, sourcePokemon);
+      state = store.reduceEffect(state, powersEffect);
+      if (powersEffect.powers.some(power => power.powerType === PowerType.ABILITY)) {
+        effect.reduceDamage(30);
       }
     }
 
