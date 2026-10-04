@@ -46,7 +46,7 @@ function* playCard(
       GameMessage.CHOOSE_CARDS,
       player.deck,
       {},
-      { min: 2, max: 2, allowCancel: false },
+      { min: Math.min(2, player.deck.cards.length), max: Math.min(2, player.deck.cards.length), allowCancel: false },
     ),
     (selected) => {
       cards = selected || [];
