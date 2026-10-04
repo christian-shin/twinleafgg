@@ -1,10 +1,10 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType } from '../../../game/store/card/card-types';
-import { PowerType, StoreLike, State, ConfirmPrompt, GameMessage, StateUtils, ChooseEnergyPrompt, Card } from '../../../game';
+import { PowerType, StoreLike, State, ConfirmPrompt, GameMessage, StateUtils, ChooseCardsPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
-import {IS_ABILITY_BLOCKED, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
-import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
+import {IS_ABILITY_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { AfterAttackEffect } from '../../../game/store/effects/game-phase-effects';
 
 export class ChienPao extends PokemonCard {
 
@@ -70,25 +70,22 @@ export class ChienPao extends PokemonCard {
       }
     }
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    // Icicle Loop: after the damage, put 1 Energy attached to this Pokémon into your hand
+    if (effect instanceof AfterAttackEffect && effect.attack === this.attacks[0]) {
       const player = effect.player;
 
       if (!player.active.energies.cards.some(c => c.superType === SuperType.ENERGY)) {
         return state;
       }
 
-      const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
-      state = store.reduceEffect(state, checkProvidedEnergy);
-
-      state = store.prompt(state, new ChooseEnergyPrompt(
-        player.id,
-        GameMessage.CHOOSE_ENERGIES_TO_DISCARD,
-        checkProvidedEnergy.energyMap,
-        [CardType.COLORLESS, CardType.COLORLESS],
-        { allowCancel: false }
-      ), energy => {
-        const cards: Card[] = (energy || []).map(e => e.card);
-        MOVE_CARDS(store, state, player.active, player.hand, { cards: cards, sourceCard: this });
+      state = store.prompt(state, new ChooseCardsPrompt(
+        player,
+        GameMessage.CHOOSE_CARD_TO_HAND,
+        player.active,
+        { superType: SuperType.ENERGY },
+        { min: 1, max: 1, allowCancel: false }
+      ), cards => {
+        MOVE_CARDS(store, state, player.active, player.hand, { cards: cards || [], sourceCard: this });
       });
     }
 
