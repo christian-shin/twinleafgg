@@ -84,6 +84,17 @@ Choose up to 2 of your Benched [C] Pokémon and attach a Basic Energy card from 
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
+      let hasColorlessBench = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
+        if (target.slot === SlotType.BENCH && pokemonHasCardType(card, CardType.COLORLESS)) {
+          hasColorlessBench = true;
+        }
+      });
+
+      if (!hasColorlessBench) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       const blocked2: CardTarget[] = [];
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
         if (!pokemonHasCardType(card, CardType.COLORLESS)) {
