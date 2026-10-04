@@ -17,7 +17,7 @@ import {
   STAMP_ABILITY_LOCK_ACTIVATION,
   APPLY_ATTACK_EFFECT_ABILITY_LOCKS,
 } from './prefabs/ability-lock';
-import { resolveCopyAttackSessions } from './prefabs/copy-attack-delegation';
+import { isDelegatingCopycat, resolveCopyAttackSessions } from './prefabs/copy-attack-delegation';
 import { effectWasBlocked, logAppliedEffect, logPreventedEffect, logResolvedPrompt, stampEffectBlocker } from './prefabs/auto-log';
 import { filterTrainerPromptResult, ResolvingTrainerSource } from './prefabs/trainer-target';
 import { GameError } from '../game-error';
@@ -148,6 +148,12 @@ export class Store implements StoreLike {
       STAMP_ABILITY_LOCK_ACTIVATION(state, effect.player.active, effect.pokemonCard);
     } else if (effect instanceof MovedFromActiveToBenchEffect) {
       CLEAR_ABILITY_LOCK_ACTIVATION(state, effect.pokemonCard);
+    }
+
+    // A copied attack gives the copycat the attack only: source code run for the
+    // copycat (delegateToSource) can't use or probe an Ability of the copycat.
+    if (effect instanceof PowerEffect && isDelegatingCopycat(effect.card)) {
+      throw new GameError(GameMessage.BLOCKED_BY_EFFECT);
     }
 
     APPLY_ATTACK_EFFECT_ABILITY_LOCKS(state, effect);
