@@ -8,6 +8,8 @@ import { AbstractAttackEffect, PutDamageEffect, PutCountersEffect, DealDamageEff
 import { Effect } from "../effects/effect";
 import { PreventDamageOptions, PlayLockOptions, KnockOutIfDamagedOptions, preventRetreatEffect, selfPreventRetreatEffect, preventRetreatWhileActiveEffect, preventDamageEffect, preventEffectsOfAttacksEffect, preventDamageAndEffectsToAllYourPokemonEffect, coinFlipPreventAttackDamageDuringOpponentsNextTurnEffect, cannotBeSpecialConditionedDuringOpponentsNextTurnEffect, shouldPreventAttackEffects, preventAttackEffect, preventHealOnDefendingDuringOpponentsNextTurnEffect, coinFlipCancelAttackEffect, opponentPokemonCannotUseAttackEffect, opponentPokemonCanOnlyUseAttackEffect, preventAttackUntilLeavesActiveEffect, reduceDamageEffect, reduceDamageAfterWeaknessEffect, playLockEffect, stadiumAndToolHaveNoEffectEffect, coinFlipCancelTrainerPlayEffect, increaseDefendingPokemonAttackCostNextTurnEffect, increaseDefendingPokemonAttackCostWhileActiveEffect, increaseDefendingPokemonRetreatCostNextTurnEffect, defendingPokemonTakesMoreDamageDuringAttackerNextTurnEffect, defendingPokemonTakesDamageOnEnergyAttachFromHandNextTurnEffect, cannotAttachEnergyFromHandToDefendingNextTurnEffect, energyAttachFromHandConsequenceNextTurnEffect, defendingPokemonWeaknessIsNowEffect, thisPokemonHasNoWeaknessDuringOpponentsNextTurnEffect, thisPokemonHasNoRetreatCostDuringYourNextTurnEffect, knockOutIfDamagedDuringAttackerNextTurnEffect, surviveOnTenHpDuringOpponentsNextTurnEffect, retaliateOnDamageDuringOpponentsNextTurnEffect, extraPrizesIfKnockedOutDuringAttackerNextTurnEffect, denyPrizesIfKnockedOutDuringOpponentsNextTurnEffect, discardAttackerEnergyIfKnockedOutDuringOpponentsNextTurnEffect, opponentCannotDrawAtStartOfNextTurnEffect, yourPokemonCannotAttackDuringYourNextTurnEffect, opponentPokemonCannotAttackDuringTheirNextTurnEffect, ignoreAttackCostsForTypesDuringYourNextTurnEffect, cannotEvolveDefendingNextTurnEffect, defendingPokemonHasNoAbilitiesUntilEndOfAttackerNextTurnEffect, opponentPokemonHaveNoAbilitiesEffect, OpponentPowerSuppressionOptions } from "../effects/effect-of-attack-effects";
 import { AttackEffect } from "../effects/game-effects";
+import { CheckHpEffect } from "../effects/check-effects";
+import { CoinFlipEffect } from "../effects/play-card-effects";
 import { ChooseAttackPrompt } from "../prompts/choose-attack-prompt";
 import { StateUtils } from "../state-utils";
 import { Player } from "../state/player";
@@ -1065,6 +1067,33 @@ export function SURVIVE_ON_TEN_IF_FULL_HP(
 
   if (DAMAGED_FROM_FULL_HP(store, state, effect, player, effect.target)) {
     effect.surviveOnTenHPReason = reason;
+  }
+}
+
+/**
+ * Compound helper for text like:
+ * "If this Pokemon would be Knocked Out by damage from an attack, flip a coin.
+ * If heads, this Pokemon is not Knocked Out, and its remaining HP becomes 10."
+ * The coin is read right away (CoinFlipEffect.result): a COIN_FLIP_PROMPT callback
+ * runs after the flip's wait prompt, i.e. after this PutDamageEffect was applied.
+ */
+export function SURVIVE_ON_TEN_ON_COIN_FLIP(
+  store: StoreLike,
+  state: State,
+  effect: PutDamageEffect,
+  player: Player,
+  reason: string,
+): void {
+  const checkHpEffect = new CheckHpEffect(player, effect.target);
+  store.reduceEffect(state, checkHpEffect);
+
+  if (effect.target.damage + effect.damage >= checkHpEffect.hp) {
+    const coinFlip = new CoinFlipEffect(player);
+    store.reduceEffect(state, coinFlip);
+
+    if (coinFlip.result === true) {
+      effect.surviveOnTenHPReason = reason;
+    }
   }
 }
 
