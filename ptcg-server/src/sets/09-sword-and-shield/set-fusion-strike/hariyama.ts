@@ -6,9 +6,9 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { PowerType, StoreLike, State, StateUtils } from '../../../game';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { CheckHpEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
-import { COIN_FLIP_PROMPT, IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Hariyama extends PokemonCard {
   protected _tags = [CardTag.SINGLE_STRIKE];
@@ -59,16 +59,7 @@ export class Hariyama extends PokemonCard {
         return state;
       }
 
-      const checkHpEffect = new CheckHpEffect(player, effect.target);
-      store.reduceEffect(state, checkHpEffect);
-
-      if (effect.target.damage + effect.damage >= checkHpEffect.hp) {
-        COIN_FLIP_PROMPT(store, state, player, (result) => {
-          if (result) {
-            effect.surviveOnTenHPReason = this.powers[0].name;
-          }
-        });
-      }
+      SURVIVE_ON_TEN_ON_COIN_FLIP(store, state, effect, player, this.powers[0].name);
     }
 
     return state;
