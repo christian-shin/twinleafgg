@@ -1,7 +1,7 @@
 import { Effect } from '../../../game/store/effects/effect';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
-import { StoreLike, State, PlayerType, PokemonCardList, Card, ChoosePrizePrompt, ConfirmPrompt, GameMessage, GameError } from '../../../game';
+import { StoreLike, State, PlayerType, PokemonCardList, Card, ChoosePrizePrompt, ConfirmPrompt, GameMessage } from '../../../game';
 import { HealEffect } from '../../../game/store/effects/game-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
@@ -61,7 +61,7 @@ export class Cresselia extends PokemonCard {
 
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
-      const prizes = player.prizes.filter(p => p.isSecret);
+      const prizes = player.prizes.filter(p => p.isSecret && !p.faceUpPrize && p.cards.length > 0);
       const cards: Card[] = [];
       prizes.forEach(p => { p.cards.forEach(c => cards.push(c)); });
 
@@ -75,17 +75,13 @@ export class Cresselia extends PokemonCard {
             state = store.prompt(state, new ChoosePrizePrompt(
               player.id,
               GameMessage.CHOOSE_POKEMON,
-              { count: 1, allowCancel: true },
+              { count: 1, allowCancel: true, faceDownOnly: true },
             ), chosenPrize => {
-              const prizeCard = chosenPrize[0];
-
-              if (prizeCard.faceUpPrize == true) {
-                throw new GameError(GameMessage.CANNOT_USE_POWER);
-              }
-
               if (chosenPrize === null || chosenPrize.length === 0) {
                 return state;
               }
+
+              const prizeCard = chosenPrize[0];
 
               prizeCard.isSecret = false;
               prizeCard.isPublic = true;
