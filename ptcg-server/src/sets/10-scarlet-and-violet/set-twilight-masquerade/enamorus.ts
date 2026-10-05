@@ -48,16 +48,16 @@ export class Enamorus extends PokemonCard {
 
       // Collect types from player's Pokémon in play
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList: PokemonCardList) => {
-        if (cardList.cards.length > 0) {
-          const pokemonCard = cardList.cards[0] as PokemonCard;
+        const pokemonCard = cardList.getPokemonCard();
+        if (pokemonCard !== undefined) {
           getPokemonCardTypes(pokemonCard).forEach(type => playerTypes.add(type));
         }
       });
 
       // Collect types from opponent's Pokémon in play
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList: PokemonCardList) => {
-        if (cardList.cards.length > 0) {
-          const pokemonCard = cardList.cards[0] as PokemonCard;
+        const pokemonCard = cardList.getPokemonCard();
+        if (pokemonCard !== undefined) {
           getPokemonCardTypes(pokemonCard).forEach(type => opponentTypes.add(type));
         }
       });
