@@ -104,7 +104,9 @@ export class Greninjaex extends PokemonCard {
           { allowCancel: false },
         ),
         (energy) => {
-          const max = Math.min(2);
+          // 2 of your opponent's Pokémon (all of them when the opponent has fewer)
+          const opponent = StateUtils.getOpponent(state, player);
+          const max = Math.min(2, 1 + opponent.bench.filter((b) => b.cards.length > 0).length);
           return store.prompt(
             state,
             new ChoosePokemonPrompt(
@@ -112,7 +114,7 @@ export class Greninjaex extends PokemonCard {
               GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
               PlayerType.TOP_PLAYER,
               [SlotType.ACTIVE, SlotType.BENCH],
-              { min: 1, max: max, allowCancel: false },
+              { min: max, max: max, allowCancel: false },
             ),
             (selected) => {
               const targets = selected || [];
