@@ -30,6 +30,7 @@ export class NsCastle extends TrainerCard {
 
       if (effect.player.active.getPokemonCard()?.hasTag(CardTag.NS)) {
         effect.cost = [];
+        effect.noRetreatCost = true;
       }
     }
 
