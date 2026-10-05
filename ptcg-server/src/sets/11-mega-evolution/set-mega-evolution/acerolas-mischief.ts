@@ -14,7 +14,7 @@ import {
   PokemonCardList,
   SlotType,
 } from '../../../game';
-import { AbstractAttackEffect } from '../../../game/store/effects/attack-effects';
+import { AbstractAttackEffect, isDamageIgnoringDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { ADD_MARKER } from '../../../game/store/prefabs/prefabs';
 
@@ -96,6 +96,7 @@ export class AcerolasMischief extends TrainerCard {
 
     if (
       effect instanceof AbstractAttackEffect &&
+      !isDamageIgnoringDefenderEffects(effect) &&
       effect.target.marker.hasMarker(this.MISCHIEF_MARKER, this)
     ) {
       const targetOwner = StateUtils.findOwner(state, effect.target);
