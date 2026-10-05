@@ -4,7 +4,6 @@ import { StoreLike, State, StateUtils, GamePhase, CardList, AttachEnergyPrompt, 
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { CheckRetreatCostEffect } from '../../../game/store/effects/check-effects';
 import { IS_TOOL_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -35,23 +34,21 @@ export class HeavyBaton extends TrainerCard {
 
     // The criteria are checked when the damage is dealt: an attack that moves the Pokémon to the
     // Bench before the Knock Out is checked (Exciting Dance, Push Down) doesn't stop Heavy Baton (ruling 1547).
+    // The latest damage from an opponent's attack decides; the marker is consumed by the Knock Out.
     if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
       const owner = StateUtils.findOwner(state, effect.target);
-      if (state.phase === GamePhase.ATTACK && owner.active === effect.target && effect.player !== owner
-        && !effect.preventDefault && effect.damage > 0 && !IS_TOOL_BLOCKED(store, state, owner, this)) {
-        const checkRetreatCost = new CheckRetreatCostEffect(owner);
-        store.reduceEffect(state, checkRetreatCost);
-        if (checkRetreatCost.cost.length === 4) {
-          // A Trainer's effect on the Pokémon: it stays when the Pokémon moves to the Bench.
-          effect.target.marker.addMarker(this.HEAVY_BATON_ACTIVE_MARKER, this, 'trainer', 'pokemon');
+      if (state.phase === GamePhase.ATTACK && effect.player !== owner) {
+        effect.target.marker.removeMarker(this.HEAVY_BATON_ACTIVE_MARKER, this);
+        if (owner.active === effect.target && !effect.preventDefault && effect.damage > 0
+          && !IS_TOOL_BLOCKED(store, state, owner, this)) {
+          const checkRetreatCost = new CheckRetreatCostEffect(owner);
+          store.reduceEffect(state, checkRetreatCost);
+          if (checkRetreatCost.cost.length === 4) {
+            // A Trainer's effect on the Pokémon: it stays when the Pokémon moves to the Bench.
+            effect.target.marker.addMarker(this.HEAVY_BATON_ACTIVE_MARKER, this, 'trainer', 'pokemon');
+          }
         }
       }
-    }
-
-    if (effect instanceof EndTurnEffect) {
-      state.players.forEach(p => p.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
-        cardList.marker.removeMarker(this.HEAVY_BATON_ACTIVE_MARKER, this);
-      }));
     }
 
     if (effect instanceof KnockOutEffect && effect.target.tools.includes(this)) {
