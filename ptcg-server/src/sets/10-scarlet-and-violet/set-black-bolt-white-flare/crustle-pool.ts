@@ -37,7 +37,7 @@ export class CrustleBLKPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Sturdy
-    SURVIVE_ON_TEN_IF_FULL_HP(store, state, effect, { source: this, reason: this.powers[0].name });
+    SURVIVE_ON_TEN_IF_FULL_HP(store, state, effect, { source: this, reason: 'Sturdy' });
 
     // Stone Edge
     if (WAS_ATTACK_USED(effect, 0, this)) {
