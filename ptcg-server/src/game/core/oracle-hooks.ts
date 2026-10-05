@@ -5,4 +5,6 @@ export const OracleHooks: {
   afterCardReduce?: (card: any, effect: any) => void;
   /** Skip Store.reduce's deep-clone backup (the oracle restores state itself). */
   noBackup?: boolean;
+  /** Skip Store.calculatePlayability (client UI hints): its canPlay probes run on the live state and rewrite derived fields such as hpBonus. */
+  noPlayability?: boolean;
 } = {};

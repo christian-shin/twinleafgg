@@ -132,6 +132,7 @@ export class GameRunner {
     this.store.state.rules = settings.rules;
     this.bots = PLAYER_IDS.map(id => botFor(id));
     OracleHooks.noBackup = true;
+    OracleHooks.noPlayability = true;
     OracleHooks.onEffect = opts.effects ? (effect: any) => {
       if (!Chance.inSim) {
         this.effectLog.push(effect.type);

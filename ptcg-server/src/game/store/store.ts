@@ -395,6 +395,10 @@ export class Store implements StoreLike {
       return state;
     }
 
+    if (OracleHooks.noPlayability) {
+      return state;
+    }
+
     // Skip playability calculation during setup and other non-play phases
     // Only calculate starting from Turn 1 (skip Turn 0 which is setup)
     if (state.phase !== GamePhase.PLAYER_TURN || state.turn < 1) {
