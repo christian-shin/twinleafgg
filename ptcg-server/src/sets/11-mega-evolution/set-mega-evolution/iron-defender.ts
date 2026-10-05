@@ -6,7 +6,7 @@ import { CardType, TrainerType } from '../../../game/store/card/card-types';
 import { StateUtils } from '../../../game/store/state-utils';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { GamePhase, Player } from '../../../game';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 export class IronDefender extends TrainerCard {
@@ -32,7 +32,7 @@ export class IronDefender extends TrainerCard {
       effect.player.marker.addMarker(this.IRON_DEFENDER_MARKER, this);
     }
 
-    if (effect instanceof PutDamageEffect) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect)) {
       const player: Player = StateUtils.findOwner(state, StateUtils.findCardList(state, this));
       const hasMarker: boolean = player.marker.hasMarker(this.IRON_DEFENDER_MARKER, this);
 
