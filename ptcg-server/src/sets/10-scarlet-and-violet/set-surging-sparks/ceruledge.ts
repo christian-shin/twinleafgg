@@ -2,6 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, EnergyType, SuperType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, PokemonCardList } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
+import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Ceruledge extends PokemonCard {
@@ -43,6 +44,14 @@ export class Ceruledge extends PokemonCard {
         const cardsToDiscard = pokemonCardList.cards.filter(card =>
           (card.superType === SuperType.ENERGY && card.energyType === EnergyType.SPECIAL)
         );
+        // The discard is an effect of the attack done to that Pokémon: Mist Energy and the like prevent it
+        // (a probe without cards asks who prevents it; ruling 1843, 1724)
+        const probe = new DiscardCardsEffect(effect, []);
+        probe.target = pokemonCardList;
+        state = store.reduceEffect(state, probe);
+        if (probe.preventDefault) {
+          return;
+        }
         if (cardsToDiscard.length > 0) {
           state = MOVE_CARDS(store, state, pokemonCardList, opponent.discard, { cards: cardsToDiscard });
         }

@@ -1,4 +1,5 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
+import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { Stage, CardType, SuperType, TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike, State, PokemonCardList, GameMessage, CardTarget, ChoosePokemonPrompt, PlayerType, SlotType, StateUtils, ChooseCardsPrompt } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
@@ -47,6 +48,13 @@ function* useCleaningUp(next: Function, store: StoreLike, state: State,
 
   targets.forEach(target => {
     const owner = StateUtils.findOwner(state, target);
+    // An effect of the attack on that Pokémon: Mist Energy and the like prevent it (a probe without cards, ruling 1843)
+    const probe = new DiscardCardsEffect(effect, []);
+    probe.target = target;
+    store.reduceEffect(state, probe);
+    if (probe.preventDefault) {
+      return;
+    }
     if (target.tools.length > 0) {
       if (target.tools.length > 1) {
         // Prompt to choose up to 2 tools
