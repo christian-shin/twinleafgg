@@ -4,7 +4,7 @@
 
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType } from '../../../game/store/card/card-types';
-import { StoreLike, State, GameMessage, PlayerType, ChoosePokemonPrompt } from '../../../game';
+import { StoreLike, State, GameError, GameMessage, PlayerType, ChoosePokemonPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { HealEffect } from '../../../game/store/effects/game-effects';
 import { SlotType } from '../../../game/store/actions/play-card-action';
@@ -23,6 +23,17 @@ export class PokemonCenterLady extends TrainerCard {
     // Refs: set-cosmic-eclipse/mallow-and-lana.ts (supporter heal pattern), set-perfect-order/lumiose-galette.ts (heal + condition removal)
     if (WAS_TRAINER_USED(effect, this)) {
       const player = effect.player;
+
+      // A Trainer can't be played for no effect: some Pokémon must have damage or a Special Condition
+      let canHeal = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+        if (cardList.damage > 0 || cardList.specialConditions.length > 0) {
+          canHeal = true;
+        }
+      });
+      if (!canHeal) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
 
       return store.prompt(state, new ChoosePokemonPrompt(
         player.id,
