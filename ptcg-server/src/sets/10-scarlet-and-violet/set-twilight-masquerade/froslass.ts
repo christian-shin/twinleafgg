@@ -54,7 +54,7 @@ export class Froslass extends PokemonCard {
         let numberOfFroslass = 0;
         player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
           const pokemon = cardList.getPokemonCard();
-          if (!!pokemon && pokemon.name === 'Froslass' && pokemon.powers.map(p => p.name).includes(this.powers[0].name)) {
+          if (!!pokemon && pokemon.name === 'Froslass' && pokemon.powers.map(p => p.name).includes('Freezing Shroud')) {
             numberOfFroslass += 1;
           }
         });
@@ -105,7 +105,7 @@ export class Froslass extends PokemonCard {
 
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
         const pokemon = cardList.getPokemonCard();
-        if (!!pokemon && pokemon.name === 'Froslass' && pokemon.powers.map(p => p.name).includes(this.powers[0].name)) {
+        if (!!pokemon && pokemon.name === 'Froslass' && pokemon.powers.map(p => p.name).includes('Freezing Shroud')) {
           numberOfFroslass += 1;
         }
       });
@@ -119,7 +119,7 @@ export class Froslass extends PokemonCard {
       const opponent = StateUtils.getOpponent(state, effect.player);
       opponent.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
         const pokemon = cardList.getPokemonCard();
-        if (!!pokemon && pokemon.name === 'Froslass' && pokemon.powers.map(p => p.name).includes(this.powers[0].name)) {
+        if (!!pokemon && pokemon.name === 'Froslass' && pokemon.powers.map(p => p.name).includes('Freezing Shroud')) {
           numberOfFroslass += 1;
         }
       });
