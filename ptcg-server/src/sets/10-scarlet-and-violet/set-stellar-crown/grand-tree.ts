@@ -36,12 +36,17 @@ function* useStadium(
   // Look through all known cards to find out if Pokemon can evolve
   const cm = CardManager.getInstance();
 
+  // Players can't evolve a Basic Pokémon during their first turn (the same test as playing an evolution
+  // from the hand: PlayPokemonEffect); a Pokémon with its own exception (Eevee) may.
+  const firstTurnBlocked = (playedTurnEffect: CheckPokemonPlayedTurnEffect): boolean =>
+    state.turn <= 2 && player.canEvolve === false && !playedTurnEffect.canEvolveOnFirstTurn;
+
   // Build possible evolution card names
   const evolutionNames: string[] = [];
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
     const playedTurnEffect = new CheckPokemonPlayedTurnEffect(player, list);
     store.reduceEffect(state, playedTurnEffect);
-    if (card.stage !== Stage.BASIC || playedTurnEffect.pokemonPlayedTurn === state.turn) {
+    if (card.stage !== Stage.BASIC || playedTurnEffect.pokemonPlayedTurn === state.turn || firstTurnBlocked(playedTurnEffect)) {
       return;
     }
     const valid = (cm.getEvolutionsFrom(card.name) as PokemonCard[]);
@@ -65,7 +70,7 @@ function* useStadium(
     }
     const playedTurnEffect = new CheckPokemonPlayedTurnEffect(player, list);
     store.reduceEffect(state, playedTurnEffect);
-    if (playedTurnEffect.pokemonPlayedTurn === state.turn) {
+    if (playedTurnEffect.pokemonPlayedTurn === state.turn || firstTurnBlocked(playedTurnEffect)) {
       blocked2.push(target);
     }
   });
@@ -101,7 +106,8 @@ function* useStadium(
   store.reduceEffect(state, targetPlayedTurnEffect);
   if (
     pokemonCard.stage !== Stage.BASIC ||
-    targetPlayedTurnEffect.pokemonPlayedTurn === state.turn
+    targetPlayedTurnEffect.pokemonPlayedTurn === state.turn ||
+    firstTurnBlocked(targetPlayedTurnEffect)
   ) {
     return state;
   }
