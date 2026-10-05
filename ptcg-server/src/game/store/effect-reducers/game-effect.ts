@@ -384,6 +384,28 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());
     }
+    // The second use runs through useAttack again: don't offer it when it would throw
+    // (e.g. Handheld Fan moved the attacker's only Energy away, or it is now Asleep/Paralyzed).
+    if (attack.barrage) {
+      const againSp = player.active.specialConditions;
+      if (againSp.includes(SpecialCondition.PARALYZED) || againSp.includes(SpecialCondition.ASLEEP)) {
+        return store.reduceEffect(state, new EndTurnEffect(player));
+      }
+      let againPokemon = player.active;
+      player.bench.forEach(benchSlot => {
+        const benchPokemon = benchSlot.getPokemonCard();
+        if (benchPokemon && benchPokemon.attacks.some(a => a.name === attack.name && a.useOnBench)) {
+          againPokemon = benchSlot;
+        }
+      });
+      const againCost = new CheckAttackCostEffect(player, attack);
+      state = store.reduceEffect(state, againCost);
+      const againEnergy = new CheckProvidedEnergyEffect(player, againPokemon);
+      state = store.reduceEffect(state, againEnergy);
+      if (StateUtils.checkEnoughEnergy(againEnergy.energyMap, againCost.cost as CardType[]) === false) {
+        return store.reduceEffect(state, new EndTurnEffect(player));
+      }
+    }
     let wantToUse: boolean | undefined = undefined;
     yield store.prompt(state, new ConfirmPrompt(
       player.id,
