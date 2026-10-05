@@ -3,7 +3,7 @@ import { CardType, TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { CheckRetreatCostEffect } from '../../../game/store/effects/check-effects';
+import { CheckHpEffect, CheckRetreatCostEffect } from '../../../game/store/effects/check-effects';
 import { IS_TOOL_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 
@@ -33,7 +33,10 @@ export class EmergencyBoard extends TrainerCard {
       if (IS_TOOL_BLOCKED(store, state, effect.player, this)) { return state; }
 
       if (pokemonCard) {
-        const remainingHp = pokemonCard.hp - player.active.damage;
+        // Remaining HP uses the current HP (Stadium, Ability and Energy bonuses included)
+        const checkHpEffect = new CheckHpEffect(player, player.active);
+        store.reduceEffect(state, checkHpEffect);
+        const remainingHp = checkHpEffect.hp - player.active.damage;
         if (remainingHp <= 30) {
           effect.cost = [];
         } else {
