@@ -47,6 +47,10 @@ function isMatchingStage2(stage1: PokemonCard[], basic: PokemonCard, stage2: Pok
 }
 
 function canUseRareCandy(store: StoreLike, state: State, player: Player): boolean {
+  // "You can't use this card during your first turn" (a player's first turn is turn 1 or turn 2; ruling 689)
+  if (state.turn === 1 || state.turn === 2) {
+    return false;
+  }
   const stage2 = player.hand.cards.filter(c =>
     c instanceof PokemonCard && c.stage === Stage.STAGE_2
   ) as PokemonCard[];
