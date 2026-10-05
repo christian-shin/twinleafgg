@@ -73,6 +73,11 @@ export class FlutterMane extends PokemonCard {
           return false;
         }
 
+        // Hide 'n' Sneak takes precedence over Midnight Fluttering (it keeps working).
+        if (card.powers.some((power) => power.name === "Hide 'n' Sneak")) {
+          return false;
+        }
+
         // Check + PowerEffect: Midnight Fluttering must itself be usable (e.g. Path to the Peak).
         return LOCKER_ABILITY_APPLIES(store, state, owner, this, this.powers[0], card);
       },
