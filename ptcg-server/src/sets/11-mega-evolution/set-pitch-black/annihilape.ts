@@ -2,8 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { GameMessage, PlayerType, PowerType, SlotType, StateUtils, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { PlaceDamageCountersEffect } from '../../../game/store/effects/game-effects';
+import { PutCountersEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { ChoosePokemonPrompt } from '../../../game/store/prompts/choose-pokemon-prompt';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
@@ -77,7 +76,9 @@ export class Annihilape extends PokemonCard {
             return;
           }
           const dest = picked[0];
-          const putCounters = new PlaceDamageCountersEffect(player, dest, 50, this);
+          // Damage counters placed by an attack are an effect of the attack (Mist Energy, ... prevent them)
+          const putCounters = new PutCountersEffect(effect, 50);
+          putCounters.target = dest;
           store.reduceEffect(state, putCounters);
         },
       );
