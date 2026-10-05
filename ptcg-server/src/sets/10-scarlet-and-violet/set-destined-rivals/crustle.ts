@@ -5,9 +5,7 @@ import { GamePhase, State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { PowerType, StateUtils } from '../../../game';
 import {
-  AfterDamageEffect,
-  ApplyWeaknessEffect,
-  PutDamageEffect,
+  PutDamageEffect, ignoresDefenderEffects,
 } from '../../../game/store/effects/attack-effects';
 import { PowerEffect } from '../../../game/store/effects/game-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
@@ -48,7 +46,7 @@ export class Crustle extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Mysterious Stone House
-    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.cards.includes(this)) {
       const pokemonCard = effect.target.getPokemonCard();
       const sourceCard = effect.source.getPokemonCard();
 
@@ -84,20 +82,9 @@ export class Crustle extends PokemonCard {
 
     // Great Scissors
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
-
-      const applyWeakness = new ApplyWeaknessEffect(effect, 120);
-      store.reduceEffect(state, applyWeakness);
-      const damage = applyWeakness.damage;
-
-      effect.damage = 0;
-
-      if (damage > 0) {
-        opponent.active.damage += damage;
-        const afterDamage = new AfterDamageEffect(effect, damage);
-        state = store.reduceEffect(state, afterDamage);
-      }
+      // Shred: effects on the Defending Pokémon don't change the damage; Weakness, Resistance and
+      // effects on the attacker still apply.
+      effect.ignoreDefenderEffects = true;
       return state;
     }
 
