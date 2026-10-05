@@ -117,7 +117,7 @@ export function playPokemonReducer(store: StoreLike, state: State, effect: Effec
       // Clear the preserved conditions after evolution is complete
       effect.target._preservedConditionsDuringEvolution = undefined;
 
-      effect.target.marker.markers = [];
+      effect.target.marker.removeAllExceptTrainerEffects();
       effect.target.showBasicAnimation = false;
       effect.target.triggerEvolutionAnimation = true;
 
