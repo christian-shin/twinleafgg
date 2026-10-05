@@ -10,14 +10,13 @@ import {
   GameMessage,
   PlayerType,
   PokemonCard,
-  ShuffleDeckPrompt,
   SlotType,
   StateUtils,
 } from '../../../game';
 
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
-import {WAS_ATTACK_USED, TERA_RULE, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, TERA_RULE, MOVE_CARDS, SHUFFLE_DECK_AFTER_DAMAGE } from '../../../game/store/prefabs/prefabs';
 import { BLOCK_RETREAT } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class WellspringMaskOgerponex extends PokemonCard {
@@ -83,26 +82,24 @@ export class WellspringMaskOgerponex extends PokemonCard {
           { allowCancel: false }
         ), energy => {
           const cards: Card[] = (energy || []).map(e => e.card);
-          MOVE_CARDS(store, state, player.active, player.deck, { cards: cards, sourceCard: this });
+          // The Energy goes back into the deck (and the deck is shuffled) after the damage is done
+          MOVE_CARDS(store, state, player.active, player.deck, { cards: cards, sourceCard: this, afterDamageOf: effect });
+          SHUFFLE_DECK_AFTER_DAMAGE(store, state, effect, player);
 
-          return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
-            player.deck.applyOrder(order);
-
-            return store.prompt(state, new ChoosePokemonPrompt(
-              player.id,
-              GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
-              PlayerType.TOP_PLAYER,
-              [SlotType.BENCH],
-              { min: 1, max: 1, allowCancel: false }
-            ), selected => {
-              const target = selected?.[0];
-              if (target) {
-                const damageEffect = new PutDamageEffect(effect, 120);
-                damageEffect.target = target;
-                store.reduceEffect(state, damageEffect);
-              }
-              return state;
-            });
+          return store.prompt(state, new ChoosePokemonPrompt(
+            player.id,
+            GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
+            PlayerType.TOP_PLAYER,
+            [SlotType.BENCH],
+            { min: 1, max: 1, allowCancel: false }
+          ), selected => {
+            const target = selected?.[0];
+            if (target) {
+              const damageEffect = new PutDamageEffect(effect, 120);
+              damageEffect.target = target;
+              store.reduceEffect(state, damageEffect);
+            }
+            return state;
           });
         });
         return state;
