@@ -1,6 +1,6 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { CardTag, EnergyType, TrainerType, SuperType } from '../../../game/store/card/card-types';
-import { EnergyCard, Player, PokemonCardList, State, StateUtils, StoreLike } from '../../../game';
+import { EnergyCard, GameError, GameMessage, Player, PokemonCardList, State, StateUtils, StoreLike } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS, TRAINER_TARGET_BLOCKED } from '../../../game/store/prefabs/prefabs';
@@ -23,6 +23,21 @@ export class MegatonBlower extends TrainerCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof TrainerEffect && effect.trainerCard === this) {
       const player = effect.player;
+
+      // You can't play this card for no effect (ruling n=1610): a Stadium in play, or a Tool or Special Energy
+      // on one of your opponent's Pokémon, is needed (an effect that blocks it still lets you play it)
+      const opponentPokemon = StateUtils.getOpponent(state, player);
+      let hasTarget = StateUtils.getStadiumCard(state) !== undefined;
+      [opponentPokemon.active, ...opponentPokemon.bench].forEach((list) => {
+        if (list.tools.length > 0 || list.cards.some((card) =>
+          card.superType === SuperType.ENERGY && (card as EnergyCard).energyType === EnergyType.SPECIAL)) {
+          hasTarget = true;
+        }
+      });
+      if (!hasTarget) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       effect.preventDefault = true;
 
       // Handle stadium discard if one is in play
@@ -45,12 +60,15 @@ export class MegatonBlower extends TrainerCard {
         if (TRAINER_TARGET_BLOCKED(store, state, player, this, pokemonCardList)) {
           return;
         }
-        const cardsToDiscard = pokemonCardList.cards.filter(
-          (card) =>
-            (card.superType === SuperType.ENERGY &&
-              (card as EnergyCard).energyType === EnergyType.SPECIAL) ||
-            (card instanceof TrainerCard && card.trainerType === TrainerType.TOOL),
-        );
+        // Attached Tools live in `tools`, not in `cards`
+        const cardsToDiscard = [
+          ...pokemonCardList.cards.filter(
+            (card) =>
+              card.superType === SuperType.ENERGY &&
+              (card as EnergyCard).energyType === EnergyType.SPECIAL,
+          ),
+          ...pokemonCardList.tools,
+        ];
         if (cardsToDiscard.length > 0) {
           state = MOVE_CARDS(store, state, pokemonCardList, opponent.discard, {
             cards: cardsToDiscard,
