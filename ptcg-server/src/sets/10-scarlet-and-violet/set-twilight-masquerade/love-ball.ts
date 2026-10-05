@@ -24,6 +24,26 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     allowedNames.push(pokemonCard.name);
   });
 
+  // A deck holds at most 4 cards with the same name: when all 4 of every possible name are in zones both players
+  // know (own hand, discard pile, Lost Zone, Pokemon in play), it is public knowledge that the search finds
+  // nothing, so the deck can't be searched (rulings 336, 1285)
+  const knownCopies = (name: string): number => {
+    let count = 0;
+    const countIn = (list: Card[]) => list.forEach(c => {
+      if (c instanceof PokemonCard && c.name === name) {
+        count += 1;
+      }
+    });
+    countIn(player.hand.cards);
+    countIn(player.discard.cards);
+    countIn(player.lostzone.cards);
+    player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => countIn(cardList.cards));
+    return count;
+  };
+  if (allowedNames.every(name => knownCopies(name) >= 4)) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
+
   const blocked: number[] = [];
   player.deck.cards.forEach((card, index) => {
     if (card instanceof PokemonCard && !allowedNames.includes(card.name)) {
