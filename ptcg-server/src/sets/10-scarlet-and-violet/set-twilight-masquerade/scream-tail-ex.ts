@@ -3,7 +3,8 @@ import { CardTag, CardType, Stage, SuperType } from '../../../game/store/card/ca
 import { StoreLike, State, GameError, GameMessage, StateUtils, Card, ChooseCardsPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
+import { AFTER_ATTACK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { OPPONENT_CANNOT_PLAY_SUPPORTER_CARDS } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class ScreamTailex extends PokemonCard {
@@ -44,13 +45,14 @@ export class ScreamTailex extends PokemonCard {
       return OPPONENT_CANNOT_PLAY_SUPPORTER_CARDS(store, state, effect, this);
     }
 
-    // Crunch
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    // Crunch: the Energy is discarded after the damage is done (Spiky Energy still works)
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       if (!opponent.active.cards.some(c => c.superType === SuperType.ENERGY)) {
         return state;
       }
+      const attackEffect = new AttackEffect(player, opponent, effect.attack);
       let card: Card;
       return store.prompt(
         state,
@@ -63,7 +65,7 @@ export class ScreamTailex extends PokemonCard {
         ),
         (selected) => {
           card = selected[0];
-          return store.reduceEffect(state, new DiscardCardsEffect(effect, [card]));
+          return store.reduceEffect(state, new DiscardCardsEffect(attackEffect, [card]));
         },
       );
     }
