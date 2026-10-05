@@ -1774,6 +1774,8 @@ export function SEARCH_DECK_FOR_CARDS_TO_HAND(
   filter: Partial<Card> = {},
   options: Partial<ChooseCardsOptions> = {},
   sourceEffect?: any,
+  /** Reveal the cards to the opponent. Default: only when a `filter` is given (a card search without one doesn't reveal). */
+  reveal?: boolean,
 ) {
   if (player.deck.cards.length === 0) return;
   const opponent = StateUtils.getOpponent(state, player);
@@ -1783,7 +1785,7 @@ export function SEARCH_DECK_FOR_CARDS_TO_HAND(
     new ChooseCardsPrompt(player, GameMessage.CHOOSE_CARD_TO_HAND, player.deck, filter, options),
     (selected) => {
       const cards = selected || [];
-      if (Object.keys(filter).length > 0) {
+      if (reveal ?? Object.keys(filter).length > 0) {
         SHOW_CARDS_TO_PLAYER(store, state, opponent, cards);
       }
       MOVE_CARDS(store, state, player.deck, player.hand, { cards, sourceCard, sourceEffect });
