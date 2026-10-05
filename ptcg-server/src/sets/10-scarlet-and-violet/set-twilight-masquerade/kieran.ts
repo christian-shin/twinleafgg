@@ -100,7 +100,7 @@ export class Kieran extends TrainerCard {
               ),
               (result) => {
                 const cardList = result[0];
-                player.switchPokemon(cardList);
+                player.switchPokemon(cardList, store, state);
 
                 return state;
               },
