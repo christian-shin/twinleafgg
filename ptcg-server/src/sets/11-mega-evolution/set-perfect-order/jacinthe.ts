@@ -1,4 +1,4 @@
-import { TrainerCard, TrainerType, StoreLike, State, GameError, GameMessage, PlayerType, CardType, ChoosePokemonPrompt, SlotType, Player, pokemonHasCardType } from '../../../game';
+import { TrainerCard, TrainerType, StoreLike, State, GameError, GameMessage, PlayerType, CardType, CardTarget, ChoosePokemonPrompt, SlotType, Player, pokemonHasCardType } from '../../../game';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { HealEffect } from '../../../game/store/effects/game-effects';
@@ -47,13 +47,16 @@ export class Jacinthe extends TrainerCard {
 
       // Find Psychic Pokemon
       const psychicPokemon: any[] = [];
-      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+      const blocked: CardTarget[] = [];
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
         const pokemonCard = cardList.getPokemonCard();
         if (pokemonCard) {
           const checkType = new CheckPokemonTypeEffect(cardList);
           store.reduceEffect(state, checkType);
           if (checkType.cardTypes.includes(CardType.PSYCHIC)) {
             psychicPokemon.push(cardList);
+          } else {
+            blocked.push(target);
           }
         }
       });
@@ -83,7 +86,7 @@ export class Jacinthe extends TrainerCard {
         GameMessage.CHOOSE_POKEMON_TO_HEAL,
         PlayerType.BOTTOM_PLAYER,
         [SlotType.ACTIVE, SlotType.BENCH],
-        { allowCancel: false }
+        { allowCancel: false, blocked }
       ), selected => {
         const targets = selected || [];
         if (targets.length > 0) {
