@@ -31,12 +31,24 @@ export class TeamRocketsBotherBotDRIPool extends TrainerCard {
           blocked.push(index);
         }
       });
-      if (blocked.length === prizes.length) {
+      // Playable unless the opponent has no face-down Prize card AND no card in hand
+      const hasFaceDownPrize = blocked.length < prizes.length;
+      if (!hasFaceDownPrize && opponent.hand.cards.length === 0) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
       effect.preventDefault = true;
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [this], sourceCard: this });
+
+      if (!hasFaceDownPrize) {
+        // No face-down Prize card to turn face up: you only look at a random card of their hand
+        const randomCard = opponent.hand.cards[Chance.index(opponent.hand.cards.length)];
+        return store.prompt(state, new ShowCardsPrompt(
+          player.id, GameMessage.CARDS_SHOWED_BY_THE_OPPONENT, [randomCard]
+        ), () => {
+          MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [this], sourceCard: this });
+        });
+      }
 
       return store.prompt(state, new ChoosePrizePrompt(
         player.id,
