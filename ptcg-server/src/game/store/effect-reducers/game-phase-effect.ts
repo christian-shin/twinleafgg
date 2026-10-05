@@ -334,13 +334,15 @@ export function gamePhaseReducer(store: StoreLike, state: State, effect: Effect)
     // that opponent finishes their next turn, before the attacker's following turn.
     [player, opponent].forEach(p => {
       p.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
+        // Cost increases ("during your opponent's next turn") are armed when the
+        // attacker ends its turn, so they are live during the defender's turn.
         if (cardList.attackCostIncreaseNextTurnPending
-          && cardList.attackCostIncreaseNextTurnAttackerId !== player.id) {
+          && cardList.attackCostIncreaseNextTurnAttackerId === player.id) {
           cardList.attackCostIncreaseNextTurn = cardList.attackCostIncreaseNextTurnPending;
           cardList.attackCostIncreaseNextTurnPending = 0;
         }
         if (cardList.retreatCostIncreaseNextTurnPending
-          && cardList.retreatCostIncreaseNextTurnAttackerId !== player.id) {
+          && cardList.retreatCostIncreaseNextTurnAttackerId === player.id) {
           cardList.retreatCostIncreaseNextTurn = cardList.retreatCostIncreaseNextTurnPending;
           cardList.retreatCostIncreaseNextTurnPending = 0;
         }
@@ -363,14 +365,17 @@ export function gamePhaseReducer(store: StoreLike, state: State, effect: Effect)
 
     [player, opponent].forEach(p => {
       p.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
-        if (cardList.attackCostIncreaseNextTurnAttackerId === player.id
+        // ...and expire when the defender ends its turn.
+        if (cardList.attackCostIncreaseNextTurnAttackerId !== undefined
+          && cardList.attackCostIncreaseNextTurnAttackerId !== player.id
           && !cardList.attackCostIncreaseNextTurnPending
           && cardList.attackCostIncreaseNextTurn > 0
         ) {
           cardList.attackCostIncreaseNextTurn = 0;
           cardList.attackCostIncreaseNextTurnAttackerId = undefined;
         }
-        if (cardList.retreatCostIncreaseNextTurnAttackerId === player.id
+        if (cardList.retreatCostIncreaseNextTurnAttackerId !== undefined
+          && cardList.retreatCostIncreaseNextTurnAttackerId !== player.id
           && !cardList.retreatCostIncreaseNextTurnPending
           && cardList.retreatCostIncreaseNextTurn > 0
         ) {
