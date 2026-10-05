@@ -108,13 +108,9 @@ function* playCard(
     },
   );
 
-  if (cards.length === 0) {
-    return state;
-  }
-
-  MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: self });
-
   if (cards.length > 0) {
+    MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: self });
+
     yield store.prompt(
       state,
       new ShowCardsPrompt(opponent.id, GameMessage.CARDS_SHOWED_BY_THE_OPPONENT, cards),
@@ -122,6 +118,7 @@ function* playCard(
     );
   }
 
+  // The deck is shuffled after searching, even when nothing was taken.
   return store.prompt(state, new ShuffleDeckPrompt(player.id), (order) => {
     player.deck.applyOrder(order);
   });
