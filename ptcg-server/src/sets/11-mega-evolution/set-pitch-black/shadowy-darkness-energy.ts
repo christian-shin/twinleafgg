@@ -1,7 +1,7 @@
 import { StateUtils } from '../../../game';
 import { CardType, EnergyType } from '../../../game/store/card/card-types';
 import { EnergyCard } from '../../../game/store/card/energy-card';
-import { DealDamageEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { DealDamageEffect, PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import {
   CheckPokemonTypeEffect,
   CheckProvidedEnergyEffect,
@@ -42,6 +42,7 @@ export class ShadowyDarknessEnergy extends EnergyCard {
     //      AGENTS.md (GamePhase.ATTACK for attack-sourced damage prevention)
     if (
       (effect instanceof DealDamageEffect || effect instanceof PutDamageEffect) &&
+      !ignoresDefenderEffects(effect) &&
       state.phase === GamePhase.ATTACK &&
       effect.target.cards.includes(this)
     ) {
