@@ -7,7 +7,6 @@ import {
   DiscardEnergyPrompt,
   GameError,
   GameMessage,
-  EnergyType,
   PlayerType,
   SlotType,
   StateUtils,
@@ -91,7 +90,7 @@ export class TeamRocketsMewtwoex extends PokemonCard {
           GameMessage.CHOOSE_ENERGIES_TO_DISCARD,
           PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH],
-          { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
+          { superType: SuperType.ENERGY },
           { min: 0, max: 2, allowCancel: false },
         ),
         (transfers) => {
