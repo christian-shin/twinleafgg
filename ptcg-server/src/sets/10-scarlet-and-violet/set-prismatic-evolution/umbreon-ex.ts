@@ -15,7 +15,7 @@ import {
 import {
   AddSpecialConditionsEffect,
   DiscardCardsEffect,
-  PutDamageEffect,
+  PutDamageEffect, ignoresDefenderEffects,
 } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
@@ -76,7 +76,7 @@ export class Umbreonex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {
