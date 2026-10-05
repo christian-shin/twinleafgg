@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
-import { StoreLike, State, StateUtils, ShuffleDeckPrompt, GameError, GameMessage } from '../../../game';
+import { StoreLike, State, StateUtils, ShuffleDeckPrompt, ChoosePokemonPrompt, GameError, GameMessage, PlayerType, SlotType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -43,12 +43,33 @@ export class Illumise extends PokemonCard {
       else {
         const player = effect.player;
         const opponent = StateUtils.getOpponent(state, player);
-        MOVE_CARDS(store, state, opponent.active, opponent.deck, { sourceCard: this });
-        opponent.active.clearEffects();
+        const hasBench = opponent.bench.some((b) => b.cards.length > 0);
 
-        return store.prompt(state, new ShuffleDeckPrompt(opponent.id), order => {
-          opponent.deck.applyOrder(order);
-        });
+        if (!hasBench) {
+          return state;
+        }
+
+        return store.prompt(
+          state,
+          new ChoosePokemonPrompt(
+            player.id,
+            GameMessage.CHOOSE_POKEMON_TO_SHUFFLE,
+            PlayerType.TOP_PLAYER,
+            [SlotType.BENCH],
+            { min: 1, max: 1, allowCancel: false },
+          ),
+          (selected) => {
+            const targets = selected || [];
+
+            targets.forEach((target) => {
+              MOVE_CARDS(store, state, target, opponent.deck, { sourceCard: this });
+            });
+
+            return store.prompt(state, new ShuffleDeckPrompt(opponent.id), (order) => {
+              opponent.deck.applyOrder(order);
+            });
+          },
+        );
       }
 
     }

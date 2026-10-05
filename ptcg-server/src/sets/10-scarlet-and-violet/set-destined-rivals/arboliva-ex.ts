@@ -11,6 +11,7 @@ import {
   StateUtils,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
+import { RemoveSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
 import { WAS_ATTACK_USED, DAMAGE_OPPONENT_POKEMON } from '../../../game/store/prefabs/prefabs';
 
 export class Arbolivaex extends PokemonCard {
@@ -45,10 +46,14 @@ export class Arbolivaex extends PokemonCard {
   public fullName: string = 'Arboliva ex DRI';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    // Oil Machine Gun
+    // Oil Salvo
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
       const opponent = effect.opponent;
+
+      // This damage isn't affected by Weakness or Resistance.
+      effect.ignoreWeakness = true;
+      effect.ignoreResistance = true;
 
       const maxAllowedDamage: DamageMap[] = [];
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card, target) => {
@@ -76,6 +81,13 @@ export class Arbolivaex extends PokemonCard {
           }
         },
       );
+    }
+
+    // Aroma Shot
+    if (WAS_ATTACK_USED(effect, 1, this)) {
+      const removeSpecialCondition = new RemoveSpecialConditionsEffect(effect, undefined);
+      removeSpecialCondition.target = effect.player.active;
+      store.reduceEffect(state, removeSpecialCondition);
     }
 
     return state;

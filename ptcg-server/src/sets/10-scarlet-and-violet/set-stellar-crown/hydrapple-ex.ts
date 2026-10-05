@@ -109,6 +109,11 @@ export class Hydrappleex extends PokemonCard {
         (transfers) => {
           transfers = transfers || [];
 
+          // Declining the attachment doesn't use the Ability up
+          if (transfers.length === 0) {
+            return state;
+          }
+
           player.marker.addMarker(this.RIPE_CHARGE_MARKER, this);
 
           player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {

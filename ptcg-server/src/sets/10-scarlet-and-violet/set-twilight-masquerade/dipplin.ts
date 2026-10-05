@@ -50,8 +50,11 @@ export class Dipplin extends PokemonCard {
         effect.damage = playerBenched * 20;
       }
 
-      if (!IS_ABILITY_BLOCKED(store, state, effect.player, this)) {
-        // Dynamically set barrage if Festival Grounds is in play
+      // Dynamically set barrage if Festival Grounds is in play and the Ability isn't blocked
+      // (a blocked Ability must not keep the flag set by an earlier use).
+      if (IS_ABILITY_BLOCKED(store, state, effect.player, this)) {
+        this.attacks[0].barrage = false;
+      } else {
         const stadiumCard = StateUtils.getStadiumCard(state);
         if (stadiumCard && stadiumCard.name === 'Festival Grounds') {
           this.attacks[0].barrage = true;

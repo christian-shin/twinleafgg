@@ -1,8 +1,9 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
-import { PowerType, StoreLike, State, StateUtils } from '../../../game';
+import { GameError, GameMessage, PowerType, StoreLike, State, StateUtils } from '../../../game';
 import { Effect, PowerEffect } from '../../../game/store/effects/game-effects';
 import { CheckTableStateEffect } from '../../../game/store/effects/check-effects';
+import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 
 export class Eeveeex extends PokemonCard {
@@ -90,6 +91,16 @@ export class Eeveeex extends PokemonCard {
       } catch {
         this.evolvesFromBase = [];
       }
+    }
+
+    // Rainbow DNA: only a Pokémon ex that evolves from Eevee can evolve this Pokémon
+    if (
+      effect instanceof PlayPokemonEffect &&
+      effect.target.getPokemonCard() === this &&
+      effect.pokemonCard.evolvesFrom === 'Eevee' &&
+      !effect.pokemonCard.hasTag(CardTag.POKEMON_ex)
+    ) {
+      throw new GameError(GameMessage.INVALID_TARGET);
     }
 
     if (

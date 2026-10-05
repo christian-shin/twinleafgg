@@ -47,10 +47,11 @@ export class Rotom extends PokemonCard {
         GameMessage.CARDS_SHOWED_BY_THE_OPPONENT,
         opponent.hand.cards
       ), () => {
-        opponent.hand.cards.forEach(card => {
-          if (card instanceof TrainerCard && (card.trainerType === TrainerType.ITEM || card.trainerType === TrainerType.TOOL)) {
-            MOVE_CARDS(store, state, opponent.hand, escrow, { cards: [card], sourceCard: this });
-          }
+        // Iterate over a copy: moving a card out of the hand while walking the hand itself skipped the next card.
+        const itemsAndTools = opponent.hand.cards.filter(card =>
+          card instanceof TrainerCard && (card.trainerType === TrainerType.ITEM || card.trainerType === TrainerType.TOOL));
+        itemsAndTools.forEach(card => {
+          MOVE_CARDS(store, state, opponent.hand, escrow, { cards: [card], sourceCard: this });
         });
 
         MOVE_CARDS(store, state, escrow, opponent.discard, { sourceCard: this });
