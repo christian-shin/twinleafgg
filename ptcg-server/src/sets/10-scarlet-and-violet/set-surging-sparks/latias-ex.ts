@@ -66,6 +66,7 @@ export class Latiasex extends PokemonCard {
 
       if (!IS_ABILITY_BLOCKED(store, state, player, this) && active.stage === Stage.BASIC) {
         effect.cost = [];
+        effect.noRetreatCost = true;
       }
       return state;
     }
