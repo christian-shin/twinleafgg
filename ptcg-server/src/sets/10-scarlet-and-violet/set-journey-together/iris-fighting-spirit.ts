@@ -51,6 +51,12 @@ export class IrisFightingSpirit extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
+      // The discard is a cost: a Trainer can't be played when it obviously has no effect, i.e. nothing can be
+      // drawn from an empty deck, or the hand still has 6 cards after discarding (rulings 851, 959, 1098)
+      if (player.deck.cards.length === 0 || player.hand.cards.filter(c => c !== this).length - 1 >= 6) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       state = store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_DISCARD,
