@@ -34,9 +34,6 @@ export class TeamRocketsArcher extends TrainerCard {
     if (player.supporterTurn > 0) {
       return false;
     }
-    if (player.deck.cards.length === 0) {
-      return false;
-    }
     return true;
   }
 
@@ -54,10 +51,6 @@ export class TeamRocketsArcher extends TrainerCard {
       const supporterTurn = player.supporterTurn;
       if (supporterTurn > 0) {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
-      }
-
-      if (player.deck.cards.length === 0) {
-        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
       player.rocketSupporter = true;
