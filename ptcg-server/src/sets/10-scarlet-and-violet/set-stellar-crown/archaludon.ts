@@ -62,6 +62,7 @@ export class Archaludon extends PokemonCard {
 
       if (inPlay && activeHasMetalEnergy) {
         effect.cost = [];
+        effect.noRetreatCost = true;
       }
     }
 

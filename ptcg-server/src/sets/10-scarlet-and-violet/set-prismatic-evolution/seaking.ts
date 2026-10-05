@@ -51,14 +51,14 @@ export class Seaking extends PokemonCard {
 
       MOVE_CARDS(store, state, player.deck, player.hand, { count: 2, sourceCard: this });
 
-      if (!IS_ABILITY_BLOCKED(store, state, effect.player, this)) {
-        // Dynamically set barrage if Festival Grounds is in play
-        const stadiumCard = StateUtils.getStadiumCard(state);
-        if (stadiumCard && stadiumCard.name === 'Festival Grounds') {
-          this.attacks[0].barrage = true;
-        } else {
-          this.attacks[0].barrage = false;
-        }
+      // Dynamically set barrage if Festival Grounds is in play and the Ability works
+      // (a blocked Ability must clear the flag set by an earlier use)
+      const stadiumCard = StateUtils.getStadiumCard(state);
+      if (!IS_ABILITY_BLOCKED(store, state, effect.player, this)
+        && stadiumCard && stadiumCard.name === 'Festival Grounds') {
+        this.attacks[0].barrage = true;
+      } else {
+        this.attacks[0].barrage = false;
       }
     }
 

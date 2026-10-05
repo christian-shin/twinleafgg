@@ -3,7 +3,7 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class ChiYu extends PokemonCard {
 
@@ -55,10 +55,14 @@ export class ChiYu extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const stadiumCard = StateUtils.getStadiumCard(state);
       if (stadiumCard !== undefined) {
-
         effect.damage += 60;
+      }
+    }
 
-        // Discard Stadium
+    // Then, discard that Stadium (after the damage, so it still applies to it)
+    if (AFTER_ATTACK(effect, 1, this)) {
+      const stadiumCard = StateUtils.getStadiumCard(state);
+      if (stadiumCard !== undefined) {
         const cardList = StateUtils.findCardList(state, stadiumCard);
         const player = StateUtils.findOwner(state, cardList);
         MOVE_CARDS(store, state, cardList, player.discard, { sourceCard: this });

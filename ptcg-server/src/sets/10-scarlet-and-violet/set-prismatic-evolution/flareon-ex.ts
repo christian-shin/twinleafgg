@@ -28,11 +28,6 @@ function* useBurningCharge(
     return state;
   }
 
-  const hasBenched = player.bench.some((b) => b.cards.length > 0);
-  if (!hasBenched) {
-    return state;
-  }
-
   let cards: Card[] = [];
   yield store.prompt(
     state,

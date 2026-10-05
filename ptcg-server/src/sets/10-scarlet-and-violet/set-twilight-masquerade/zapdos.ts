@@ -5,7 +5,8 @@ import { AddSpecialConditionsEffect, DiscardCardsEffect } from '../../../game/st
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
+import { AFTER_ATTACK, WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
 
 export class Zapdos extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -48,14 +49,16 @@ export class Zapdos extends PokemonCard {
       });
     }
 
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    // Thunderbolt: the Energy is discarded after the damage is done (Voltaic Lightning Energy still adds its damage)
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
+      const attackEffect = new AttackEffect(player, effect.opponent, effect.attack);
 
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
 
       const cards: Card[] = checkProvidedEnergy.energyMap.map(e => e.card);
-      const discardEnergy = new DiscardCardsEffect(effect, cards);
+      const discardEnergy = new DiscardCardsEffect(attackEffect, cards);
       discardEnergy.target = player.active;
 
       store.reduceEffect(state, discardEnergy);

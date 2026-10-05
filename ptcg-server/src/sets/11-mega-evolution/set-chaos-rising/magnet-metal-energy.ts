@@ -49,6 +49,7 @@ export class MagnetMetalEnergy extends EnergyCard {
       store.reduceEffect(state, checkType);
       if (checkType.cardTypes.includes(CardType.METAL)) {
         effect.cost = [];
+        effect.noRetreatCost = true;
       }
     }
 

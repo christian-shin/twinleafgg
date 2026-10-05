@@ -584,7 +584,7 @@ export function checkStateReducer(store: StoreLike, state: State, effect: Effect
   }
 
   if (effect instanceof CheckRetreatCostEffect) {
-    if (effect.player.active.zeroRetreatCostNextTurn) {
+    if (effect.player.active.zeroRetreatCostNextTurn || effect.noRetreatCost) {
       effect.cost = [];
     }
     return state;

@@ -66,10 +66,7 @@ export class Magneton extends PokemonCard {
         { allowCancel: false, min: 0, max: 3, blockedTo: blocked2 },
       ), transfers => {
         transfers = transfers || [];
-        // cancelled by user
-        if (transfers.length === 0) {
-          return state;
-        }
+        // Using the Ability Knocks Out this Pokémon, even when no Energy is attached
         for (const transfer of transfers) {
           const target = StateUtils.getTarget(state, player, transfer.to);
           MOVE_CARDS(store, state, player.discard, target, { cards: [transfer.card], sourceCard: this });

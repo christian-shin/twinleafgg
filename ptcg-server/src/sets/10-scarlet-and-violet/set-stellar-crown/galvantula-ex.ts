@@ -4,7 +4,8 @@ import { StoreLike, State, StateUtils, Card } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
+import { AFTER_ATTACK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { OPPONENT_CANNOT_PLAY_ITEM_CARDS } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Galvantulaex extends PokemonCard {
@@ -53,15 +54,18 @@ export class Galvantulaex extends PokemonCard {
       }
     }
 
-    // Fulgurite
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    // Fulgurite: the Energy is discarded after the damage is done (Voltaic Lightning Energy still adds its damage)
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
+      const attackEffect = new AttackEffect(player, effect.opponent, effect.attack);
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
       const cards: Card[] = checkProvidedEnergy.energyMap.map(e => e.card);
-      const discardEnergy = new DiscardCardsEffect(effect, cards);
+      const discardEnergy = new DiscardCardsEffect(attackEffect, cards);
       discardEnergy.target = player.active;
       store.reduceEffect(state, discardEnergy);
+    }
+    if (WAS_ATTACK_USED(effect, 1, this)) {
       return OPPONENT_CANNOT_PLAY_ITEM_CARDS(store, state, effect, this);
     }
 

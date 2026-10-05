@@ -4,7 +4,8 @@ import { StoreLike, State, GameMessage, StateUtils, Card, ChooseCardsPrompt } fr
 
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
+import { AFTER_ATTACK, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
 
 export class Larvitar extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -30,9 +31,11 @@ export class Larvitar extends PokemonCard {
   public fullName: string = 'Larvitar JTG';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    // The damage is done first (Energy such as Spiky Energy still works), then the coin is flipped
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
+      const attackEffect = new AttackEffect(player, opponent, effect.attack);
 
       return COIN_FLIP_PROMPT(store, state, player, result => {
         if (result === true) {
@@ -48,10 +51,10 @@ export class Larvitar extends PokemonCard {
             GameMessage.CHOOSE_CARD_TO_DISCARD,
             opponent.active,
             { superType: SuperType.ENERGY },
-            { min: 1, max: 1, allowCancel: true }
+            { min: 1, max: 1, allowCancel: false }
           ), selected => {
             cards = selected || [];
-            const discardEnergy = new DiscardCardsEffect(effect, cards);
+            const discardEnergy = new DiscardCardsEffect(attackEffect, cards);
             return store.reduceEffect(state, discardEnergy);
           });
 
