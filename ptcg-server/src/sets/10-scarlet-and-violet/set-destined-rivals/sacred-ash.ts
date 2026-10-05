@@ -41,7 +41,8 @@ function* playCard(next: Function, store: StoreLike, state: State,
     GameMessage.CHOOSE_CARD_TO_DECK,
     player.discard,
     { superType: SuperType.POKEMON },
-    { min: 1, max, allowCancel: true, blocked }
+    // "up to 5" from a public zone: at least 1, and no cancel (cancelling would be choosing 0; rulings 1778, 1853)
+    { min: 1, max, allowCancel: false, blocked }
   ), selected => {
     cards = selected || [];
     next();
