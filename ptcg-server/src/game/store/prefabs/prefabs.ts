@@ -579,6 +579,24 @@ export function DAMAGED_FROM_FULL_HP(
   return effect.damage >= checkHpEffect.hp;
 }
 
+/**
+ * A Pokémon that is switched with another card ("Any attached cards, damage counters, Special
+ * Conditions, turns in play, and any other effects remain on the new Pokémon": Transformation Tome,
+ * Ogre's Mask, Zero to Hero) is treated as the same Pokémon (ruling 1840): the state kept on the card
+ * object (damage taken last turn, moved to the Active Spot this turn) moves to the new card.
+ */
+export function TRANSFER_POKEMON_CARD_STATE(player: Player, oldCard: PokemonCard, newCard: PokemonCard) {
+  // A Fossil played as a Basic Pokémon has no damageTakenLastTurn: the new card starts from 0.
+  newCard.damageTakenLastTurn = oldCard.damageTakenLastTurn ?? 0;
+  if (oldCard.damageTakenLastTurn !== undefined) {
+    oldCard.damageTakenLastTurn = 0;
+  }
+  newCard.movedToActiveThisTurn = oldCard.movedToActiveThisTurn;
+  oldCard.movedToActiveThisTurn = false;
+  player.movedToActiveThisTurn = player.movedToActiveThisTurn.map((id) => (id === oldCard.id ? newCard.id : id));
+  player.movedFromActiveToBenchThisTurn = player.movedFromActiveToBenchThisTurn.map((id) => (id === oldCard.id ? newCard.id : id));
+}
+
 export interface OnDamagedByOpponentAttackEvenIfKnockedOutOptions {
   source: PokemonCard;
   requireActiveSpot?: boolean;

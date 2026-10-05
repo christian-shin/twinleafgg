@@ -4,7 +4,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { CardTarget, GameError, GameMessage, ChooseCardsPrompt, ChoosePokemonPrompt, PlayerType, SlotType, StoreLike, State, Player } from '../../../game';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
-import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, TRANSFER_POKEMON_CARD_STATE } from '../../../game/store/prefabs/prefabs';
 
 export class TransformationTome extends TrainerCard {
   public trainerType: TrainerType = TrainerType.ITEM;
@@ -102,13 +102,8 @@ export class TransformationTome extends TrainerCard {
                 MOVE_CARDS(store, state, inPlayList, player.discard, { cards: [oldCard], sourceCard: this });
                 // The new card takes the old card's place at the bottom of the stack.
                 inPlayList.cards = [newCard, ...inPlayList.cards.filter((c) => c !== newCard)];
-                // State kept on the card object moves with the Pokémon.
-                newCard.damageTakenLastTurn = oldCard.damageTakenLastTurn;
-                oldCard.damageTakenLastTurn = 0;
-                newCard.movedToActiveThisTurn = oldCard.movedToActiveThisTurn;
-                oldCard.movedToActiveThisTurn = false;
-                player.movedToActiveThisTurn = player.movedToActiveThisTurn.map((id) => (id === oldCard.id ? newCard.id : id));
-                player.movedFromActiveToBenchThisTurn = player.movedFromActiveToBenchThisTurn.map((id) => (id === oldCard.id ? newCard.id : id));
+                // State kept on the card object moves with the Pokémon (ruling 1840).
+                TRANSFER_POKEMON_CARD_STATE(player, oldCard, newCard);
               } else {
                 MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [fromDiscard[0]], sourceCard: this });
               }
