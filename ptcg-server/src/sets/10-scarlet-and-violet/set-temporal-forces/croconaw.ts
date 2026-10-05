@@ -3,8 +3,7 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { AfterDamageEffect } from '../../../game/store/effects/attack-effects';
-import { SWITCH_ACTIVE_WITH_BENCHED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK, SWITCH_ACTIVE_WITH_BENCHED } from '../../../game/store/prefabs/prefabs';
 
 export class Croconaw extends PokemonCard {
 
@@ -41,7 +40,8 @@ export class Croconaw extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (effect instanceof AfterDamageEffect && effect.attack === this.attacks[0]) {
+    // The switch doesn't depend on the damage (it is also done when the damage is 0 or prevented).
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       SWITCH_ACTIVE_WITH_BENCHED(store, state, player);
