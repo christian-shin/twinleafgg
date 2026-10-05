@@ -61,6 +61,10 @@ export class MandibuzzWHTPool extends PokemonCard {
       if (opponent.hand.cards.length === 0) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
+      // A full opposing Bench is public knowledge: the Ability can't be used (rulings 46, 70, 1634)
+      if (opponent.bench.every(b => b.cards.length > 0)) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
 
       USE_ABILITY_ONCE_PER_TURN(player, this.LOOK_FOR_PREY_MARKER, this);
       ABILITY_USED(player, this);
