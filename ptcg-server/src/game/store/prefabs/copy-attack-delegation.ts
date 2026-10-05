@@ -249,6 +249,7 @@ export function openCopyAttackSession(
   state.playerLastAttack[player.id] = {
     attack: selectedClonedAttack,
     sourceCard: copycatCard,
+    turn: state.turn,
   };
 }
 
