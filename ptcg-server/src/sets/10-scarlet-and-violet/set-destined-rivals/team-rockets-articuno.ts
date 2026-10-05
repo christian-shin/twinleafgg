@@ -1,9 +1,9 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag, SuperType } from '../../../game/store/card/card-types';
-import { StoreLike, State, PowerType, GamePhase, PlayerType } from '../../../game';
+import { StoreLike, State, PowerType, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
-import { PutCountersEffect } from '../../../game/store/effects/attack-effects';
+import { WAS_ATTACK_USED, IS_ABILITY_BLOCKED, IS_ATTACK_EFFECT_FROM_OPPONENTS_POKEMON } from '../../../game/store/prefabs/prefabs';
+import { AbstractAttackEffect, ApplyWeaknessEffect, DealDamageEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
 
 export class TeamRocketsArticuno extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -40,29 +40,44 @@ export class TeamRocketsArticuno extends PokemonCard {
   public fullName: string = "Team Rocket's Articuno DRI";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    // Resistant Veil
-    if (effect instanceof PutCountersEffect) {
-      const opponent = effect.opponent;
-
-      let isArticunoInPlay = false;
-      opponent.forEachPokemon(PlayerType.BOTTOM_PLAYER, (card) => {
-        if (card.getPokemonCard() === this) {
-          isArticunoInPlay = true;
-        }
-      });
-      if (!isArticunoInPlay) {
+    // Repelling Veil
+    if (effect instanceof AbstractAttackEffect) {
+      const targetPokemon = effect.target.getPokemonCard();
+      if (
+        targetPokemon === undefined ||
+        targetPokemon.stage !== Stage.BASIC ||
+        !targetPokemon.hasTag(CardTag.TEAM_ROCKET)
+      ) {
         return state;
       }
 
-      if (state.phase === GamePhase.ATTACK) {
-        const target = effect.target;
-        if (
-          target.getPokemonCard()?.stage === Stage.BASIC &&
-          target.getPokemonCard()?.hasTag(CardTag.TEAM_ROCKET)
-        ) {
-          effect.preventDefault = true;
-        }
+      const owner = StateUtils.findOwner(state, effect.target);
+      if (!StateUtils.isPokemonInPlay(owner, this)) {
+        return state;
       }
+
+      if (IS_ABILITY_BLOCKED(store, state, owner, this)) {
+        return state;
+      }
+
+      if (!IS_ATTACK_EFFECT_FROM_OPPONENTS_POKEMON(state, effect)) {
+        return state;
+      }
+
+      if (effect.source.getPokemonCard()) {
+        // Weakness, Resistance and damage are not effects
+        if (effect instanceof ApplyWeaknessEffect) {
+          return state;
+        }
+        if (effect instanceof PutDamageEffect) {
+          return state;
+        }
+        if (effect instanceof DealDamageEffect) {
+          return state;
+        }
+        effect.preventDefault = true;
+      }
+      return state;
     }
 
     // Dark Frost
