@@ -24,6 +24,10 @@ export class FullMetalLab extends TrainerCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof PutDamageEffect && StateUtils.getStadiumCard(state) === this) {
       const owner = StateUtils.findOwner(state, effect.target);
+      // Only attacks from the opponent's Pokémon are reduced (not your own, e.g. recoil)
+      if (effect.player === owner) {
+        return state;
+      }
       const checkPokemonType = new CheckPokemonTypeEffect(effect.target);
 
       if (IS_STADIUM_EFFECT_BLOCKED(store, state, owner, effect.target, this)) {
