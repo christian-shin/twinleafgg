@@ -39,6 +39,7 @@ export class EmergencyBoard extends TrainerCard {
         const remainingHp = checkHpEffect.hp - player.active.damage;
         if (remainingHp <= 30) {
           effect.cost = [];
+          effect.noRetreatCost = true;
         } else {
           const index = effect.cost.indexOf(CardType.COLORLESS);
           if (index !== -1) {
