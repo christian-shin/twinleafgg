@@ -87,7 +87,8 @@ export class NsPlan extends TrainerCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH, SlotType.ACTIVE],
         { superType: SuperType.ENERGY },
-        { allowCancel: false, min: 1, max: 2, blockedMap, blockedTo: blockedTargets }
+        // "Up to 2": at least 1 when played; as the effect of an attack (Look-Alike Show) it may move none (rulings 1844, 1853).
+        { allowCancel: false, min: effect.usedAsAttackEffect ? 0 : 1, max: 2, blockedMap, blockedTo: blockedTargets }
       ), transfers => {
         if (transfers && transfers.length > 0) {
           for (const transfer of transfers) {
