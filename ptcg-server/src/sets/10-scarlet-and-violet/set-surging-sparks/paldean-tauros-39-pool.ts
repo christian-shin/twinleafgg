@@ -3,7 +3,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { Card, ChooseEnergyPrompt, ConfirmPrompt, GameMessage, StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 
 export class PaldeanTaurosSSP39Pool extends PokemonCard {
@@ -38,7 +38,8 @@ export class PaldeanTaurosSSP39Pool extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Upthrusting Horns (after Lapras SSH's Aqua Wash, limited to a Stage 2 Active;
     // asks for as many Energy as are attached, up to 2, so the prompt is always answerable).
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    // The Energy is put into the hand after the damage is done
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       const target = opponent.active.getPokemonCard();
