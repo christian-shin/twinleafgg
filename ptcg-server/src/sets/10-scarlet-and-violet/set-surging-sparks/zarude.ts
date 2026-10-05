@@ -72,7 +72,7 @@ export class Zarude extends PokemonCard {
             cards.push(em.card);
           });
 
-          MOVE_CARDS(store, state, player.active, player.hand, { cards: cards, sourceCard: this });
+          MOVE_CARDS(store, state, player.active, player.hand, { cards: cards, sourceCard: this, afterDamageOf: effect });
 
           effect.damage += 80;
         }

@@ -1,4 +1,5 @@
 import { GameError } from '../../game-error';
+import { AFTER_DAMAGE_OR_NOW } from './after-damage';
 import { GameMessage, GameLog } from '../../game-message';
 import { PlayerType, SlotType, CardTarget } from '../actions/play-card-action';
 import { Card } from '../card/card';
@@ -1565,6 +1566,14 @@ export function SHUFFLE_DECK(store: StoreLike, state: State, player: Player): St
 }
 
 /**
+ * Shuffle the deck after the damage of the attack (it follows Energy that is put into the deck
+ * after the damage, see `prefabs/after-damage.ts`); at once outside the attack's damage window.
+ */
+export function SHUFFLE_DECK_AFTER_DAMAGE(store: StoreLike, state: State, effect: AttackEffect, player: Player): State {
+  return AFTER_DAMAGE_OR_NOW(state, effect, s => SHUFFLE_DECK(store, s, player));
+}
+
+/**
  * Shuffle hand into deck, then draw. Uses MOVE_CARDS / DRAW_CARDS so the board
  * animation framework sees normal hand diffs. Sequencing WaitPrompts live here
  * (not on individual cards); clients resolve hand→deck / shuffle waits when
@@ -1865,6 +1874,8 @@ export function MOVE_CARDS(
     skipCleanup?: boolean;
     sourceCard?: Card;
     sourceEffect?: any;
+    /** Wait for the damage of this attack (Energy removed as an effect of the attack). */
+    afterDamageOf?: AttackEffect;
   } = {},
 ): State {
   return store.reduceEffect(state, new MoveCardsEffect(source, destination, options));

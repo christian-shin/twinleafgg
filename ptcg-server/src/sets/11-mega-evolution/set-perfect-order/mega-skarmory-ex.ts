@@ -5,7 +5,6 @@ import {
   Stage,
   State,
   StoreLike,
-  ShuffleDeckPrompt,
   ChoosePokemonPrompt,
   PlayerType,
   SlotType,
@@ -13,7 +12,7 @@ import {
 import { Effect } from '../../../game/store/effects/effect';
 
 import { GameMessage } from '../../../game/game-message';
-import {DAMAGE_OPPONENT_POKEMON, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {DAMAGE_OPPONENT_POKEMON, WAS_ATTACK_USED, MOVE_CARDS, SHUFFLE_DECK_AFTER_DAMAGE } from '../../../game/store/prefabs/prefabs';
 
 export class MegaSkarmoryex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -50,13 +49,11 @@ export class MegaSkarmoryex extends PokemonCard {
       // Move all energy cards to deck (from the Pokémon itself: moving them out of its energies
       // list only left them in its cards, so they were also in the deck)
       if (energyCards.length > 0) {
-        MOVE_CARDS(store, state, player.active, player.deck, { cards: energyCards, sourceCard: this });
+        MOVE_CARDS(store, state, player.active, player.deck, { cards: energyCards, sourceCard: this, afterDamageOf: effect });
       }
 
-      // Shuffle the deck
-      state = store.prompt(state, new ShuffleDeckPrompt(player.id), (order) => {
-        player.deck.applyOrder(order);
-      });
+      // Shuffle the deck (after the damage, with the Energy)
+      state = SHUFFLE_DECK_AFTER_DAMAGE(store, state, effect, player);
 
       // Deal 220 damage to 1 of opponent's Pokemon
       return store.prompt(

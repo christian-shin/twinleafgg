@@ -75,7 +75,7 @@ export class TeamRocketsZapdos extends PokemonCard {
               transfers = transfers || [];
               for (const transfer of transfers) {
                 const target = StateUtils.getTarget(state, player, transfer.to);
-                MOVE_CARDS(store, state, opponent.active, target, { cards: [transfer.card], sourceCard: this });
+                MOVE_CARDS(store, state, opponent.active, target, { cards: [transfer.card], sourceCard: this, afterDamageOf: effect });
               }
             },
           );

@@ -81,7 +81,7 @@ export class Scizorex extends PokemonCard {
 
             const source = StateUtils.getTarget(state, player, transfer.from);
             const target = player.discard;
-            MOVE_CARDS(store, state, source, target, { cards: [transfer.card], sourceCard: this });
+            MOVE_CARDS(store, state, source, target, { cards: [transfer.card], sourceCard: this, afterDamageOf: effect });
 
             totalDiscarded = transfers.length;
 

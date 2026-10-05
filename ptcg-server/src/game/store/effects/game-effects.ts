@@ -8,6 +8,7 @@ import { CardTarget } from '../actions/play-card-action';
 import { TrainerCard } from '../card/trainer-card';
 import { CardList } from '../state/card-list';
 import { EnergyCard } from '../card/energy-card';
+import { State } from '../state/state';
 
 export enum GameEffects {
   RETREAT_EFFECT = 'RETREAT_EFFECT',
@@ -206,6 +207,8 @@ export class AttackEffect implements Effect {
   public ignoreResistance = false;
   public source: PokemonCardList;
   public invisibleTentacles?: boolean = false;
+  /** Energy removals of this attack that wait for the damage (`prefabs/after-damage.ts`); undefined when no window is open. */
+  public afterDamageEffects?: Array<(state: State) => State>;
   target: any;
 
   constructor(player: Player, opponent: Player, attack: Attack) {
@@ -300,6 +303,8 @@ export class MoveCardsEffect implements Effect {
   public skipCleanup?: boolean;
   public sourceCard?: Card;
   public sourceEffect?: any;
+  /** Wait for the damage of this attack (Energy removed as an effect of the attack, `prefabs/after-damage.ts`). */
+  public afterDamageOf?: AttackEffect;
 
   constructor(
     source: CardList | PokemonCardList,
@@ -311,7 +316,8 @@ export class MoveCardsEffect implements Effect {
       toBottom?: boolean,
       skipCleanup?: boolean,
       sourceCard?: Card,
-      sourceEffect?: any
+      sourceEffect?: any,
+      afterDamageOf?: AttackEffect
     } = {}
   ) {
     this.source = source;
@@ -323,6 +329,7 @@ export class MoveCardsEffect implements Effect {
     this.skipCleanup = options.skipCleanup;
     this.sourceCard = options.sourceCard;
     this.sourceEffect = options.sourceEffect;
+    this.afterDamageOf = options.afterDamageOf;
   }
 }
 

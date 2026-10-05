@@ -44,7 +44,7 @@ export class Ceruledge extends PokemonCard {
           (card.superType === SuperType.ENERGY && card.energyType === EnergyType.SPECIAL)
         );
         if (cardsToDiscard.length > 0) {
-          state = MOVE_CARDS(store, state, pokemonCardList, opponent.discard, { cards: cardsToDiscard });
+          state = MOVE_CARDS(store, state, pokemonCardList, opponent.discard, { cards: cardsToDiscard, afterDamageOf: effect });
         }
       };
 
