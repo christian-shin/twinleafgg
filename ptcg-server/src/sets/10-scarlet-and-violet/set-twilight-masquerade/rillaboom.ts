@@ -1,6 +1,5 @@
 import { CardType, PokemonCard, Stage, State, StoreLike } from "../../../game";
 import { DealDamageEffect } from "../../../game/store/effects/attack-effects";
-import { CheckRetreatCostEffect, CheckAttackCostEffect } from "../../../game/store/effects/check-effects";
 import { Effect } from "../../../game/store/effects/effect";
 import { WAS_ATTACK_USED } from "../../../game/store/prefabs/prefabs";
 import { DEFENDING_POKEMON_ATTACKS_COST_MORE, DEFENDING_POKEMON_RETREAT_COSTS_MORE } from "../../../game/store/prefabs/effect-of-attack-prefabs";
@@ -47,34 +46,6 @@ export class Rillaboom extends PokemonCard {
       const dealDamage = new DealDamageEffect(effect, 50);
       dealDamage.target = player.active;
       return store.reduceEffect(state, dealDamage);
-    }
-
-    if (effect instanceof CheckRetreatCostEffect && effect.player.active.attackCostIncreaseNextTurn > 0) {
-      const player = effect.player;
-      const pokemonCard = player.active.getPokemonCard();
-
-      if (pokemonCard) {
-        const index = effect.cost.indexOf(CardType.COLORLESS);
-        if (index > -1) {
-          effect.cost.splice(index, 0, CardType.COLORLESS);
-        } else {
-          effect.cost.push(CardType.COLORLESS);
-        }
-      }
-    }
-
-    if (effect instanceof CheckAttackCostEffect && effect.player.active.retreatCostIncreaseNextTurn > 0) {
-      const player = effect.player;
-      const pokemonCard = player.active.getPokemonCard();
-
-      if (pokemonCard) {
-        const index = effect.cost.indexOf(CardType.COLORLESS);
-        if (index > -1) {
-          effect.cost.splice(index, 0, CardType.COLORLESS);
-        } else {
-          effect.cost.push(CardType.COLORLESS);
-        }
-      }
     }
 
     return state;

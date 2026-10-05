@@ -28,6 +28,10 @@ export class Purrloin extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     if (AFTER_ATTACK(effect, 0, this)) {
+      // The attack can be used with an empty deck; the search then does nothing
+      if (effect.player.deck.cards.length === 0) {
+        return state;
+      }
       SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_INTO_HAND(store, state, effect.player, { cardType: [CardType.DARK] }, { min: 0, max: 3 });
     }
 

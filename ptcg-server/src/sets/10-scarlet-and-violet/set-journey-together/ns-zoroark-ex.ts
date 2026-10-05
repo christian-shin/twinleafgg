@@ -76,6 +76,10 @@ export class NsZoroarkex extends PokemonCard {
       if (player.marker.hasMarker(this.TRADE_MARKER, this)) {
         throw new GameError(GameMessage.POWER_ALREADY_USED);
       }
+      // Discarding is a cost; drawing is the effect: not usable with an empty deck (ruling 1640).
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
       state = store.prompt(
         state,
         new ChooseCardsPrompt(

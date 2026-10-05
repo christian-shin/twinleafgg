@@ -40,14 +40,16 @@ export class Sylveonex extends PokemonCard {
   public fullName: string = 'Sylveon ex SSP';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+    // "If 1 of your Pokémon used Angelite during your last turn": the markers are
+    // not tied to this card, any Pokémon of the player that used Angelite counts.
     if (effect instanceof EndTurnEffect && effect.player.marker.hasMarker(this.CLEAR_ANGELITE_MARKER, this)) {
-      effect.player.marker.removeMarker(this.ANGELITE_MARKER, this);
+      effect.player.marker.removeMarker(this.ANGELITE_MARKER);
       effect.player.marker.removeMarker(this.CLEAR_ANGELITE_MARKER, this);
     }
 
     if (
       effect instanceof EndTurnEffect &&
-      effect.player.marker.hasMarker(this.ANGELITE_MARKER, this)
+      effect.player.marker.hasMarker(this.ANGELITE_MARKER)
     ) {
       effect.player.marker.addMarker(this.CLEAR_ANGELITE_MARKER, this);
     }
@@ -61,16 +63,16 @@ export class Sylveonex extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
-      const hasBench = opponent.bench.some((b) => b.cards.length > 0);
+      const benchCount = opponent.bench.filter((b) => b.cards.length > 0).length;
 
-      if (hasBench === false) {
-        return state;
-      }
-
-      if (effect.player.marker.hasMarker(this.ANGELITE_MARKER, this)) {
+      if (effect.player.marker.hasMarker(this.ANGELITE_MARKER)) {
         throw new GameError(GameMessage.BLOCKED_BY_EFFECT);
       }
       effect.player.marker.addMarker(this.ANGELITE_MARKER, this);
+
+      if (benchCount === 0) {
+        return state;
+      }
 
       return store.prompt(
         state,
@@ -79,7 +81,7 @@ export class Sylveonex extends PokemonCard {
           GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
           PlayerType.TOP_PLAYER,
           [SlotType.BENCH],
-          { min: 1, max: 2, allowCancel: false },
+          { min: Math.min(2, benchCount), max: 2, allowCancel: false },
         ),
         (selected) => {
           const targets = selected || [];

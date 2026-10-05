@@ -12,6 +12,18 @@ function* useStadium(next: Function, store: StoreLike, state: State, effect: Use
     throw new GameError(GameMessage.CANNOT_USE_STADIUM);
   }
 
+  // The effect must draw at least 1 card (rulings 1733, 1734).
+  let psychicInPlay = 0;
+  player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
+    const checkType = new CheckPokemonTypeEffect(cardList);
+    store.reduceEffect(state, checkType);
+    if (checkType.cardTypes.includes(CardType.PSYCHIC)) {
+      psychicInPlay++;
+    }
+  });
+  if (Math.min(psychicInPlay - (player.hand.cards.length - 1), player.deck.cards.length) <= 0) {
+    throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+  }
   let cards: Card[] = [];
   yield store.prompt(state, new ChooseCardsPrompt(
     player,

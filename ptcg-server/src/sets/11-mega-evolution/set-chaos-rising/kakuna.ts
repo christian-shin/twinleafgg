@@ -1,8 +1,8 @@
 import { CardType, Stage } from '../../../game/store/card/card-types';
 import { PowerType } from '../../../game/store/card/pokemon-types';
 import { Effect } from '../../../game/store/effects/effect';
-import { PokemonCard, StoreLike, State, StateUtils } from '../../../game';
-import { DealDamageEffect } from '../../../game/store/effects/attack-effects';
+import { GamePhase, PokemonCard, StoreLike, State, StateUtils } from '../../../game';
+import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 export class Kakuna extends PokemonCard {
@@ -38,7 +38,12 @@ export class Kakuna extends PokemonCard {
   public fullName: string = 'Kakuna M4';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (effect instanceof DealDamageEffect && effect.target.cards.includes(this)) {
+    // After applying Weakness and Resistance: PutDamageEffect (DealDamageEffect is before them)
+    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
+      // It's not an attack
+      if (state.phase !== GamePhase.ATTACK) {
+        return state;
+      }
       const targetPlayer = StateUtils.findOwner(state, effect.target);
       if (IS_ABILITY_BLOCKED(store, state, targetPlayer, this)) {
         return state;

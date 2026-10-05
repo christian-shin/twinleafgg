@@ -572,6 +572,11 @@ export function checkStateReducer(store: StoreLike, state: State, effect: Effect
       active.attackCostIncreaseWhileActiveSourceCard = undefined;
     }
 
+    // "During your opponent's next turn, attacks used by the Defending Pokémon cost [C] more"
+    for (let i = 0; i < active.attackCostIncreaseNextTurn; i++) {
+      effect.cost.push(CardType.COLORLESS);
+    }
+
     const ignoreTypes = effect.player.ignoreAttackCostCardTypes;
     if (ignoreTypes !== null && effect.player.ignoreAttackCostTurnsRemaining > 0) {
       const checkType = new CheckPokemonTypeEffect(active);
