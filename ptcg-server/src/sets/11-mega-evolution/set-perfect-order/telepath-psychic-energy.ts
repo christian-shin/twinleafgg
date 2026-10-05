@@ -1,4 +1,3 @@
-import { pokemonHasCardType } from '../../../game';
 import { CardType, EnergyType, Stage } from '../../../game/store/card/card-types';
 import { EnergyCard } from '../../../game/store/card/energy-card';
 import { Effect } from '../../../game/store/effects/effect';
@@ -14,7 +13,6 @@ import {
   CheckPokemonTypeEffect,
   CheckProvidedEnergyEffect,
 } from '../../../game/store/effects/check-effects';
-import { PokemonCard } from '../../../game/store/card/pokemon-card';
 
 export class TelepathPsychicEnergy extends EnergyCard {
   public provides: CardType[] = [CardType.PSYCHIC];
@@ -53,24 +51,12 @@ export class TelepathPsychicEnergy extends EnergyCard {
         return state;
       }
 
-      // Search for Basic Psychic Pokemon
-      const basicPsychicPokemon = player.deck.cards.filter(
-        (card) => card instanceof PokemonCard && card.stage === Stage.BASIC,
-      );
-
-      // Filter for Psychic type
-      const validPokemon: any[] = [];
-      for (const card of basicPsychicPokemon) {
-        if (card instanceof PokemonCard && pokemonHasCardType(card, CardType.PSYCHIC)) {
-          validPokemon.push(card);
-        }
-      }
-
-      if (validPokemon.length === 0) {
+      // A search of an empty deck is not possible (public knowledge). A deck that holds no Basic [P] Pokemon is
+      // still searched (and shuffled afterwards, as every search is), the player just finds nothing (rulings 336,
+      // 779, 1764)
+      if (player.deck.cards.length === 0) {
         return state;
       }
-
-      const maxToPut = Math.min(2, validPokemon.length, GET_PLAYER_BENCH_SLOTS(player).length);
 
       SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH(
         store,
@@ -80,7 +66,7 @@ export class TelepathPsychicEnergy extends EnergyCard {
           stage: Stage.BASIC,
           cardType: [CardType.PSYCHIC],
         },
-        { min: 0, max: maxToPut },
+        { min: 0, max: 2 },
       );
     }
 
