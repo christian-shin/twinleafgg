@@ -29,6 +29,11 @@ export class TeamRocketsFactory extends TrainerCard {
       if (!player.rocketSupporter) {
         throw new GameError(GameMessage.CANNOT_USE_STADIUM);
       }
+
+      // The draw needs at least 1 card in the deck: a Stadium can't be used for no effect (rulings 1733, 1734)
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+      }
       DRAW_CARDS(store, state, player, 2);
       player.marker.addMarker(this.FACTORY_USED_MARKER, this);
     }

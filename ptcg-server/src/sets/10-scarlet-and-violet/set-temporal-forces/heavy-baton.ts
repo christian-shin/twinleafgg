@@ -92,6 +92,11 @@ export class HeavyBaton extends TrainerCard {
         return state;
       }
 
+      // Nothing to move the Energy to without a Benched Pokemon
+      if (!player.bench.some(b => b.cards.length > 0)) {
+        return state;
+      }
+
       // Add marker, do not invoke this effect for other wishful batons
       active.marker.addMarker(this.HEAVY_BATON_MARKER, this);
 
@@ -106,7 +111,8 @@ export class HeavyBaton extends TrainerCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-        { allowCancel: true, min: 0, max: 3 }
+        // "up to 3" from a public zone: at least 1 (rulings 1607, 1778, 1853)
+        { allowCancel: false, min: 1, max: 3 }
       ), transfers => {
         transfers = transfers || [];
         active.marker.removeMarker(this.HEAVY_BATON_MARKER);

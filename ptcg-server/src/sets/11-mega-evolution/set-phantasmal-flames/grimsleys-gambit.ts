@@ -2,6 +2,7 @@ import { TrainerCard, TrainerType, StoreLike, State, Card, CardList, ChooseCards
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
+import { matchesPromptFilter } from '../../../game/store/prompts/prompt-card-filter';
 
 export class GrimsleysGambit extends TrainerCard {
   public trainerType: TrainerType = TrainerType.SUPPORTER;
@@ -55,16 +56,25 @@ export class GrimsleysGambit extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
+      // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
+      // opponent's hand as an attack effect)
+      const playedFromHand = player.hand.cards.includes(this);
+
       const deckTop = new CardList();
       state = MOVE_CARDS(store, state, player.deck, deckTop, { count: 7 });
+
+      // The top 7 cards are looked at, not searched for: a [D] Pokémon you find there must be put onto the Bench
+      // when played from the hand (rulings 1778, 1853); through an attack it may be skipped (ruling 1844)
+      const darkFilter = { superType: SuperType.POKEMON, cardType: [CardType.DARK] };
+      const mustPut = playedFromHand && deckTop.cards.some(c => matchesPromptFilter(c, darkFilter));
 
       let cards: Card[] = [];
       return store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_PUT_ONTO_BENCH,
         deckTop,
-        { superType: SuperType.POKEMON, cardType: [CardType.DARK] },
-        { min: 0, max: 1, allowCancel: false }
+        darkFilter,
+        { min: mustPut ? 1 : 0, max: 1, allowCancel: false }
       ), selectedCards => {
         cards = selectedCards || [];
 

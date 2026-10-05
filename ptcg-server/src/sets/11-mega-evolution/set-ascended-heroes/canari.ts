@@ -20,6 +20,12 @@ function* playCard(next: Function, store: StoreLike, state: State,
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
+  // A search of an empty deck is not possible: it is public knowledge that the card would do nothing
+  // (rulings 779, 851; 1098: the hand discard is a cost)
+  if (player.deck.cards.length === 0) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
+
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
   MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: self });

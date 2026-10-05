@@ -4,7 +4,7 @@ import { SuperType, TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
-import { CardList, ChooseCardsPrompt, GameMessage, Player, ShowCardsPrompt, ShuffleDeckPrompt, StateUtils } from '../../../game';
+import { CardList, ChooseCardsPrompt, GameError, GameMessage, Player, ShowCardsPrompt, ShuffleDeckPrompt, StateUtils } from '../../../game';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class DuskBall extends TrainerCard {
@@ -29,6 +29,12 @@ export class DuskBall extends TrainerCard {
 
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
+      // A look at an empty deck is not possible: it is public knowledge that the card would do nothing
+      // (rulings 779, 851)
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       const temp = new CardList();
 
       // We will discard this card after prompt confirmation

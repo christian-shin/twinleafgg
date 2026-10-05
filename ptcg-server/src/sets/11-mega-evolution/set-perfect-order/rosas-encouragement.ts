@@ -56,6 +56,9 @@ Attach up to 2 Basic Energy cards from your discard pile to 1 of your Stage 2 Po
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
+      // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
+      // opponent's hand as an attack effect)
+      const playedFromHand = player.hand.cards.includes(this);
       // Check if player has more Prize cards remaining than opponent
       if (player.getPrizeLeft() <= opponent.getPrizeLeft()) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
@@ -104,7 +107,8 @@ Attach up to 2 Basic Energy cards from your discard pile to 1 of your Stage 2 Po
         PlayerType.BOTTOM_PLAYER,
         [SlotType.ACTIVE, SlotType.BENCH],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-        { allowCancel: false, min: 0, max: maxToAttach, sameTarget: true, blockedTo }
+        // "up to 2" from a public zone: at least 1 from the hand (rulings 1778, 1853), 0 through an attack (ruling 1844)
+        { allowCancel: false, min: playedFromHand ? 1 : 0, max: maxToAttach, sameTarget: true, blockedTo }
       ), transfers => {
         transfers = transfers || [];
         for (const transfer of transfers) {

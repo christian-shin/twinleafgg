@@ -30,8 +30,8 @@ Discard your hand and draw 5 cards.`;
     if (player.supporterTurn > 0) {
       return false;
     }
-    // Discarding the hand is an effect too: only an empty hand and an empty deck leave nothing to do
-    if (player.deck.cards.length === 0 && player.hand.cards.filter(c => c !== this).length === 0) {
+    // Discarding the hand is a cost, not the effect: nothing can be drawn from an empty deck (ruling 1037)
+    if (player.deck.cards.length === 0) {
       return false;
     }
     return true;
@@ -45,7 +45,9 @@ Discard your hand and draw 5 cards.`;
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
-      if (player.deck.cards.length === 0 && player.hand.cards.filter(c => c !== this).length === 0) {
+      // Discarding the hand is a cost, not the effect: a Trainer can't be played just to discard the hand when
+      // nothing can be drawn (ruling 1037, Professor Juniper; with an empty hand it is playable, ruling 1038)
+      if (player.deck.cards.length === 0) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 

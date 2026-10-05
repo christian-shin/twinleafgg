@@ -49,7 +49,7 @@ export class Levincia extends TrainerCard {
         GameMessage.CHOOSE_CARD_TO_HAND,
         player.discard,
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Lightning Energy' },
-        { allowCancel: false, min: 0, max: 2 }
+        { allowCancel: false, min: 1, max: 2 }
       ), selected => {
         selected = selected || [];
         MOVE_CARDS(store, state, player.discard, player.hand, { cards: selected, sourceCard: this });
