@@ -37,12 +37,14 @@ export class Yveltal extends PokemonCard {
     // Life-Locked
     if (effect instanceof HealEffect) {
       for (const player of state.players) {
+        // Check each player: Yveltal is in play for one of them (this used to return on the first
+        // player without it, so the Ability never worked for the second player)
         if (!StateUtils.isPokemonInPlay(player, this)) {
-          return state;
+          continue;
         }
 
         if (IS_ABILITY_BLOCKED(store, state, player, this)) {
-          return state;
+          continue;
         }
 
         const opponent = StateUtils.getOpponent(state, player);
