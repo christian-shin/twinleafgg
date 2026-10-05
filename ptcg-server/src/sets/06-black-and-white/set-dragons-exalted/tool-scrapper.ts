@@ -49,7 +49,8 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     GameMessage.CHOOSE_POKEMON_TO_DISCARD_CARDS,
     PlayerType.ANY,
     [SlotType.ACTIVE, SlotType.BENCH],
-    { min: 1, max: max, allowCancel: true, blocked }
+    // "up to 2" over cards in play: at least 1, and no cancel (cancelling would be choosing 0; rulings 1778, 1853)
+    { min: 1, max: max, allowCancel: false, blocked }
   ), results => {
     targets = results || [];
     next();
