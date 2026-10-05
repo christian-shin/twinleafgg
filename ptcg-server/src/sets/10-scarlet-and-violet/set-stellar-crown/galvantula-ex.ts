@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, Card } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { DiscardCardsEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { DiscardCardsEffect, PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { AFTER_ATTACK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
@@ -70,7 +70,7 @@ export class Galvantulaex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {
