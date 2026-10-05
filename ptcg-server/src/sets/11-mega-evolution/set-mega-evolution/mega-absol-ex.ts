@@ -4,6 +4,7 @@ import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { ChooseCardsPrompt, GameMessage, PokemonCard, StateUtils } from '../../../game';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON } from '../../../game/store/prefabs/attack-effects';
 
 export class MegaAbsolex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -40,7 +41,8 @@ export class MegaAbsolex extends PokemonCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       if (opponent.active.damage === 60) {
-        opponent.active.damage += 999;
+        // An effect of the attack: effect prevention (Mist Energy etc.) applies, unlike plain damage
+        KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect);
       }
     }
 
