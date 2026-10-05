@@ -366,8 +366,9 @@ export function checkWinner(store: StoreLike, state: State, onComplete?: () => v
     }
   }
 
-  // Check for Sudden Death condition
-  if (points[0] > 0 && points[1] > 0) {
+  // Both players met a win condition at the same time: the player who met more of them wins; with the same
+  // number of win conditions the game is unresolved and a Sudden Death game is played (ruling 234, 820, 1403)
+  if (points[0] > 0 && points[1] > 0 && points[0] === points[1]) {
     return initiateSuddenDeath(store, state);
   }
 
