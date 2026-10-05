@@ -50,18 +50,22 @@ export class Farigirafex extends PokemonCard {
   public fullName: string = 'Farigiraf ex TEF';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+    // Armor Tail
     if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
-      const player = effect.player;
+      // The Ability belongs to the owner of this Pokémon, not to the attacker
+      const owner = StateUtils.findOwner(state, effect.target);
 
       // i love checking for ability lock woooo
+      let abilityBlocked = false;
       try {
-        const powerEffect = new PowerEffect(player, this.powers[0], this);
+        const powerEffect = new PowerEffect(owner, this.powers[0], this);
         store.reduceEffect(state, powerEffect);
       } catch {
-        return state;
+        abilityBlocked = true;
       }
 
       if (
+        !abilityBlocked &&
         effect.source.getPokemonCard()?.hasTag(CardTag.POKEMON_ex) &&
         effect.source.getPokemonCard()?.stage === Stage.BASIC
       ) {

@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
-import { StoreLike, State, StateUtils, GameError, GameMessage } from '../../../game';
+import { StoreLike, State, StateUtils } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
 import { DealDamageEffect } from '../../../game/store/effects/attack-effects';
@@ -40,7 +40,8 @@ export class HisuianGrowlithe extends PokemonCard {
       const stadiumCard = StateUtils.getStadiumCard(state);
 
       if (!stadiumCard) {
-        throw new GameError(GameMessage.CANNOT_USE_ATTACK);
+        // An attack can be used even if it has no effect (no Stadium in play: nothing to discard)
+        return state;
       } else {
         const cardList = StateUtils.findCardList(state, stadiumCard);
         const player = StateUtils.findOwner(state, cardList);

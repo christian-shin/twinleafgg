@@ -51,7 +51,7 @@ Search your deck for up to 2 cards and put them into your hand. Then, shuffle yo
         GameMessage.CHOOSE_CARD_TO_HAND,
         player.deck,
         {},
-        { min: 1, max: 2, allowCancel: false }
+        { min: 0, max: 2, allowCancel: false }
       ), cards => {
         MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: this });
 

@@ -22,7 +22,7 @@ export class SpecialRedCard extends TrainerCard {
   public canPlay(store: StoreLike, state: State, player: Player): boolean {
     const opponent = StateUtils.getOpponent(state, player);
     const prizeCount = opponent.prizes.filter(p => p.cards.length > 0).length;
-    if (prizeCount > 3) {
+    if (prizeCount > 3 || opponent.hand.cards.length === 0) {
       return false;
     }
     return true;
@@ -34,6 +34,10 @@ export class SpecialRedCard extends TrainerCard {
       const opponent = StateUtils.getOpponent(state, player);
       const prizeCount = opponent.prizes.filter((p) => p.cards.length > 0).length;
       if (prizeCount > 3) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+      // Can't be played when your opponent has no cards in their hand (ruling n=1833)
+      if (opponent.hand.cards.length === 0) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
       const cardsInHand = opponent.hand.cards.length;

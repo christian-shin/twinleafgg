@@ -77,7 +77,8 @@ export class IonosKilowattrel extends PokemonCard {
     if (WAS_POWER_USED(effect, 0, this)) {
       const player = effect.player;
 
-      if (player.hand.cards.length >= 6) {
+      // The effect of Flashing Draw is to draw cards: no cards in the deck or 6+ cards in hand can't use it
+      if (player.hand.cards.length >= 6 || player.deck.cards.length === 0) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 

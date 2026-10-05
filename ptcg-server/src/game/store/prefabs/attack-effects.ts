@@ -518,12 +518,16 @@ export function THIS_ATTACKS_DAMAGE_ISNT_AFFECTED_BY_EFFECTS(
   state: State,
   effect: AttackEffect,
   amount: number,
+  ignoreWeaknessAndResistance: boolean = false,
 ) {
 
   const player = effect.player;
   const opponent = StateUtils.getOpponent(state, player);
 
   const applyWeakness = new ApplyWeaknessEffect(effect, effect.damage);
+  // "isn't affected by Weakness or Resistance, or by any effects on ..." (Swift-style text)
+  applyWeakness.ignoreWeakness = ignoreWeaknessAndResistance;
+  applyWeakness.ignoreResistance = ignoreWeaknessAndResistance;
   store.reduceEffect(state, applyWeakness);
   const damage = applyWeakness.damage;
 

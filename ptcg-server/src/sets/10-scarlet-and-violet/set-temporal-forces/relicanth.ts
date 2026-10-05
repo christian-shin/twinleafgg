@@ -99,17 +99,17 @@ export class Relicanth extends PokemonCard {
         return state;
       }
 
-      // Add attacks from previous evolutions to evolved Pokémon
-      owner.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-        if (card.stage !== Stage.BASIC) {
-          // Get all previous evolution attacks
-          for (const evolutionCard of cardList.cards) {
-            if (evolutionCard.superType === SuperType.POKEMON && evolutionCard !== card) {
-              effect.attacks.push(...(evolutionCard.attacks || []));
-            }
+      if (IS_ABILITY_BLOCKED(store, state, player, this)) { return state; }
+
+      // The evolved Active Pokémon can use the attacks of its own previous Evolutions
+      const activeCard = owner.active.getPokemonCard();
+      if (activeCard !== undefined && activeCard.stage !== Stage.BASIC) {
+        for (const evolutionCard of owner.active.cards) {
+          if (evolutionCard.superType === SuperType.POKEMON && evolutionCard !== activeCard) {
+            effect.attacks.push(...(evolutionCard.attacks || []));
           }
         }
-      });
+      }
     }
 
     return state;

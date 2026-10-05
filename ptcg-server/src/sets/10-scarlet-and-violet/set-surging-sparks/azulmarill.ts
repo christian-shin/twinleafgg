@@ -73,11 +73,8 @@ export class Azumarill extends PokemonCard {
           return state;
         }
 
-        // Remove all PSYCHIC energy from the cost
-        while (effect.cost.includes(CardType.PSYCHIC)) {
-          const psychicIndex = effect.cost.indexOf(CardType.PSYCHIC);
-          effect.cost.splice(psychicIndex, 3);
-        }
+        // [P][P][P][P] becomes [P]: remove 3 of the 4 Psychic Energy
+        effect.cost.splice(index, 3);
       }
       return state;
     }

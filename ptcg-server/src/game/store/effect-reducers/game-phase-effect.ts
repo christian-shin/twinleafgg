@@ -241,7 +241,10 @@ export function gamePhaseReducer(store: StoreLike, state: State, effect: Effect)
     const player = effect.player;
     const opponent = StateUtils.getOpponent(state, player);
     const lastAttack = state.playerLastAttack?.[player.id];
-    player.ancientPokemonAttackedLastTurn = lastAttack?.sourceCard.tags.includes(CardTag.ANCIENT) ?? false;
+    // Only an attack used during this turn counts (a turn ended with no attack leaves the last one stale)
+    player.ancientPokemonAttackedLastTurn = lastAttack !== undefined
+      && lastAttack.turn === state.turn
+      && lastAttack.sourceCard.tags.includes(CardTag.ANCIENT);
 
     if (player.usedTurnSkipClearArmed) {
       player.usedTurnSkip = false;

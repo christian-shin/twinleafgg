@@ -15,7 +15,6 @@ import { Effect } from '../../../game/store/effects/effect';
 
 import {
   AfterDamageEffect,
-  ApplyWeaknessEffect,
   DealDamageEffect,
 } from '../../../game/store/effects/attack-effects';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
@@ -68,8 +67,10 @@ export class IronCrownex extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
 
-      const max = Math.min(2);
+      // 2 of your opponent's Pokémon (all of them when the opponent has fewer)
+      const max = Math.min(2, 1 + opponent.bench.filter(b => b.cards.length > 0).length);
       state = store.prompt(
         state,
         new ChoosePokemonPrompt(
@@ -77,7 +78,7 @@ export class IronCrownex extends PokemonCard {
           GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
           PlayerType.TOP_PLAYER,
           [SlotType.ACTIVE, SlotType.BENCH],
-          { min: 1, max: max, allowCancel: false },
+          { min: max, max: max, allowCancel: false },
         ),
         (selected) => {
           const targets = selected || [];
@@ -87,19 +88,15 @@ export class IronCrownex extends PokemonCard {
           }
 
           targets.forEach((target) => {
-            effect.ignoreWeakness = true;
-            effect.ignoreResistance = true;
-            const applyWeakness = new ApplyWeaknessEffect(effect, 50);
-            store.reduceEffect(state, applyWeakness);
-            const damage = applyWeakness.damage;
+            // Not affected by Weakness or Resistance, or by any effects on those Pokémon
+            const damage = 50;
 
             effect.damage = 0;
 
-            if (damage > 0) {
-              target.damage += damage;
-              const afterDamage = new AfterDamageEffect(effect, damage);
-              state = store.reduceEffect(state, afterDamage);
-            }
+            target.damage += damage;
+            const afterDamage = new AfterDamageEffect(effect, damage);
+            afterDamage.target = target;
+            state = store.reduceEffect(state, afterDamage);
           });
         },
       );

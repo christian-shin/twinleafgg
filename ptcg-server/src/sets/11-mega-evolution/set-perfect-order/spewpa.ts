@@ -3,8 +3,8 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
-import { PREVENT_DAMAGE } from '../../../game/store/prefabs/effect-of-attack-prefabs';
+import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { FLIP_COIN_TO_PREVENT_DAMAGE_AND_EFFECTS_DURING_OPPONENTS_NEXT_TURN } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Spewpa extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -31,12 +31,7 @@ export class Spewpa extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const player = effect.player;
-      state = COIN_FLIP_PROMPT(store, state, player, result => {
-        if (result) {
-          PREVENT_DAMAGE(store, state, effect, this);
-        }
-      });
+      return FLIP_COIN_TO_PREVENT_DAMAGE_AND_EFFECTS_DURING_OPPONENTS_NEXT_TURN(store, state, effect, this);
     }
     return state;
   }

@@ -269,6 +269,11 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
     if (flip === false) {
       store.log(state, GameLog.LOG_HURTS_ITSELF);
       player.active.damage += player.active.confusionDamage;
+      // A failed attack attempt while Confused isn't an attack used (Koraidon SSP ruling n=1621)
+      const failedAttack = state.playerLastAttack?.[player.id];
+      if (failedAttack !== undefined) {
+        failedAttack.turn = undefined;
+      }
       state = store.reduceEffect(state, new EndTurnEffect(player));
       return state;
     }
