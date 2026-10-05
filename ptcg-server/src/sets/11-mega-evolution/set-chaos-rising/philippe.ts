@@ -129,7 +129,9 @@ export class Philippe extends TrainerCard {
               player.discard,
               { superType: SuperType.ENERGY },
               {
-                min: 0,
+                // "up to 2" from a public zone: at least 1 when played from the hand (rulings 1778, 1853);
+                // used through an attack (Mr. Mime's Look-Alike Show) it may be 0 (ruling 1844)
+                min: playedFromHand ? 1 : 0,
                 max: Math.min(2, basicMetalInDiscard.length),
                 allowCancel: false,
                 blocked: discardBlocked,
