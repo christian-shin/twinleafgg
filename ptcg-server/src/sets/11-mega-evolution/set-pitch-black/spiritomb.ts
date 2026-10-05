@@ -7,6 +7,7 @@ import {
   ChoosePokemonPrompt,
   PlayerType,
   SlotType,
+  StateUtils,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PlaceDamageCountersEffect } from '../../../game/store/effects/game-effects';
@@ -47,6 +48,10 @@ export class Spiritomb extends PokemonCard {
         return state;
       }
 
+      // 2 of your opponent's Pokémon (all of them when the opponent has fewer)
+      const opponent = StateUtils.getOpponent(state, player);
+      const count = Math.min(2, 1 + opponent.bench.filter((b) => b.cards.length > 0).length);
+
       return store.prompt(
         state,
         new ChoosePokemonPrompt(
@@ -54,7 +59,7 @@ export class Spiritomb extends PokemonCard {
           GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
           PlayerType.TOP_PLAYER,
           [SlotType.ACTIVE, SlotType.BENCH],
-          { min: 2, max: 2, allowCancel: false },
+          { min: count, max: count, allowCancel: false },
         ),
         (selected) => {
           const targets = selected || [];
