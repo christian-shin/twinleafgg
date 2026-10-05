@@ -5,15 +5,13 @@ import {
   StoreLike,
   State,
   StateUtils,
-  PlayerType,
   SlotType,
-  ChoosePokemonPrompt,
   GameMessage,
   ConfirmPrompt,
 } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
-import { AFTER_ATTACK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK, SWITCH_ACTIVE_WITH_BENCHED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON } from '../../../game/store/prefabs/costs';
 
 export class Metagross extends PokemonCard {
@@ -54,21 +52,9 @@ export class Metagross extends PokemonCard {
       const opponent = StateUtils.getOpponent(state, player);
       const hasBench = opponent.bench.some((b) => b.cards.length > 0);
       if (!hasBench) return state;
-      return store.prompt(
-        state,
-        new ChoosePokemonPrompt(
-          player.id,
-          GameMessage.CHOOSE_POKEMON_TO_SWITCH,
-          PlayerType.TOP_PLAYER,
-          [SlotType.BENCH],
-          { allowCancel: false },
-        ),
-        (result) => {
-          if (result && result.length > 0) {
-            opponent.switchPokemon(result[0]);
-          }
-        },
-      );
+      // "Your opponent chooses the new Active Pokémon."
+      SWITCH_ACTIVE_WITH_BENCHED(store, state, opponent);
+      return state;
     }
     if (WAS_ATTACK_USED(effect, 1, this) && effect instanceof AttackEffect) {
       const player = effect.player;
