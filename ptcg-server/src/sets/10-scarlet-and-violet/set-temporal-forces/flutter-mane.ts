@@ -73,6 +73,12 @@ export class FlutterMane extends PokemonCard {
           return false;
         }
 
+        // Hide 'n' Sneak prevents the effects of an opponent's Pokémon's Abilities done to its Pokémon,
+        // so Midnight Fluttering can't turn it off (Rulings Compendium 1877).
+        if (card.powers.some(power => power.name === 'Hide \'n\' Sneak')) {
+          return false;
+        }
+
         // Check + PowerEffect: Midnight Fluttering must itself be usable (e.g. Path to the Peak).
         return LOCKER_ABILITY_APPLIES(store, state, owner, this, this.powers[0], card);
       },
