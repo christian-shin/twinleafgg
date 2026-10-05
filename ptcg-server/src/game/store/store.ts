@@ -12,6 +12,7 @@ import { Effect } from './effects/effect';
 import { PlayPokemonEffect, TrainerEffect } from './effects/play-card-effects';
 import { CheckAttackCostEffect, CheckPokemonPowersEffect, CheckRetreatCostEffect } from './effects/check-effects';
 import { MovedFromActiveToBenchEffect, MovedToActiveEffect, PowerEffect } from './effects/game-effects';
+import { AfterAttackEffect } from './effects/game-phase-effects';
 import {
   CLEAR_ABILITY_LOCK_ACTIVATION,
   STAMP_ABILITY_LOCK_ACTIVATION,
@@ -529,6 +530,16 @@ export class Store implements StoreLike {
         if (c.superType === SuperType.ENERGY) return 1;
         if (c instanceof TrainerCard && c.trainerType === TrainerType.STADIUM) return 3;
         if (c.superType === SuperType.TRAINER) return 2;
+        return 2;
+      };
+      cards.sort((a, b) => rank(a) - rank(b));
+    } else if (effect instanceof AfterAttackEffect) {
+      // Pokémon (the attack's own effects), then Energy (Boomerang Energy re-attaches), then Trainers
+      // (Handheld Fan moves an Energy off the attacker): the triggered effects of the Defending Pokémon
+      // resolve after everything the attack did (ruling 1625, 1650).
+      const rank = (c: Card) => {
+        if (c.superType === SuperType.POKEMON) return 0;
+        if (c.superType === SuperType.ENERGY) return 1;
         return 2;
       };
       cards.sort((a, b) => rank(a) - rank(b));
