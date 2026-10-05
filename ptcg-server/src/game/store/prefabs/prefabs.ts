@@ -1408,8 +1408,13 @@ export function SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH(
   filter: Partial<PokemonCard> = {},
   options: Partial<ChooseCardsOptions> = {},
 ) {
-  BLOCK_IF_DECK_EMPTY(player);
   const slots = GET_PLAYER_BENCH_SLOTS(player);
+  // An attack can be used even when its search can't be carried out; an empty deck or a full Bench is
+  // public knowledge, so the effect then fails without searching (rulings 336, 337, 1790).
+  if (state.phase === GamePhase.ATTACK && (player.deck.cards.length === 0 || slots.length === 0)) {
+    return state;
+  }
+  BLOCK_IF_DECK_EMPTY(player);
   BLOCK_IF_NO_SLOTS(slots);
   filter.superType = SuperType.POKEMON;
 
@@ -1456,6 +1461,10 @@ export function SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_INTO_HAND(
   filter: Partial<PokemonCard> = {},
   options: Partial<ChooseCardsOptions> = {},
 ) {
+  // An attack can be used even when the deck is empty; the search then fails (rulings 336, 779, 1790).
+  if (state.phase === GamePhase.ATTACK && player.deck.cards.length === 0) {
+    return state;
+  }
   BLOCK_IF_DECK_EMPTY(player);
   const opponent = StateUtils.getOpponent(state, player);
   filter.superType = SuperType.POKEMON;

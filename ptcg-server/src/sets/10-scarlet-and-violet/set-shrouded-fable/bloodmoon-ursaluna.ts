@@ -81,7 +81,7 @@ export class BloodmoonUrsaluna extends PokemonCard {
             GameMessage.CHOOSE_CARD_TO_ATTACH,
             player.hand,
             { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Fighting Energy' },
-            { min: 0, max: 2, allowCancel: false }
+            { min: 1, max: 2, allowCancel: false }
           ), cards => {
             cards = cards || [];
             if (cards.length > 0) {

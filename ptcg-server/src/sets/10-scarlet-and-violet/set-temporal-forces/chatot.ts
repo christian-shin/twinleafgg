@@ -11,6 +11,10 @@ function* useAcapella(next: Function, store: StoreLike, state: State,
   const player = effect.player;
   const slots: PokemonCardList[] = player.bench.filter(b => b.cards.length === 0);
   const max = Math.min(slots.length, 3);
+  // A full Bench is public knowledge: the attack does nothing, without even searching (ruling 337)
+  if (max === 0) {
+    return state;
+  }
 
   let cards: Card[] = [];
   yield store.prompt(state, new ChooseCardsPrompt(

@@ -61,7 +61,7 @@ export class IronLeaves extends PokemonCard {
             GameMessage.CHOOSE_CARD_TO_HAND,
             player.discard,
             { superType: SuperType.POKEMON },
-            { min: 1, max, allowCancel: false },
+            { min: 0, max, allowCancel: false },
           ),
         ],
         (selected) => {

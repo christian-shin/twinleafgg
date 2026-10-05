@@ -66,6 +66,10 @@ export class StevensMetagrossex extends PokemonCard {
       if (player.marker.hasMarker(this.X_BOOT_MARKER, this)) {
         throw new GameError(GameMessage.POWER_ALREADY_USED);
       }
+      // An Ability can't be used for no effect: nothing to search in an empty deck (rulings 12, 244, 779)
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
 
       ABILITY_USED(player, this);
       ADD_MARKER(this.X_BOOT_MARKER, player, this);

@@ -69,6 +69,10 @@ export class Metang extends PokemonCard {
       if (player.marker.hasMarker(this.METAL_MAKER_MARKER, this)) {
         throw new GameError(GameMessage.POWER_ALREADY_USED);
       }
+      // An Ability can't be used for no effect: nothing to look at in an empty deck (rulings 12, 244, 779)
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
 
       // Legacy implementation:
       // - Took top 4 into a temporary CardList.

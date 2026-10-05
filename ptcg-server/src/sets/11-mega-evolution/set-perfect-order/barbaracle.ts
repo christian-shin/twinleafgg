@@ -51,7 +51,11 @@ export class Barbaracle extends PokemonCard {
         throw new GameError(GameMessage.POWER_ALREADY_USED);
       }
 
-      if (player.hand.cards.length === 0) {
+      // Nothing to attach without a Basic [F] Energy card in the hand
+      const hasFightingEnergyInHand = player.hand.cards.some(c => {
+        return c.superType === SuperType.ENERGY && c.energyType === EnergyType.BASIC && c.name === 'Fighting Energy';
+      });
+      if (!hasFightingEnergyInHand) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 
@@ -69,7 +73,7 @@ export class Barbaracle extends PokemonCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH, SlotType.ACTIVE],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Fighting Energy' },
-        { allowCancel: false, min: 0, max: 1, blockedTo: blocked2 }
+        { allowCancel: false, min: 1, max: 1, blockedTo: blocked2 }
       ), transfers => {
         transfers = transfers || [];
         ABILITY_USED(player, this);

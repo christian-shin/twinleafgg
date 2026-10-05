@@ -1,4 +1,4 @@
-import { PokemonCard, Stage, CardType, State, StoreLike, GameError, GameMessage, ChooseCardsPrompt, SuperType, StateUtils } from '../../../game';
+import { PokemonCard, Stage, CardType, State, StoreLike, GameMessage, ChooseCardsPrompt, SuperType, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
@@ -41,8 +41,9 @@ export class Slowpoke extends PokemonCard {
       const hasPokemonInDiscard = player.discard.cards.some(c => {
         return c.superType === SuperType.POKEMON;
       });
+      // The attack can be used even if the effect can't be carried out (ruling 1790)
       if (!hasPokemonInDiscard) {
-        throw new GameError(GameMessage.CANNOT_USE_ATTACK);
+        return state;
       }
 
       return store.prompt(state, [

@@ -24,7 +24,9 @@ function* useCallingJutsu(
     3,
     player.deck.cards.filter((c) => c.superType === SuperType.POKEMON).length,
   );
-  if (max === 0) {
+  // Only an empty deck can't be searched; a deck without a Pokémon is still searched and shuffled
+  // (hidden information; rulings 336, 779, 1764)
+  if (player.deck.cards.length === 0) {
     return state;
   }
   let cards: Card[] = [];

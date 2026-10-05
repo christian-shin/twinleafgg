@@ -68,6 +68,10 @@ export class Genesectex extends PokemonCard {
       if (HAS_MARKER(this.METAL_SIGNAL_MARKER, player, this)) {
         throw new GameError(GameMessage.POWER_ALREADY_USED);
       }
+      // An Ability can't be used for no effect: nothing to search in an empty deck (rulings 12, 244, 779)
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
 
       const blocked: number[] = [];
       player.deck.cards.forEach((card, index) => {

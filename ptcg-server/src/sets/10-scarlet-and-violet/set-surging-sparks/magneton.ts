@@ -63,10 +63,9 @@ export class Magneton extends PokemonCard {
         PlayerType.BOTTOM_PLAYER,
         [SlotType.BENCH, SlotType.ACTIVE],
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
-        { allowCancel: false, min: 0, max: 3, blockedTo: blocked2 },
+        { allowCancel: false, min: 1, max: 3, blockedTo: blocked2 },
       ), transfers => {
         transfers = transfers || [];
-        // Using the Ability Knocks Out this Pokémon, even when no Energy is attached
         for (const transfer of transfers) {
           const target = StateUtils.getTarget(state, player, transfer.to);
           MOVE_CARDS(store, state, player.discard, target, { cards: [transfer.card], sourceCard: this });

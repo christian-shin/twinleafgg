@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType } from '../../../game/store/card/card-types';
-import { GameMessage, StoreLike, State } from '../../../game';
+import { GameMessage, StoreLike, State, PlayerType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PlayPokemonFromDeckEffect } from '../../../game/store/effects/play-card-effects';
 import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prompt';
@@ -43,6 +43,14 @@ export class Lampent extends PokemonCard {
       const maxPut = Math.min(3, slots.length);
 
       if (player.deck.cards.length === 0 || maxPut === 0) {
+        return state;
+      }
+      // All 4 copies in known zones (discard pile, in play): the search can't find any (ruling 336)
+      let knownCopies = player.discard.cards.filter(c => c.name === 'Lampent').length;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+        knownCopies += cardList.cards.filter(c => c.name === 'Lampent').length;
+      });
+      if (knownCopies >= 4) {
         return state;
       }
 

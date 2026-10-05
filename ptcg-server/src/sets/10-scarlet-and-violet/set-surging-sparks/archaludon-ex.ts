@@ -91,7 +91,7 @@ export class Archaludonex extends PokemonCard {
                 PlayerType.BOTTOM_PLAYER,
                 [SlotType.ACTIVE, SlotType.BENCH],
                 { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Metal Energy' },
-                { allowCancel: false, min: 0, max: 2, blockedTo: blocked2 },
+                { allowCancel: false, min: 1, max: 2, blockedTo: blocked2 },
               ),
               (transfers) => {
                 transfers = transfers || [];
