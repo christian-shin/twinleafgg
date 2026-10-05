@@ -5,6 +5,8 @@ import { Player } from '../../../game/store/state/player';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
+import { GameError } from '../../../game/game-error';
+import { GameMessage } from '../../../game/game-message';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class DrumsOfAwakening extends TrainerCard {
@@ -45,6 +47,12 @@ export class DrumsOfAwakening extends TrainerCard {
           ancientPokemonCount++;
         }
       });
+      // A Trainer can't be played when it obviously has no effect: no Ancient Pokemon in play or nothing to draw
+      // (ruling 851; 1733: a draw needs at least 1 card in the deck)
+      if (ancientPokemonCount === 0 || player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       MOVE_CARDS(store, state, player.deck, player.hand, { count: ancientPokemonCount, sourceCard: this });
     }
     return state;
