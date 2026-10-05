@@ -27,10 +27,6 @@ function* playCard(
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
-  if (player.deck.cards.length === 0) {
-    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
-  }
-
   const cards = player.hand.cards.filter((c) => c !== self);
 
   // We will discard this card after prompt confirmation
@@ -70,9 +66,6 @@ Each player shuffles their hand into their deck. Then, you draw 5 cards, and you
 
   public canPlay(store: StoreLike, state: State, player: Player): boolean {
     if (!player.marker.hasMarker(this.UNFAIR_STAMP_MARKER)) {
-      return false;
-    }
-    if (player.deck.cards.length === 0) {
       return false;
     }
     return true;
