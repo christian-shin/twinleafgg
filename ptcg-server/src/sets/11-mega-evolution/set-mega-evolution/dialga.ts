@@ -2,7 +2,7 @@ import { ConfirmPrompt, GameMessage, PokemonCard, State, StoreLike } from '../..
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
-import {SHUFFLE_DECK, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {SHUFFLE_DECK_AFTER_DAMAGE, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class Dialga extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -53,9 +53,9 @@ export class Dialga extends PokemonCard {
       ), wantToShuffle => {
         if (wantToShuffle) {
           energyCards.forEach(card => {
-            MOVE_CARDS(store, state, cardList, player.deck, { cards: [card], sourceCard: this });
+            MOVE_CARDS(store, state, cardList, player.deck, { cards: [card], sourceCard: this, afterDamageOf: effect });
           });
-          SHUFFLE_DECK(store, state, player);
+          SHUFFLE_DECK_AFTER_DAMAGE(store, state, effect, player);
           effect.damage += 80;
         }
       });
