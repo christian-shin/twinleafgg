@@ -65,7 +65,10 @@ function* playCard(
   if (cards.length === 0) {
     MOVE_CARDS(store, state, deckTop, player.deck, { sourceCard: self });
 
-    return state;
+    // Shuffle the other cards back into the deck even when none was taken
+    return store.prompt(state, new ShuffleDeckPrompt(player.id), (order) => {
+      player.deck.applyOrder(order);
+    });
   }
   MOVE_CARDS(store, state, deckTop, player.hand, { cards: cards, sourceCard: self });
   MOVE_CARDS(store, state, deckTop, player.deck, { sourceCard: self });
