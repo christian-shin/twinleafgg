@@ -59,17 +59,19 @@ export class HearthflameMaskOgerponex extends PokemonCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
+      // "If your opponent's Active Pokémon is an Evolution Pokémon, this attack does 140 more damage,
+      // and discard all Energy from this Pokémon." (both parts depend on the condition)
       if (!opponent.active.isStage(Stage.BASIC)) {
         effect.damage += 140;
+
+        const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
+        state = store.reduceEffect(state, checkProvidedEnergy);
+
+        const cards: Card[] = checkProvidedEnergy.energyMap.map((e) => e.card);
+        const discardEnergy = new DiscardCardsEffect(effect, cards);
+        discardEnergy.target = player.active;
+        store.reduceEffect(state, discardEnergy);
       }
-
-      const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
-      state = store.reduceEffect(state, checkProvidedEnergy);
-
-      const cards: Card[] = checkProvidedEnergy.energyMap.map((e) => e.card);
-      const discardEnergy = new DiscardCardsEffect(effect, cards);
-      discardEnergy.target = player.active;
-      store.reduceEffect(state, discardEnergy);
     }
 
     if (
