@@ -4,10 +4,12 @@ import { StoreLike } from '../../../game/store/store-like';
 import { State, GamePhase } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { AfterDamageEffect } from '../../../game/store/effects/attack-effects';
+import { AfterAttackEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { StateUtils } from '../../../game/store/state-utils';
-import { AttachEnergyPrompt, GameMessage, PlayerType, SlotType } from '../../../game';
+import { AttachEnergyPrompt, CardTarget, GameMessage, PlayerType, SlotType } from '../../../game';
 import { ToolEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { PokemonCardList } from '../../../game/store/state/pokemon-card-list';
 
 export class HandyFan extends TrainerCard {
   public regulationMark = 'H';
@@ -20,7 +22,11 @@ export class HandyFan extends TrainerCard {
 
   public text: string = 'Whenever the Active Pokémon this card is attached to takes damage from an opponent\'s attack, move an Energy from the attacking Pokémon to 1 of your opponent\'s Benched Pokémon.';
 
+  public readonly HANDY_FAN_MARKER = 'HANDY_FAN_MARKER';
+
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+    // The damage arms the effect on the attacking Pokémon (its slot, wherever it is when the attack
+    // is over); it resolves after the attack's own effects (ruling 1625, 1649, 1650, 1651).
     if (effect instanceof AfterDamageEffect && effect.target.tools.includes(this)) {
       const player = effect.player;
       const targetPlayer = StateUtils.findOwner(state, effect.target);
@@ -38,33 +44,65 @@ export class HandyFan extends TrainerCard {
       }
 
       if (state.phase === GamePhase.ATTACK) {
-        const player = effect.player;
-        const opponent = StateUtils.getOpponent(state, player);
-        // The Energy moves to the attacking player's Bench
-        const hasBench = player.bench.some(b => b.cards.length > 0);
-        const hasEnergy = player.active.cards.some(c => c.superType === SuperType.ENERGY);
-
-        if (hasBench === false || hasEnergy === false) {
-          return state;
-        }
-
-        return store.prompt(state, new AttachEnergyPrompt(
-          opponent.id,
-          GameMessage.ATTACH_ENERGY_TO_BENCH,
-          player.active,
-          PlayerType.TOP_PLAYER,
-          [SlotType.BENCH],
-          { superType: SuperType.ENERGY },
-          { allowCancel: false, min: 1, max: 1 }
-        ), transfers => {
-          transfers = transfers || [];
-          for (const transfer of transfers) {
-            const target = StateUtils.getTarget(state, opponent, transfer.to);
-            MOVE_CARDS(store, state, player.active, target, { cards: [transfer.card], sourceCard: this });
-          }
-        });
+        effect.source.marker.addMarker(this.HANDY_FAN_MARKER, this);
       }
+      return state;
     }
+
+    if (effect instanceof AfterAttackEffect) {
+      const player = effect.player;
+      const opponent = effect.opponent;
+
+      let attackingPokemon: PokemonCardList | undefined;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+        if (cardList.marker.hasMarker(this.HANDY_FAN_MARKER, this)) {
+          attackingPokemon = cardList;
+        }
+      });
+      if (attackingPokemon === undefined) {
+        return state;
+      }
+      const attacker: PokemonCardList = attackingPokemon;
+      attacker.marker.removeMarker(this.HANDY_FAN_MARKER, this);
+
+      // The Energy moves to one of the attacking player's other Benched Pokémon; an attacker that
+      // left play (Aqua Return) or has no Energy left has nothing to move.
+      const attackerBenchIndex = player.bench.indexOf(attacker);
+      const hasBench = player.bench.some(b => b.cards.length > 0 && b !== attacker);
+      const hasEnergy = attacker.cards.some(c => c.superType === SuperType.ENERGY);
+
+      if (attacker.cards.length === 0 || hasBench === false || hasEnergy === false) {
+        return state;
+      }
+
+      const blockedTo: CardTarget[] = [];
+      if (attackerBenchIndex !== -1) {
+        blockedTo.push({ player: PlayerType.TOP_PLAYER, slot: SlotType.BENCH, index: attackerBenchIndex });
+      }
+
+      return store.prompt(state, new AttachEnergyPrompt(
+        opponent.id,
+        GameMessage.ATTACH_ENERGY_TO_BENCH,
+        attacker,
+        PlayerType.TOP_PLAYER,
+        [SlotType.BENCH],
+        { superType: SuperType.ENERGY },
+        { allowCancel: false, min: 1, max: 1, blockedTo }
+      ), transfers => {
+        transfers = transfers || [];
+        for (const transfer of transfers) {
+          const target = StateUtils.getTarget(state, opponent, transfer.to);
+          MOVE_CARDS(store, state, attacker, target, { cards: [transfer.card], sourceCard: this });
+        }
+      });
+    }
+
+    if (effect instanceof EndTurnEffect) {
+      effect.player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+        cardList.marker.removeMarker(this.HANDY_FAN_MARKER, this);
+      });
+    }
+
     return state;
   }
 }
