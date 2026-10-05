@@ -72,12 +72,10 @@ export class Drilbur extends PokemonCard {
           ), selected => {
             const cards = selected || [];
 
-            // Operation canceled by the user
-            if (cards.length === 0) {
-              return state;
+            // Shuffle the deck even if no card was found
+            if (cards.length > 0) {
+              MOVE_CARDS(store, state, player.deck, player.discard, { cards: cards, sourceCard: this });
             }
-
-            MOVE_CARDS(store, state, player.deck, player.discard, { cards: cards, sourceCard: this });
 
             return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
               player.deck.applyOrder(order);
