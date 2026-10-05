@@ -63,6 +63,10 @@ export class MegaKangaskhanex extends PokemonCard {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 
+      // An Ability can't be used for no effect (rulings 12, 244): drawing needs a card in the deck
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
       DRAW_CARDS(store, state, player, 2);
       ABILITY_USED(player, this);
       player.usedRunErrand = true;
