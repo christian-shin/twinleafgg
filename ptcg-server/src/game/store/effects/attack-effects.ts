@@ -339,3 +339,33 @@ export class HealTargetEffect extends AbstractAttackEffect implements Effect {
     this.damage = damage;
   }
 }
+
+/**
+ * Shred ("This attack's damage isn't affected by any effects on your opponent's Active Pokémon"):
+ * true when this damage is done by an attack with {@link AttackEffect.ignoreDefenderEffects} to one of
+ * the opponent's Pokémon. Defender-side effects (damage prevention, reduction, extra damage taken,
+ * coin-flip prevention, Tera/Bench protection) must not change it (rulings 1439, 1345, 1490, 1629,
+ * 1875). Effects on the attacker, Weakness and Resistance, and "survive on 10 HP" effects that apply
+ * after the damage (rulings 936, 1770) are unaffected.
+ */
+export function ignoresDefenderEffects(effect: AbstractAttackEffect): boolean {
+  const attackEffect = effect.attackEffect;
+  if (attackEffect === undefined || attackEffect.ignoreDefenderEffects !== true) {
+    return false;
+  }
+  const opponent = effect.opponent;
+  return effect.target === opponent.active || opponent.bench.includes(effect.target);
+}
+
+/**
+ * Generic "prevent all damage and effects of attacks" hooks (Milotic ex, Acerola's Mischief) block every
+ * AbstractAttackEffect: a Shred attack's damage steps (DealDamage, ApplyWeakness, PutDamage, AfterDamage)
+ * are not blocked, its other effects still are.
+ */
+export function isDamageIgnoringDefenderEffects(effect: AbstractAttackEffect): boolean {
+  return (effect instanceof DealDamageEffect
+    || effect instanceof ApplyWeaknessEffect
+    || effect instanceof PutDamageEffect
+    || effect instanceof AfterDamageEffect)
+    && ignoresDefenderEffects(effect);
+}

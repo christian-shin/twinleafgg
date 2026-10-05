@@ -204,6 +204,10 @@ export class AttackEffect implements Effect {
   public damage: number;
   public ignoreWeakness = false;
   public ignoreResistance = false;
+  // "This attack's damage isn't affected by any effects on your opponent's Active Pokémon" (Shred).
+  // Effects on the attacker (Maximum Belt, Vitality Band, Intimidating Fang, ...) and Weakness and
+  // Resistance still apply; defender-side reduction, prevention and extra damage are skipped.
+  public ignoreDefenderEffects = false;
   public source: PokemonCardList;
   public invisibleTentacles?: boolean = false;
   target: any;
