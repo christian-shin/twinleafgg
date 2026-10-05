@@ -63,6 +63,7 @@ export class Kieran extends TrainerCard {
       if (
         player.marker.hasMarker(this.KIERAN_MARKER, this) &&
         effect.damage > 0 &&
+        effect.target === opponent.active &&
         ((opponentActive && opponentActive.hasTag(CardTag.POKEMON_V)) ||
           (opponentActive && opponentActive.hasTag(CardTag.POKEMON_VMAX)) ||
           (opponentActive && opponentActive.hasTag(CardTag.POKEMON_VSTAR)) ||
@@ -100,7 +101,7 @@ export class Kieran extends TrainerCard {
               ),
               (result) => {
                 const cardList = result[0];
-                player.switchPokemon(cardList);
+                player.switchPokemon(cardList, store, state);
 
                 return state;
               },

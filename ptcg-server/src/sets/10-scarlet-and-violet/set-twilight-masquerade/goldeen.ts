@@ -37,6 +37,12 @@ export class Goldeen extends PokemonCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
+      // Festival Lead: this attack may be used twice while Festival Grounds is in play and the Ability works.
+      // Set on every use, before any early return, so the flag can't stay stale from an earlier use.
+      const stadiumCard = StateUtils.getStadiumCard(state);
+      this.attacks[0].barrage = !IS_ABILITY_BLOCKED(store, state, effect.player, this)
+        && stadiumCard !== undefined && stadiumCard.name === 'Festival Grounds';
+
       // Defending Pokemon has no energy cards attached
       if (!opponent.active.cards.some(c => c.superType === SuperType.ENERGY)) {
         return state;
@@ -58,16 +64,6 @@ export class Goldeen extends PokemonCard {
           });
         }
       });
-
-      if (!IS_ABILITY_BLOCKED(store, state, effect.player, this)) {
-        // Dynamically set barrage if Festival Grounds is in play
-        const stadiumCard = StateUtils.getStadiumCard(state);
-        if (stadiumCard && stadiumCard.name === 'Festival Grounds') {
-          this.attacks[0].barrage = true;
-        } else {
-          this.attacks[0].barrage = false;
-        }
-      }
     }
     return state;
   }

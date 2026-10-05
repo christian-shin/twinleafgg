@@ -87,14 +87,14 @@ export function playPokemonReducer(store: StoreLike, state: State, effect: Effec
       const playedTurnEffect = new CheckPokemonPlayedTurnEffect(effect.player, effect.target);
       store.reduceEffect(state, playedTurnEffect);
 
-      if (state.turn == 0 && player.canEvolve === false) {
+      if (state.turn == 0 && player.canEvolve === false && !playedTurnEffect.canEvolveOnFirstTurn) {
         throw new GameError(GameMessage.CANNOT_EVOLVE_ON_YOUR_FIRST_TURN);
       }
 
-      if (state.turn == 1 && player.canEvolve === false) {
+      if (state.turn == 1 && player.canEvolve === false && !playedTurnEffect.canEvolveOnFirstTurn) {
         throw new GameError(GameMessage.CANNOT_EVOLVE_ON_YOUR_FIRST_TURN);
       }
-      if (state.turn == 2 && player.canEvolve === false) {
+      if (state.turn == 2 && player.canEvolve === false && !playedTurnEffect.canEvolveOnFirstTurn) {
         throw new GameError(GameMessage.CANNOT_EVOLVE_ON_YOUR_FIRST_TURN);
       }
 

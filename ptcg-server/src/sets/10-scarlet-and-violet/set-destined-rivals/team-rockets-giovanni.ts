@@ -28,7 +28,6 @@ export class TeamRocketsGiovanni extends TrainerCard {
     if (player.supporterTurn > 0) {
       return false;
     }
-    const opponent = StateUtils.getOpponent(state, player);
     const activePokemon = player.active.getPokemonCard();
     if (!activePokemon || !activePokemon.hasTag(CardTag.TEAM_ROCKET)) {
       return false;
@@ -40,10 +39,6 @@ export class TeamRocketsGiovanni extends TrainerCard {
       }
     });
     if (teamRocketBenchCount === 0) {
-      return false;
-    }
-    const benchCount = opponent.bench.reduce((sum, b) => sum + (b.cards.length > 0 ? 1 : 0), 0);
-    if (benchCount === 0) {
       return false;
     }
     return true;
@@ -87,15 +82,6 @@ export class TeamRocketsGiovanni extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
-      // Check if opponent has benched Pokémon
-      const benchCount = opponent.bench.reduce((sum, b) => {
-        return sum + (b.cards.length > 0 ? 1 : 0);
-      }, 0);
-
-      if (benchCount === 0) {
-        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
-      }
-
       // First, have player choose which Team Rocket's Pokémon to switch to
       return store.prompt(
         state,
@@ -116,7 +102,12 @@ export class TeamRocketsGiovanni extends TrainerCard {
 
           // Switch player's Pokémon
           player.active.clearEffects();
-          player.switchPokemon(targets[0]);
+          player.switchPokemon(targets[0], store, state);
+
+          // If you do, switch in 1 of the opponent's Benched Pokémon (nothing more to do without one)
+          if (!opponent.bench.some(b => b.cards.length > 0)) {
+            return state;
+          }
 
           // Then have player choose which of opponent's benched Pokémon to switch to active
           return store.prompt(
@@ -135,7 +126,7 @@ export class TeamRocketsGiovanni extends TrainerCard {
 
               // Switch opponent's Pokémon
               opponent.active.clearEffects();
-              opponent.switchPokemon(oppTargets[0]);
+              opponent.switchPokemon(oppTargets[0], store, state);
               return state;
             },
           );

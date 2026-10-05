@@ -37,6 +37,12 @@ function* playCard(next: Function, store: StoreLike, state: State,
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
+  // Draw a card for each of the opponent's Benched Pokémon: with none the card would only discard a card
+  // for no effect, and a Trainer can't be played for no effect
+  if (!StateUtils.getOpponent(state, player).bench.some(b => b.cards.length > 0)) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
+
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
 

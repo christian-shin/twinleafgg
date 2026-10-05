@@ -42,7 +42,13 @@ export class SlowpokeMEP86Pool extends PokemonCard {
       if (effect.specialConditions.includes(SpecialCondition.CONFUSED) && effect.target.getPokemonCard() === this) {
         const owner = StateUtils.findOwner(state, effect.target);
         if (!IS_ABILITY_BLOCKED(store, state, owner, this)) {
-          effect.preventDefault = true;
+          // Only Confused is prevented; other Special Conditions of the same effect still apply
+          const remaining = effect.specialConditions.filter(c => c !== SpecialCondition.CONFUSED);
+          if (remaining.length === 0) {
+            effect.preventDefault = true;
+          } else {
+            effect.specialConditions = remaining;
+          }
         }
       }
     }

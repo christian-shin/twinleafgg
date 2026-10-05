@@ -25,6 +25,11 @@ export class DangerousRuins extends TrainerCard {
         return state;
       }
 
+      // Only a Basic put onto a Bench during its owner's turn takes the counters.
+      if (!effect.player.bench.includes(effect.target) || state.players[state.activePlayer] !== effect.player) {
+        return state;
+      }
+
       if (effect.pokemonCard.stage === Stage.BASIC) {
         effect.target.damage += 20;
       }

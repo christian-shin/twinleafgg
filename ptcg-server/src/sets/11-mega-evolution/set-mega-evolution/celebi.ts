@@ -59,6 +59,7 @@ export class Celebi extends PokemonCard {
           blocked,
         },
         this.attacks[0],
+        true, // reveal them (the filter is empty: the cards are picked with a blocked list)
       );
     }
 

@@ -7,10 +7,11 @@ import {
   ChooseCardsPrompt,
   GameMessage,
   ShuffleDeckPrompt,
+  StateUtils,
 } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { Card } from '../../../game/store/card/card';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, SHOW_CARDS_TO_PLAYER } from '../../../game/store/prefabs/prefabs';
 
 function* useCallingJutsu(
   next: Function,
@@ -41,6 +42,8 @@ function* useCallingJutsu(
       next();
     },
   );
+  // Reveal them (the opponent sees the chosen Pokémon)
+  SHOW_CARDS_TO_PLAYER(store, state, StateUtils.getOpponent(state, player), cards);
   cards.forEach((c) => MOVE_CARDS(store, state, player.deck, player.hand, { cards: [c], sourceCard: effect.source.getPokemonCard()! }));
   return store.prompt(state, new ShuffleDeckPrompt(player.id), (order) => {
     player.deck.applyOrder(order);

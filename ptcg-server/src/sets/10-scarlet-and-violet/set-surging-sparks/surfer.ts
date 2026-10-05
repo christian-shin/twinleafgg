@@ -62,7 +62,7 @@ export class Surfer extends TrainerCard {
         { allowCancel: false }
       ), result => {
         const cardList = result[0];
-        player.switchPokemon(cardList);
+        player.switchPokemon(cardList, store, state);
 
         while (player.hand.cards.length < 5) {
           if (player.deck.cards.length === 0) {

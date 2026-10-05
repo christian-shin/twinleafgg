@@ -23,9 +23,10 @@ export class NsPlan extends TrainerCard {
     }
     let hasEnergy = false;
     let pokemonCount = 0;
-    player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
+    player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
       pokemonCount += 1;
-      const energyAttached = cardList.cards.some(c => c.superType === SuperType.ENERGY);
+      // Only Energy attached to a Benched Pokémon can be moved
+      const energyAttached = target.slot === SlotType.BENCH && cardList.cards.some(c => c.superType === SuperType.ENERGY);
       hasEnergy = hasEnergy || energyAttached;
     });
     if (!hasEnergy || pokemonCount <= 1) {
@@ -46,9 +47,10 @@ export class NsPlan extends TrainerCard {
       // Player has no Basic Energy in the discard pile
       let hasEnergy = false;
       let pokemonCount = 0;
-      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
         pokemonCount += 1;
-        const basicEnergyAttached = cardList.cards.some(c => {
+        // Only Energy attached to a Benched Pokémon can be moved
+        const basicEnergyAttached = target.slot === SlotType.BENCH && cardList.cards.some(c => {
           return c.superType === SuperType.ENERGY;
         });
         hasEnergy = hasEnergy || basicEnergyAttached;

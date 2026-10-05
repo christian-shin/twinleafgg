@@ -91,6 +91,8 @@ export class CheckPokemonPlayedTurnEffect implements Effect {
   public player: Player;
   public target: PokemonCardList;
   public pokemonPlayedTurn: number;
+  /** Set by a card (Eevee's Boosted Evolution) so that only this Pokémon may evolve during its owner's first turn. */
+  public canEvolveOnFirstTurn: boolean = false;
 
   constructor(player: Player, target: PokemonCardList) {
     this.player = player;

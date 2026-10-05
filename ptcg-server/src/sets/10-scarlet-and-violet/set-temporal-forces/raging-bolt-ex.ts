@@ -1,9 +1,8 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag, EnergyType } from '../../../game/store/card/card-types';
-import { StoreLike, State, GameError, SlotType } from '../../../game';
+import { StoreLike, State, SlotType } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
-import { GameMessage } from '../../../game/game-message';
 import { DISCARD_UP_TO_X_ENERGY_FROM_YOUR_POKEMON } from '../../../game/store/prefabs/costs';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -53,9 +52,6 @@ export class RagingBoltex extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
-      if (player.deck.cards.length === 0) {
-        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
-      }
       MOVE_CARDS(store, state, player.hand, player.discard, { sourceCard: this });
       MOVE_CARDS(store, state, player.deck, player.hand, { count: 6, sourceCard: this });
     }

@@ -34,6 +34,11 @@ export class PrismTower extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_USE_STADIUM);
       }
 
+      // Rulings Compendium (Chaos Rising FAQ): can't use it without cards in the deck (it would discard 2 cards for no effect)
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+      }
+
       return store.prompt(
         state,
         new ChooseCardsPrompt(

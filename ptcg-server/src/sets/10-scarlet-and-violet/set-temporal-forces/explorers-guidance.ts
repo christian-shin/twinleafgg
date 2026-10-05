@@ -63,7 +63,7 @@ export class ExplorersGuidance extends TrainerCard {
       const deckTop = new CardList();
       MOVE_CARDS(store, state, player.deck, deckTop, { count: 6, sourceCard: this });
 
-      const min = player.deck.cards.length > 1 ? Math.min(2, deckTop.cards.length) : 1;
+      const min = Math.min(2, deckTop.cards.length);
 
       return store.prompt(
         state,

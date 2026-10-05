@@ -23,6 +23,17 @@ export class CommunityCenter extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_USE_STADIUM);
       }
 
+      // Can't use it for no effect: some Pokémon must have damage to heal
+      let hasDamage = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+        if (cardList.damage > 0) {
+          hasDamage = true;
+        }
+      });
+      if (!hasDamage) {
+        throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+      }
+
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
         if (IS_STADIUM_EFFECT_BLOCKED(store, state, player, cardList, this)) {
           return;

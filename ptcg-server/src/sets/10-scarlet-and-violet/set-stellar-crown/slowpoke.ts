@@ -1,6 +1,6 @@
-import { PokemonCard, Stage, CardType, State, StoreLike, GameError, GameMessage, ChooseCardsPrompt, SuperType } from '../../../game';
+import { PokemonCard, Stage, CardType, State, StoreLike, GameError, GameMessage, ChooseCardsPrompt, SuperType, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Slowpoke extends PokemonCard {
 
@@ -54,6 +54,8 @@ export class Slowpoke extends PokemonCard {
           { min: 1, max: 1, allowCancel: false }
         )], selected => {
           const cards = selected || [];
+          // Cards moving from the discard pile to the hand are revealed (Rulings Compendium, Meta-Rulings)
+          SHOW_CARDS_TO_PLAYER(store, state, StateUtils.getOpponent(state, player), cards);
           MOVE_CARDS(store, state, player.discard, player.hand, { cards });
         });
     }
