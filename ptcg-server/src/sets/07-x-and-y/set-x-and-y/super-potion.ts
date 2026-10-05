@@ -38,7 +38,7 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     GameMessage.CHOOSE_POKEMON_TO_HEAL,
     PlayerType.BOTTOM_PLAYER,
     [SlotType.ACTIVE, SlotType.BENCH],
-    { allowCancel: true, blocked }
+    { allowCancel: false, blocked }
   ), results => {
     targets = results || [];
     next();
@@ -58,7 +58,7 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
       GameMessage.CHOOSE_CARD_TO_DISCARD,
       target,
       { superType: SuperType.ENERGY },
-      { min: 1, max: 1, allowCancel: true }
+      { min: 1, max: 1, allowCancel: false }
     ), selected => {
       cards = selected || [];
       next();
