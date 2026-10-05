@@ -5,7 +5,6 @@ import {
   CardTarget,
   CardType,
   ChoosePokemonPrompt,
-  GameError,
   GameMessage,
   PlayerType,
   PokemonCard,
@@ -64,10 +63,6 @@ export class Zeraora extends PokemonCard {
         }
       });
 
-      if (!exPokemonOnOppBench) {
-        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
-      }
-
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
 
@@ -75,6 +70,11 @@ export class Zeraora extends PokemonCard {
       const discardEnergy = new DiscardCardsEffect(effect, cards);
       discardEnergy.target = player.active;
       store.reduceEffect(state, discardEnergy);
+
+      // The attack can be used with no Benched ex to damage (ruling 1790): the Energy is still discarded
+      if (!exPokemonOnOppBench) {
+        return state;
+      }
 
       const blocked: CardTarget[] = [];
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (list, card, target) => {
