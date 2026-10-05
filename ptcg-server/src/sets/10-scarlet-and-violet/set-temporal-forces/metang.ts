@@ -1,5 +1,5 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
-import { Stage, CardType } from '../../../game/store/card/card-types';
+import { Stage, CardType, EnergyType } from '../../../game/store/card/card-types';
 import { PowerType, StoreLike, State, GameMessage, GameError } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
@@ -87,6 +87,7 @@ export class Metang extends PokemonCard {
         4,
         4,
         {
+          energyFilter: { energyType: EnergyType.BASIC },
           validCardTypes: [CardType.METAL],
           remainderDestination: 'bottom'
         }
