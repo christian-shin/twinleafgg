@@ -1,5 +1,5 @@
 import { SuperType } from '../card/card-types';
-import { CardsToHandEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, LostZoneCardsEffect } from '../effects/attack-effects';
+import { CardsToHandEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, LostZoneCardsEffect, MoveOpponentEnergyEffect } from '../effects/attack-effects';
 import { Effect } from '../effects/effect';
 import { AttackEffect, MoveCardsEffect } from '../effects/game-effects';
 import { State } from '../state/state';
@@ -7,7 +7,7 @@ import { StoreLike } from '../store-like';
 
 /**
  * Energy removed from a Pokémon as part of an attack's effect (discarded, shuffled into the deck,
- * put into the hand or the Lost Zone) leaves it after the damage is done: the player chooses the
+ * put into the hand or the Lost Zone, or moved to another Pokémon) leaves it after the damage is done: the player chooses the
  * Energy first, then the damage is done (with the Energy still attached: Double Turbo Energy,
  * Bastiodon's Ancient Bulwark, Spiky Energy, ...), then the Energy is removed
  * (attack flow chart; rulings 1553, 1580, 1846, 1874).
@@ -30,6 +30,11 @@ export function DEFER_UNTIL_AFTER_DAMAGE(store: StoreLike, effect: Effect): bool
     || effect instanceof LostZoneCardsEffect
     || effect instanceof CardsToHandEffect) {
     if (!effect.cards.every(card => card.superType === SuperType.ENERGY)) {
+      return false;
+    }
+    attackEffect = effect.attackEffect;
+  } else if (effect instanceof MoveOpponentEnergyEffect) {
+    if (effect.card.superType !== SuperType.ENERGY) {
       return false;
     }
     attackEffect = effect.attackEffect;
