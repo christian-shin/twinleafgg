@@ -8,11 +8,13 @@ import {
   TrainerCard
 } from '../../../game';
 import { GameMessage } from '../../../game/game-message';
-import { CardType, Stage, SuperType, TrainerType } from '../../../game/store/card/card-types';
+import { CardType, EnergyType, Stage, SuperType, TrainerType } from '../../../game/store/card/card-types';
+import { EnergyCard } from '../../../game/store/card/energy-card';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
+import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
-import {IS_ABILITY_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {IS_ABILITY_BLOCKED, MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Farfetchd extends PokemonCard {
 
@@ -56,6 +58,34 @@ export class Farfetchd extends PokemonCard {
   public fullName: string = 'Farfetch\'d TWM';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+
+    // Mach Cut
+    if (WAS_ATTACK_USED(effect, 0, this)) {
+      const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
+
+      const hasSpecialEnergy = opponent.active.cards.some(
+        (c) => c instanceof EnergyCard && c.energyType === EnergyType.SPECIAL,
+      );
+      if (!hasSpecialEnergy) {
+        return state;
+      }
+
+      return store.prompt(state, new ChooseCardsPrompt(
+        player,
+        GameMessage.CHOOSE_CARD_TO_DISCARD,
+        opponent.active,
+        { superType: SuperType.ENERGY, energyType: EnergyType.SPECIAL },
+        { min: 1, max: 1, allowCancel: false }
+      ), (selected) => {
+        const cards = selected || [];
+        if (cards.length > 0) {
+          const discardEnergy = new DiscardCardsEffect(effect, cards);
+          discardEnergy.target = opponent.active;
+          store.reduceEffect(state, discardEnergy);
+        }
+      });
+    }
 
     if (effect instanceof PlayPokemonEffect && effect.pokemonCard === this) {
       const player = StateUtils.findOwner(state, effect.target);
