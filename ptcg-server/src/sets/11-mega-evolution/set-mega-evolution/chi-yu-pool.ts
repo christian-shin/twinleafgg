@@ -1,6 +1,7 @@
 import { PokemonCard, Stage, CardType, StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
+import { MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { OPPONENT_CANNOT_PLAY_CARDS } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 // Refs: set-destined-rivals/mow-rotom.ts (discard Stadium), effect-of-attack-prefabs.ts (stadium play lock)
@@ -27,8 +28,8 @@ export class ChiYuMEGPool extends PokemonCard {
   public fullName: string = 'Chi-Yu MEG';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    // Scorching Earth
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    // Scorching Earth: the Stadium is discarded after the damage, before the Knock Out check (ruling 1589)
+    if (AFTER_ATTACK(effect, 0, this)) {
       const opponent = StateUtils.getOpponent(state, effect.player);
       const stadiumCard = StateUtils.getStadiumCard(state);
       if (stadiumCard === undefined) {
@@ -41,7 +42,7 @@ export class ChiYuMEGPool extends PokemonCard {
       }
       MOVE_CARDS(store, state, cardList, owner.discard, { cards: [stadiumCard], sourceCard: this, sourceEffect: this.attacks[0] });
       if (StateUtils.getStadiumCard(state) !== stadiumCard) {
-        return OPPONENT_CANNOT_PLAY_CARDS(store, state, effect, this, { stadium: true });
+        return OPPONENT_CANNOT_PLAY_CARDS(store, state, new AttackEffect(effect.player, opponent, effect.attack), this, { stadium: true });
       }
     }
     return state;

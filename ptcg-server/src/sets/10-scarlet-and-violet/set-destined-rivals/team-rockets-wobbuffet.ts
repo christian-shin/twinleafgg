@@ -12,6 +12,8 @@ import {
   ChoosePokemonPrompt,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
+import { MoveCountersAttackEffect } from '../../../game/store/effects/attack-effects';
+import { MoveDamageCountersEffect } from '../../../game/store/effects/game-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class TeamRocketsWobbuffet extends PokemonCard {
@@ -86,10 +88,31 @@ export class TeamRocketsWobbuffet extends PokemonCard {
           if (!targets || targets.length === 0) {
             return;
           }
-          const damageOnRocket = targets[0].damage;
+          const source = targets[0];
+          const damageOnRocket = source.damage;
+          if (damageOnRocket <= 0) {
+            return;
+          }
 
-          targets[0].damage = 0;
-          effect.opponent.active.damage += damageOnRocket;
+          // "Damage counters can't be moved" cancels the whole move.
+          const moveCheck = new MoveDamageCountersEffect(player);
+          state = store.reduceEffect(state, moveCheck);
+          if (moveCheck.preventDefault) {
+            return;
+          }
+
+          // Moving the counters onto a Pokémon that prevents the effects of attacks (Mist Energy,
+          // Repelling Veil, ...) removes them from the Benched Pokémon but places none (ruling 1665).
+          const moveEffect = new MoveCountersAttackEffect(effect, source, effect.opponent.active, damageOnRocket);
+          state = store.reduceEffect(state, moveEffect);
+
+          moveEffect.source.damage -= moveEffect.damage;
+          if (moveEffect.source.damage < 0) {
+            moveEffect.source.damage = 0;
+          }
+          if (!moveEffect.preventDefault) {
+            moveEffect.target.damage += moveEffect.damage;
+          }
         },
       );
     }

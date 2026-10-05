@@ -234,6 +234,8 @@ export class KnockOutEffect implements Effect {
   public prizeDestination?: CardList;
   public isLostCity: boolean = false;
   public prizeIncreased: boolean = false;
+  /** Set by the Check State step: the Pokémon is taken out of play later, by completeKnockOut. */
+  public deferRemoval: boolean = false;
 
   constructor(player: Player, target: PokemonCardList) {
     this.player = player;

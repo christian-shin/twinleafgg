@@ -4,7 +4,7 @@ import { StoreLike, State, StateUtils, DamageMap, PlayerType, MoveDamagePrompt, 
 import { Effect } from '../../../game/store/effects/effect';
 
 import { CheckHpEffect, CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
-import { AddSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
+import { AddSpecialConditionsEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Alakazam extends PokemonCard {
@@ -71,8 +71,22 @@ export class Alakazam extends PokemonCard {
           const source = StateUtils.getTarget(state, player, transfer.from);
           const target = StateUtils.getTarget(state, player, transfer.to);
           if (source.damage >= 10) {
+            // Moving counters off or onto a Pokémon that prevents the effects of attacks (Mist Energy,
+            // Repelling Veil, ...): they stay on a protected source and are lost on a protected
+            // destination (ruling 1665). The probes place 0 counters, so they only ask who prevents.
+            const fromCheck = new PutCountersEffect(effect, 0);
+            fromCheck.target = source;
+            store.reduceEffect(state, fromCheck);
+            if (fromCheck.preventDefault) {
+              continue;
+            }
             source.damage -= 10;
-            target.damage += 10;
+            const toCheck = new PutCountersEffect(effect, 0);
+            toCheck.target = target;
+            store.reduceEffect(state, toCheck);
+            if (!toCheck.preventDefault) {
+              target.damage += 10;
+            }
           }
         }
       });

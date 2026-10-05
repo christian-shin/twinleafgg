@@ -69,6 +69,8 @@ export class Conkeldurr extends PokemonCard {
 
       if (effect.player.active.specialConditions.length > 0) {
         effect.cost = [];
+        // "Ignore all Energy in this attack's cost": nothing is added to it later
+        effect.setCost = [];
       }
 
       return state;

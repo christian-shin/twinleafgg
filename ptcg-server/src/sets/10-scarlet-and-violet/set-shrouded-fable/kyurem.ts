@@ -55,6 +55,8 @@ export class Kyurem extends PokemonCard {
       if (isColressInOpponentsDiscard) {
         // Remove the Water and Metal energy requirements
         effect.cost = effect.cost.filter(type => type !== CardType.WATER && type !== CardType.METAL);
+        // "can use the Trifrost attack for [C]": a cost that is set is not increased or decreased (ruling 1581)
+        effect.setCost = [CardType.COLORLESS];
       }
       return state;
     }

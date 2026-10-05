@@ -1,4 +1,5 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
+import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, ShuffleDeckPrompt, ChoosePokemonPrompt, GameError, GameMessage, PlayerType, SlotType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
@@ -62,6 +63,13 @@ export class Illumise extends PokemonCard {
             const targets = selected || [];
 
             targets.forEach((target) => {
+              // An effect of the attack on that Pokémon: Mist Energy and the like prevent it (a probe without cards, ruling 1843)
+              const probe = new DiscardCardsEffect(effect, []);
+              probe.target = target;
+              store.reduceEffect(state, probe);
+              if (probe.preventDefault) {
+                return;
+              }
               MOVE_CARDS(store, state, target, opponent.deck, { sourceCard: this });
             });
 

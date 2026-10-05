@@ -159,6 +159,15 @@ export class CheckAttackCostEffect implements Effect {
   public player: Player;
   public attack: Attack;
   public cost: CardType[];
+  /**
+   * Set by an effect that makes the attack usable for a given cost ("can use the attack for [C]") or
+   * ignores the cost altogether ("ignore all Energy in this attack's cost"). Such a cost is final: no
+   * increase (Rillaboom, Nighttime Mine, ...) or decrease (Counter Gain, ...) applies to it, whichever
+   * handler runs first, so it is applied after all handlers ran (ruling 147, 252, 1552, 1581, 1842).
+   */
+  public setCost: CardType[] | undefined = undefined;
+  /** "Ignore all [C] Energy in the cost": the [C] that other effects add are ignored as well. */
+  public ignoreColorless = false;
 
   constructor(player: Player, attack: Attack) {
     this.player = player;

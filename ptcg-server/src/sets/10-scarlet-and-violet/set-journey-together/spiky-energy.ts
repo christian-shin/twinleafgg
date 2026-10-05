@@ -4,7 +4,7 @@ import { StoreLike } from '../../../game/store/store-like';
 import { State, GamePhase } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game';
-import { DealDamageEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
+import { AfterDamageEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
 import { IS_SPECIAL_ENERGY_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 
@@ -33,7 +33,9 @@ export class SpikyEnergy extends EnergyCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (effect instanceof DealDamageEffect && effect.target.cards.includes(this) && state.phase === GamePhase.ATTACK) {
+    // Triggers when the Pokémon is damaged: not when the damage was prevented or reduced to 0 (AfterDamageEffect,
+    // like Punk Helmet and Lucky Helmet), even if it is Knocked Out (the Knock Out is checked later)
+    if (effect instanceof AfterDamageEffect && effect.target.cards.includes(this) && state.phase === GamePhase.ATTACK) {
       const player = StateUtils.findOwner(state, effect.target);
       const opponent = effect.player;
       if (player === opponent || player.active !== effect.target)

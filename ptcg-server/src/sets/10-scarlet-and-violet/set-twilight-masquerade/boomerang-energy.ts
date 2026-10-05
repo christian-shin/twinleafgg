@@ -4,7 +4,7 @@ import { EnergyCard } from '../../../game/store/card/energy-card';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import {IS_SPECIAL_ENERGY_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
-import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
+import { AfterAttackEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 
 export class BoomerangEnergy extends EnergyCard {
   public provides: CardType[] = [CardType.COLORLESS];
@@ -31,8 +31,10 @@ export class BoomerangEnergy extends EnergyCard {
       effect.player.marker.addMarker(this.BOOMERANG_DISCARDED_MARKER, this);
     }
 
-    // removing the marker and handling the reattaching of it
-    if (effect instanceof EndTurnEffect && effect.player.marker.hasMarker(this.BOOMERANG_DISCARDED_MARKER, this)) {
+    // "After attacking": the card is attached again once the attack's effects are over, before the
+    // effects that trigger on the Defending Pokémon (Handheld Fan) resolve (ruling 1650). The end of the
+    // turn is the fallback for a discard that no AfterAttackEffect followed.
+    if ((effect instanceof AfterAttackEffect || effect instanceof EndTurnEffect) && effect.player.marker.hasMarker(this.BOOMERANG_DISCARDED_MARKER, this)) {
       effect.player.marker.removeMarker(this.BOOMERANG_DISCARDED_MARKER, this);
 
       // this card was discarded by the attack, move it onto the active
