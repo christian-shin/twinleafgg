@@ -58,6 +58,15 @@ export class Toxtricity extends PokemonCard {
         }
       });
 
+      // An Ability can't be used for no effect (rulings 12, 244): an empty deck or no Benched [D] Pokémon
+      const hasBenchedDark = player.bench.some(b => {
+        const benched = b.getPokemonCard();
+        return benched !== undefined && pokemonHasCardType(benched, CardType.DARK);
+      });
+      if (player.deck.cards.length === 0 || !hasBenchedDark) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
+
       state = store.prompt(state, new AttachEnergyPrompt(
         player.id,
         GameMessage.ATTACH_ENERGY_TO_BENCH,
