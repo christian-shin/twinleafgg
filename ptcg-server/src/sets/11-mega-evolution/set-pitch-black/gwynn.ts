@@ -27,7 +27,8 @@ function* playGwynn(
   });
 
   const selectableCount = player.hand.cards.length - blocked.length;
-  if (selectableCount < 2) {
+  // "Discard up to 2 Pokémon": one is enough
+  if (selectableCount < 1) {
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
@@ -72,7 +73,7 @@ export class Gwynn extends TrainerCard {
         blocked.push(i);
       }
     });
-    if (player.hand.cards.length - blocked.length < 2) {
+    if (player.hand.cards.length - blocked.length < 1) {
       return false;
     }
     return true;
