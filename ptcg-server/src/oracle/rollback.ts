@@ -8,8 +8,11 @@
  * object created during the trial becomes unreachable.
  */
 
+import { Prompt } from '../game/store/prompts/prompt';
+import { StateLog } from '../game/store/state/state-log';
+
 type Entry =
-  | { kind: 'obj'; target: any; props: [string, any][] }
+  | { kind: 'obj'; target: any; keys: string[]; vals: any[] }
   | { kind: 'arr'; target: any[]; items: any[]; props: [string, any][] }
   | { kind: 'map'; target: Map<any, any>; entries: [any, any][] }
   | { kind: 'set'; target: Set<any>; values: any[] };
@@ -65,7 +68,7 @@ export class Snapshot {
         continue;
       }
       seen.add(obj);
-      if (IMMUTABLE.has(obj) || this.skip(obj)) {
+      if (IMMUTABLE.has(obj) || isHistory(obj) || this.skip(obj)) {
         continue;
       }
       if (typeof obj.fullName === 'string' && typeof obj.superType === 'number') {
@@ -100,13 +103,14 @@ export class Snapshot {
       } else if (ArrayBuffer.isView(obj)) {
         continue;
       } else {
-        const props: [string, any][] = [];
-        for (const key of Object.keys(obj)) {
-          const v = obj[key];
-          props.push([key, v]);
+        const keys = Object.keys(obj);
+        const vals = new Array(keys.length);
+        for (let i = 0; i < keys.length; i++) {
+          const v = obj[keys[i]];
+          vals[i] = v;
           stack.push(v);
         }
-        this.entries.push({ kind: 'obj', target: obj, props });
+        this.entries.push({ kind: 'obj', target: obj, keys, vals });
       }
     }
   }
@@ -116,30 +120,31 @@ export class Snapshot {
       switch (e.kind) {
         case 'obj': {
           const t = e.target;
-          // Fast path: every recorded value unchanged and no key added or
-          // removed (key order can't change without a delete, which changes
-          // the count or a recorded value).
+          const keys = e.keys;
+          const vals = e.vals;
+          // Fast path: every recorded value unchanged and no key added. Game
+          // code never deletes properties, so a recorded key is still own
+          // when its value matches (and a delete plus an add would need one).
           let same = true;
-          for (let i = 0; i < e.props.length; i++) {
-            const p = e.props[i];
-            if (t[p[0]] !== p[1] || !Object.prototype.hasOwnProperty.call(t, p[0])) {
+          for (let i = 0; i < keys.length; i++) {
+            if (t[keys[i]] !== vals[i]) {
               same = false;
               break;
             }
           }
-          const keys = Object.keys(t);
-          if (same && keys.length === e.props.length) {
+          const now = Object.keys(t);
+          if (same && now.length === keys.length) {
             break;
           }
-          const recorded = new Set(e.props.map(p => p[0]));
-          for (const key of keys) {
+          const recorded = new Set(keys);
+          for (const key of now) {
             if (!recorded.has(key)) {
               delete t[key];
             }
           }
-          for (const [k, v] of e.props) {
-            if (t[k] !== v) {
-              t[k] = v;
+          for (let i = 0; i < keys.length; i++) {
+            if (t[keys[i]] !== vals[i] || !Object.prototype.hasOwnProperty.call(t, keys[i])) {
+              t[keys[i]] = vals[i];
             }
           }
           break;
@@ -187,6 +192,16 @@ export class Snapshot {
       }
     }
   }
+}
+
+/**
+ * Game history that no trial changes: log entries (never created inside a
+ * simulation, never edited) and prompts already answered at snapshot time.
+ * The arrays holding them are still recorded, so additions are undone; the
+ * history grows all game, so walking it made every restore slower.
+ */
+function isHistory(obj: any): boolean {
+  return obj instanceof StateLog || (obj instanceof Prompt && obj.result !== undefined);
 }
 
 function isIndex(key: string): boolean {

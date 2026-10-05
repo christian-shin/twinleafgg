@@ -52,7 +52,7 @@ export function deepIterate(source: any, callback: (holder: any, key: string, va
   }
 }
 
-export function deepClone(source: any, ignores: Function[] = [], refMap: { s: Object, d: Object }[] = []): any {
+export function deepClone(source: any, ignores: Function[] = [], refMap: Map<Object, Object> = new Map()): any {
   if (source === null) {
     return null;
   }
@@ -69,12 +69,12 @@ export function deepClone(source: any, ignores: Function[] = [], refMap: { s: Ob
     if (ignores.some(ignore => source instanceof ignore)) {
       return source;
     }
-    const ref = refMap.find(item => item.s === source);
+    const ref = refMap.get(source);
     if (ref !== undefined) {
-      return ref.d;
+      return ref;
     }
     const dest = Object.create(source);
-    refMap.push({ s: source, d: dest });
+    refMap.set(source, dest);
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key)) {
         dest[key] = deepClone(source[key], ignores, refMap);

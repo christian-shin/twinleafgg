@@ -207,10 +207,17 @@ export class GameRunner {
   /** Legal turn options for the active player, by trial dispatch. */
   public legalTurnOptions(player: Player): TurnOption[] {
     const store = this.store;
-    const candidates = withRollback([store, oracleCopyAttackSessions()], () => Chance.sim(() => turnCandidates(store, store.state, player)));
+    // One snapshot serves the candidate enumeration and every trial: after a
+    // restore the graph is exactly what the snapshot recorded.
+    const snap = new Snapshot([store, oracleCopyAttackSessions()]);
+    let candidates: TurnOption[];
+    try {
+      candidates = Chance.sim(() => turnCandidates(store, store.state, player));
+    } finally {
+      snap.restore();
+    }
     const seen = new Set<string>();
     const legal: TurnOption[] = [];
-    const snap = new Snapshot([store, oracleCopyAttackSessions()]);
     for (const cand of candidates) {
       const key = stableStringify(cand.desc);
       if (seen.has(key)) {

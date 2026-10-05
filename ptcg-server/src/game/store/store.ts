@@ -59,6 +59,48 @@ interface PromptItem {
   then: (results: any) => void;
 }
 
+function pushAll<T>(out: T[], items: T[]): void {
+  for (let i = 0; i < items.length; i++) {
+    out.push(items[i]);
+  }
+}
+
+/**
+ * `items` stably sorted by a small integer key: the order Array.prototype.sort
+ * (stable) gives, without the comparator calls of a sort on every effect.
+ */
+function stableSortBy<T>(items: T[], key: (item: T) => number): T[] {
+  const keys = new Array<number>(items.length);
+  let min = Infinity;
+  let max = -Infinity;
+  for (let i = 0; i < items.length; i++) {
+    const k = key(items[i]);
+    if (!Number.isInteger(k)) {
+      return items.sort((x, y) => key(x) - key(y));
+    }
+    keys[i] = k;
+    if (k < min) min = k;
+    if (k > max) max = k;
+  }
+  if (min === max || items.length < 2) {
+    return items;
+  }
+  if (max - min > 16) {
+    return items.sort((x, y) => key(x) - key(y));
+  }
+  const out: T[] = [];
+  for (let k = min; k <= max; k++) {
+    for (let i = 0; i < items.length; i++) {
+      if (keys[i] === k) {
+        out.push(items[i]);
+      }
+    }
+  }
+  return out;
+}
+
+let overriddenReduceEffect: ((card: Card, format: number) => any) | undefined;
+
 export class Store implements StoreLike {
 
   //private effectHistory: Effect[] = [];
@@ -493,22 +535,22 @@ export class Store implements StoreLike {
   }
 
   private propagateEffect(state: State, effect: Effect): State {
-    const cards: Card[] = [];
+    let cards: Card[] = [];
     for (const player of state.players) {
-      player.stadium.cards.forEach(c => cards.push(c));
-      player.supporter.cards.forEach(c => cards.push(c));
-      player.active.cards.forEach(c => cards.push(c));
-      player.active.tools.forEach(t => cards.push(t));
+      pushAll(cards, player.stadium.cards);
+      pushAll(cards, player.supporter.cards);
+      pushAll(cards, player.active.cards);
+      pushAll(cards, player.active.tools);
       for (const bench of player.bench) {
-        bench.cards.forEach(c => cards.push(c));
-        bench.tools.forEach(t => cards.push(t));
+        pushAll(cards, bench.cards);
+        pushAll(cards, bench.tools);
       }
       for (const prize of player.prizes) {
-        prize.cards.forEach(c => cards.push(c));
+        pushAll(cards, prize.cards);
       }
-      player.hand.cards.forEach(c => cards.push(c));
-      player.deck.cards.forEach(c => cards.push(c));
-      player.discard.cards.forEach(c => cards.push(c));
+      pushAll(cards, player.hand.cards);
+      pushAll(cards, player.deck.cards);
+      pushAll(cards, player.discard.cards);
     }
     const playPokemonTargetTools = effect instanceof PlayPokemonEffect
       ? effect.target.tools.slice()
@@ -528,7 +570,7 @@ export class Store implements StoreLike {
         if (c.superType === SuperType.ENERGY) return 1;
         return 2;
       };
-      cards.sort((a, b) => rank(a) - rank(b));
+      cards = stableSortBy(cards, rank);
     } else if (effect instanceof CheckPokemonPowersEffect) {
       const rank = (c: Card) => {
         if (c.superType === SuperType.POKEMON) return 0;
@@ -537,7 +579,7 @@ export class Store implements StoreLike {
         if (c.superType === SuperType.TRAINER) return 2;
         return 2;
       };
-      cards.sort((a, b) => rank(a) - rank(b));
+      cards = stableSortBy(cards, rank);
     } else if (effect instanceof AfterAttackEffect) {
       // Pokémon (the attack's own effects), then Energy (Boomerang Energy re-attaches), then Trainers
       // (Handheld Fan moves an Energy off the attacker): the triggered effects of the Defending Pokémon
@@ -547,9 +589,9 @@ export class Store implements StoreLike {
         if (c.superType === SuperType.ENERGY) return 1;
         return 2;
       };
-      cards.sort((a, b) => rank(a) - rank(b));
+      cards = stableSortBy(cards, rank);
     } else {
-      cards.sort((a, b) => a.superType - b.superType);
+      cards = stableSortBy(cards, c => c.superType);
     }
     cards.forEach(c => {
       if (playPokemonTargetTools.includes(c)) {
@@ -578,8 +620,12 @@ export class Store implements StoreLike {
     try {
       // Only try override for TrainerCard (for now)
       if ((card as any).trainerType !== undefined) {
-        // Import here to avoid circular dependency at module level
-        const { getOverriddenReduceEffect } = require('./card/card-effect-overrides');
+        // Loaded on first use to avoid a circular dependency at module level
+        // (cached: require() resolves the path on every call).
+        if (overriddenReduceEffect === undefined) {
+          overriddenReduceEffect = require('./card/card-effect-overrides').getOverriddenReduceEffect;
+        }
+        const getOverriddenReduceEffect = overriddenReduceEffect!;
         const format = (store as any)?.handler?.gameSettings?.format ?? 0;
         const override = getOverriddenReduceEffect(card, format);
         if (override) {
