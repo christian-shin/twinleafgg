@@ -1,8 +1,10 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SpecialCondition } from '../../../game/store/card/card-types';
-import { PowerType, State, StoreLike } from '../../../game';
+import { PowerType, State, StoreLike, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { AddSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
+import { AddSpecialConditionsPowerEffect } from '../../../game/store/effects/check-effects';
+import { IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 export class Hoothoot extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -34,8 +36,21 @@ export class Hoothoot extends PokemonCard {
   public fullName: string = 'Hoothoot PRE';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (effect instanceof AddSpecialConditionsEffect && effect.specialConditions.includes(SpecialCondition.ASLEEP)) {
-      effect.preventDefault = true;
+    // Insomnia: this Pokémon can't be Asleep (only Asleep; other Special Conditions of the same effect still apply)
+    if (
+      (effect instanceof AddSpecialConditionsEffect || effect instanceof AddSpecialConditionsPowerEffect) &&
+      effect.specialConditions.includes(SpecialCondition.ASLEEP) &&
+      effect.target.getPokemonCard() === this
+    ) {
+      const owner = StateUtils.findOwner(state, effect.target);
+      if (!IS_ABILITY_BLOCKED(store, state, owner, this)) {
+        const remaining = effect.specialConditions.filter(c => c !== SpecialCondition.ASLEEP);
+        if (remaining.length === 0) {
+          effect.preventDefault = true;
+        } else {
+          effect.specialConditions = remaining;
+        }
+      }
     }
 
     return state;
