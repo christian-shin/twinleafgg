@@ -589,10 +589,6 @@ export function checkStateReducer(store: StoreLike, state: State, effect: Effect
   }
 
   if (effect instanceof CheckRetreatCostEffect) {
-    // "During your opponent's next turn, its Retreat Cost is [C] more"
-    for (let i = 0; i < effect.player.active.retreatCostIncreaseNextTurn; i++) {
-      effect.cost.push(CardType.COLORLESS);
-    }
     if (effect.player.active.zeroRetreatCostNextTurn) {
       effect.cost = [];
     }

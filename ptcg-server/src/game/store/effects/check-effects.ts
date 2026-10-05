@@ -137,6 +137,11 @@ export class CheckRetreatCostEffect implements Effect {
     this.player = player;
     const pokemonCard = player.active.getPokemonCard();
     this.cost = pokemonCard !== undefined ? [...pokemonCard.retreat] : [];
+    // "During your opponent's next turn, its Retreat Cost is [C] more": part of the base cost, so
+    // an effect that sets "no Retreat Cost" (Latias ex, Magnetic Metal Energy) still wins
+    for (let i = 0; i < player.active.retreatCostIncreaseNextTurn; i++) {
+      this.cost.push(CardType.COLORLESS);
+    }
   }
 }
 
