@@ -4,8 +4,7 @@ import { StoreLike, State, StateUtils, PlayerType } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { BetweenTurnsEffect } from '../../../game/store/effects/game-phase-effects';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class TingLu extends PokemonCard {
 
@@ -46,8 +45,6 @@ export class TingLu extends PokemonCard {
 
   public fullName: string = 'Ting-Lu TWM';
 
-  public discardedStadiumCard: boolean = false;
-
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     if (WAS_ATTACK_USED(effect, 0, this)) {
@@ -59,8 +56,6 @@ export class TingLu extends PokemonCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
-      this.discardedStadiumCard = true;
-
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card) => {
         if (cardList === opponent.active) {
           return;
@@ -71,14 +66,13 @@ export class TingLu extends PokemonCard {
       });
     }
 
-    if (effect instanceof BetweenTurnsEffect && this.discardedStadiumCard) {
-      // Add stadium discard logic
+    // "Then, discard that Stadium": after the damage, before the Knock Out check (ruling 1559, 1589)
+    if (AFTER_ATTACK(effect, 0, this)) {
       const stadiumCard = StateUtils.getStadiumCard(state);
       if (stadiumCard) {
         const cardList = StateUtils.findCardList(state, stadiumCard);
         const owner = StateUtils.findOwner(state, cardList);
         MOVE_CARDS(store, state, cardList, owner.discard, { sourceCard: this });
-        this.discardedStadiumCard = false;
       }
     }
 
