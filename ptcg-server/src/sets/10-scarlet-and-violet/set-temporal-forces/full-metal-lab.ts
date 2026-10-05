@@ -2,7 +2,7 @@ import { GameError } from '../../../game/game-error';
 import { GameMessage } from '../../../game/game-message';
 import { CardType, TrainerType } from '../../../game/store/card/card-types';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { UseStadiumEffect } from '../../../game/store/effects/game-effects';
@@ -22,7 +22,7 @@ export class FullMetalLab extends TrainerCard {
   public text: string = '[M] Pokémon (both yours and your opponent\'s) take 30 less damage from attacks from the opponent\'s Pokémon (after applying Weakness and Resistance).';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (effect instanceof PutDamageEffect && StateUtils.getStadiumCard(state) === this) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && StateUtils.getStadiumCard(state) === this) {
       const owner = StateUtils.findOwner(state, effect.target);
       // Only attacks from the opponent's Pokémon are reduced (not your own, e.g. recoil)
       if (effect.player === owner) {

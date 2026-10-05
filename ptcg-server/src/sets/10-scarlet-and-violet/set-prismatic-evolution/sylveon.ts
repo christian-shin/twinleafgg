@@ -4,7 +4,7 @@ import { PowerType, StoreLike, State } from '../../../game';
 import { GamePhase } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 export class Sylveon extends PokemonCard {
@@ -40,7 +40,7 @@ export class Sylveon extends PokemonCard {
   public fullName: string = 'Sylveon PRE';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.cards.includes(this)) {
       const pokemonCard = effect.target.getPokemonCard();
       const sourceCard = effect.source.getPokemonCard();
 

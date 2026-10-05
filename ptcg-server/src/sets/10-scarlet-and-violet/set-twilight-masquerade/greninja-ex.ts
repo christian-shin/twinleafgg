@@ -14,7 +14,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { DiscardCardsEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { DiscardCardsEffect, PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { GameMessage } from '../../../game/game-message';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { ChooseEnergyPrompt } from '../../../game/store/prompts/choose-energy-prompt';
@@ -130,7 +130,7 @@ export class Greninjaex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {

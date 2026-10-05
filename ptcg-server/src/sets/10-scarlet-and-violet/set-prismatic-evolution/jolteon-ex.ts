@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag, EnergyType } from '../../../game/store/card/card-types';
 import { StoreLike, State, SlotType, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import {
   THIS_POKEMON_CANNOT_ATTACK_NEXT_TURN,
   WAS_ATTACK_USED,
@@ -74,7 +74,7 @@ export class Jolteonex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {

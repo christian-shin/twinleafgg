@@ -22,7 +22,7 @@ import { Effect } from '../../../game/store/effects/effect';
 
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import {WAS_ATTACK_USED, WAS_POWER_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -162,7 +162,7 @@ export class TealMaskOgerponex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {

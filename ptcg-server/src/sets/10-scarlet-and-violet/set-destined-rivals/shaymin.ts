@@ -2,7 +2,7 @@ import { PlayerType } from '../../../game';
 import { CardType, Stage } from '../../../game/store/card/card-types';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { PowerType } from '../../../game/store/card/pokemon-types';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { PowerEffect } from '../../../game/store/effects/game-effects';
 import { StateUtils } from '../../../game/store/state-utils';
@@ -42,7 +42,7 @@ export class Shaymin extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Flower Curtain
-    if (effect instanceof PutDamageEffect) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect)) {
       // Find the owner of the target (the defending player)
       const defendingPlayer = StateUtils.findOwner(state, effect.target);
       // Find the owner of the source (the attacking player)

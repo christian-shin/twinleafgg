@@ -3,7 +3,6 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { State, StoreLike } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
-import { AfterDamageEffect, ApplyWeaknessEffect } from '../../../game/store/effects/attack-effects';
 
 export class NsZekrom extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -40,20 +39,9 @@ export class NsZekrom extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Shred
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const opponent = effect.opponent;
-
-      effect.ignoreResistance = true;
-      const applyWeakness = new ApplyWeaknessEffect(effect, 70);
-      store.reduceEffect(state, applyWeakness);
-      const damage = applyWeakness.damage;
-
-      effect.damage = 0;
-
-      if (damage > 0) {
-        opponent.active.damage += damage;
-        const afterDamage = new AfterDamageEffect(effect, damage);
-        state = store.reduceEffect(state, afterDamage);
-      }
+      // Shred: effects on the Defending Pokémon don't change the damage; Weakness, Resistance and
+      // effects on the attacker still apply.
+      effect.ignoreDefenderEffects = true;
     }
 
     // Rampage Thunder

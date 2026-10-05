@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, PowerType, PokemonCardList, GamePhase } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { CoinFlipEffect } from '../../../game/store/effects/play-card-effects';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
@@ -36,7 +36,7 @@ export class Fezandipiti extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Adrena-Pheromone
-    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.cards.includes(this)) {
       const player = StateUtils.findOwner(state, effect.target);
       const pokemonCard = effect.target.getPokemonCard();
       const cardList = StateUtils.findCardList(state, this) as PokemonCardList;

@@ -3,7 +3,7 @@ import { TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { CheckPokemonPowersEffect } from '../../../game/store/effects/check-effects';
 import { GamePhase, PowerType, StateUtils } from '../../../game';
 import { IS_TOOL_BLOCKED } from '../../../game/store/prefabs/prefabs';
@@ -21,7 +21,7 @@ export class SacredCharm extends TrainerCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     // Reduce damage after Weakness and Resistance (PutDamageEffect), like Rigid Band
-    if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.tools.includes(this)) {
       if (state.phase !== GamePhase.ATTACK) {
         return state;
       }

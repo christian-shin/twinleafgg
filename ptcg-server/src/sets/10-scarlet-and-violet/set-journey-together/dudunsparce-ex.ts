@@ -8,7 +8,6 @@ import {
   StateUtils,
   PlayerType,
 } from '../../../game';
-import { AfterDamageEffect, ApplyWeaknessEffect } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
@@ -62,20 +61,9 @@ export class Dudunsparceex extends PokemonCard {
     }
 
     if (WAS_ATTACK_USED(effect, 1, this)) {
-      const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
-
-      const applyWeakness = new ApplyWeaknessEffect(effect, 150);
-      store.reduceEffect(state, applyWeakness);
-      const damage = applyWeakness.damage;
-
-      effect.damage = 0;
-
-      if (damage > 0) {
-        opponent.active.damage += damage;
-        const afterDamage = new AfterDamageEffect(effect, damage);
-        state = store.reduceEffect(state, afterDamage);
-      }
+      // Shred: effects on the Defending Pokémon don't change the damage; Weakness, Resistance and
+      // effects on the attacker still apply.
+      effect.ignoreDefenderEffects = true;
     }
     return state;
   }

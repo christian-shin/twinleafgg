@@ -12,8 +12,9 @@ import {
 } from '../../../game';
 import {
   AbstractAttackEffect,
+  isDamageIgnoringDefenderEffects,
   AddSpecialConditionsEffect,
-  PutDamageEffect,
+  PutDamageEffect, ignoresDefenderEffects,
 } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { PowerEffect } from '../../../game/store/effects/game-effects';
@@ -64,7 +65,7 @@ export class Miloticex extends PokemonCard {
     //   });
     // }
 
-    if (effect instanceof AbstractAttackEffect && effect.target.cards.includes(this)) {
+    if (effect instanceof AbstractAttackEffect && !isDamageIgnoringDefenderEffects(effect) && effect.target.cards.includes(this)) {
       const pokemonCard = effect.target.getPokemonCard();
       const sourceCard = effect.source.getPokemonCard();
 
@@ -105,7 +106,7 @@ export class Miloticex extends PokemonCard {
       }
     }
 
-    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.cards.includes(this)) {
       const pokemonCard = effect.target.getPokemonCard();
       const sourceCard = effect.source.getPokemonCard();
 

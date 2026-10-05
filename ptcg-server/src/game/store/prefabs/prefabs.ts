@@ -20,6 +20,7 @@ import { canPlayDualLegend } from '../dual-legend-utils';
 import {
   DealDamageEffect,
   PutDamageEffect,
+  ignoresDefenderEffects,
   HealTargetEffect,
   ApplyWeaknessEffect,
   AbstractAttackEffect,
@@ -3625,6 +3626,7 @@ export function CAN_PLAY_CARD(store: StoreLike, state: State, player: Player, ca
 export function TERA_RULE(effect: Effect, state: State, source: Card): void {
   if (
     effect instanceof PutDamageEffect &&
+    !ignoresDefenderEffects(effect) &&
     effect.target.cards.includes(source) &&
     effect.target.getPokemonCard() === source
   ) {

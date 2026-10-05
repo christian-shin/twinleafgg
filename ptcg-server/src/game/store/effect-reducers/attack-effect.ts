@@ -2,7 +2,7 @@ import { getCardTarget } from "../../../simple-bot/simple-tactics/simple-tactics
 import { GameError } from "../../game-error";
 import { GameMessage, GameLog } from "../../game-message";
 import { PlayerType } from "../actions/play-card-action";
-import { PutDamageEffect, AfterDamageEffect, ApplyWeaknessEffect, AfterWeaknessAndResistanceEffect, DealDamageEffect, KnockOutOpponentEffect, KOEffect, KnockOutPlayerEffect, PutCountersEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, DiscardDefendingPokemonEffect, LostZoneCardsEffect, CardsToHandEffect, MoveOpponentEnergyEffect, GustOpponentBenchEffect, SwitchOutOpponentsActiveEffect, AddMarkerEffect, HealTargetEffect, AddSpecialConditionsEffect, RemoveSpecialConditionsEffect } from "../effects/attack-effects";
+import { ignoresDefenderEffects, PutDamageEffect, AfterDamageEffect, ApplyWeaknessEffect, AfterWeaknessAndResistanceEffect, DealDamageEffect, KnockOutOpponentEffect, KOEffect, KnockOutPlayerEffect, PutCountersEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, DiscardDefendingPokemonEffect, LostZoneCardsEffect, CardsToHandEffect, MoveOpponentEnergyEffect, GustOpponentBenchEffect, SwitchOutOpponentsActiveEffect, AddMarkerEffect, HealTargetEffect, AddSpecialConditionsEffect, RemoveSpecialConditionsEffect } from "../effects/attack-effects";
 import { CheckHpEffect } from "../effects/check-effects";
 import { Effect } from "../effects/effect";
 import { shouldPreventAttackEffects, shouldPreventAttackDamage, shouldApplyDamageReduction, getActiveSurviveOnTenHpOptions, shouldKnockOutIfDamaged, getActiveRetaliateOnDamage, retaliateDamageEffect, RetaliateDamageEffect, EffectOfAttackEffect } from "../effects/effect-of-attack-effects";
@@ -96,7 +96,9 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
       effect.damage = Math.max(0, effect.damage - effect.source.attackDamageReductionNextTurn);
     }
 
-    if (!effect.weaknessApplied && effect.target.damageReductionBeforeWeaknessNextTurn > 0) {
+    // Shred (ignoreDefenderEffects): effects on the damaged Pokémon don't change the damage
+    // (rulings 1439, 1345, 1629, 1875); effects on the attacker and Weakness/Resistance still apply.
+    if (!ignoresDefenderEffects(effect) && !effect.weaknessApplied && effect.target.damageReductionBeforeWeaknessNextTurn > 0) {
       effect.damage = Math.max(0, effect.damage - effect.target.damageReductionBeforeWeaknessNextTurn);
     }
 
@@ -116,12 +118,12 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
       targetOwner.marker.addMarkerToState(targetOwner.DAMAGE_DEALT_MARKER);
     }
 
-    if (state.phase === GamePhase.ATTACK && shouldPreventAttackDamage(target, effect.source, effect.damage)) {
+    if (!ignoresDefenderEffects(effect) && state.phase === GamePhase.ATTACK && shouldPreventAttackDamage(target, effect.source, effect.damage)) {
       return state;
     }
 
     // Apply damage reduction (or increase via negative values) for "during opponent's next turn" effects
-    if (shouldApplyDamageReduction(target, effect.source)) {
+    if (!ignoresDefenderEffects(effect) && shouldApplyDamageReduction(target, effect.source)) {
       effect.damage = Math.max(0, effect.damage - target.damageReductionNextTurn);
     }
 
@@ -130,7 +132,8 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
     }
 
     // Apply extra damage for "during your next turn, the Defending Pokemon takes more damage" effects
-    if (target.defendingPokemonExtraDamageNextTurn > 0
+    if (!ignoresDefenderEffects(effect)
+      && target.defendingPokemonExtraDamageNextTurn > 0
       && !target.defendingPokemonExtraDamagePending
       && target.defendingPokemonExtraDamageAttackerId === effect.player.id) {
       effect.damage += target.defendingPokemonExtraDamageNextTurn;
@@ -162,7 +165,8 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
     }
 
     // Afterimage: when damaged during the opponent's next turn, flip; heads prevents that damage.
-    if (target.coinFlipPreventAttackDamageNextTurn
+    if (!ignoresDefenderEffects(effect)
+      && target.coinFlipPreventAttackDamageNextTurn
       && effect.damage > 0
       && state.phase === GamePhase.ATTACK
       && effect.source
@@ -181,7 +185,8 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
 
     // Reflect Shield: when damaged, flip a coin; heads prevents damage and retaliates.
     const coinFlipRetaliate = getActiveRetaliateOnDamage(target);
-    if (coinFlipRetaliate !== null
+    if (!ignoresDefenderEffects(effect)
+      && coinFlipRetaliate !== null
       && 'coinFlipPrevent' in coinFlipRetaliate
       && coinFlipRetaliate.coinFlipPrevent === true
       && 'damage' in coinFlipRetaliate
@@ -242,7 +247,7 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
       effect.damage += effect.source.outgoingAttackDamageBonusNextTurn;
     }
 
-    if (effect.target.damageReductionBeforeWeaknessNextTurn > 0) {
+    if (!ignoresDefenderEffects(effect) && effect.target.damageReductionBeforeWeaknessNextTurn > 0) {
       effect.damage = Math.max(0, effect.damage - effect.target.damageReductionBeforeWeaknessNextTurn);
     }
 

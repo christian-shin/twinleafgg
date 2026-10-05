@@ -4,7 +4,7 @@ import { Card } from "../card/card";
 import { TrainerType, CardType } from "../card/card-types";
 import { PokemonCard } from "../card/pokemon-card";
 import { TrainerCard } from "../card/trainer-card";
-import { AbstractAttackEffect, PutDamageEffect, PutCountersEffect, DealDamageEffect, ApplyWeaknessEffect, AfterDamageEffect } from "../effects/attack-effects";
+import { AbstractAttackEffect, ignoresDefenderEffects, PutDamageEffect, PutCountersEffect, DealDamageEffect, ApplyWeaknessEffect, AfterDamageEffect } from "../effects/attack-effects";
 import { Effect } from "../effects/effect";
 import { PreventDamageOptions, PlayLockOptions, KnockOutIfDamagedOptions, preventRetreatEffect, selfPreventRetreatEffect, preventRetreatWhileActiveEffect, preventDamageEffect, preventEffectsOfAttacksEffect, preventDamageAndEffectsToAllYourPokemonEffect, coinFlipPreventAttackDamageDuringOpponentsNextTurnEffect, cannotBeSpecialConditionedDuringOpponentsNextTurnEffect, shouldPreventAttackEffects, preventAttackEffect, preventHealOnDefendingDuringOpponentsNextTurnEffect, coinFlipCancelAttackEffect, opponentPokemonCannotUseAttackEffect, opponentPokemonCanOnlyUseAttackEffect, preventAttackUntilLeavesActiveEffect, reduceDamageEffect, reduceDamageAfterWeaknessEffect, playLockEffect, stadiumAndToolHaveNoEffectEffect, coinFlipCancelTrainerPlayEffect, increaseDefendingPokemonAttackCostNextTurnEffect, increaseDefendingPokemonAttackCostWhileActiveEffect, increaseDefendingPokemonRetreatCostNextTurnEffect, defendingPokemonTakesMoreDamageDuringAttackerNextTurnEffect, defendingPokemonTakesDamageOnEnergyAttachFromHandNextTurnEffect, cannotAttachEnergyFromHandToDefendingNextTurnEffect, energyAttachFromHandConsequenceNextTurnEffect, defendingPokemonWeaknessIsNowEffect, thisPokemonHasNoWeaknessDuringOpponentsNextTurnEffect, thisPokemonHasNoRetreatCostDuringYourNextTurnEffect, knockOutIfDamagedDuringAttackerNextTurnEffect, surviveOnTenHpDuringOpponentsNextTurnEffect, retaliateOnDamageDuringOpponentsNextTurnEffect, extraPrizesIfKnockedOutDuringAttackerNextTurnEffect, denyPrizesIfKnockedOutDuringOpponentsNextTurnEffect, discardAttackerEnergyIfKnockedOutDuringOpponentsNextTurnEffect, opponentCannotDrawAtStartOfNextTurnEffect, yourPokemonCannotAttackDuringYourNextTurnEffect, opponentPokemonCannotAttackDuringTheirNextTurnEffect, ignoreAttackCostsForTypesDuringYourNextTurnEffect, cannotEvolveDefendingNextTurnEffect, defendingPokemonHasNoAbilitiesUntilEndOfAttackerNextTurnEffect, opponentPokemonHaveNoAbilitiesEffect, OpponentPowerSuppressionOptions } from "../effects/effect-of-attack-effects";
 import { AttackEffect } from "../effects/game-effects";
@@ -443,6 +443,11 @@ export function PREVENT_DAMAGE_TO_YOUR_BENCHED_POKEMON_FROM_OPPONENT_ATTACKS(
   options: BenchProtectionOptions,
 ): void {
   if (!(effect instanceof PutDamageEffect) && !(effect instanceof PutCountersEffect)) {
+    return;
+  }
+
+  // Shred: protection on the damaged Pokémon is ignored.
+  if (effect instanceof PutDamageEffect && ignoresDefenderEffects(effect)) {
     return;
   }
 

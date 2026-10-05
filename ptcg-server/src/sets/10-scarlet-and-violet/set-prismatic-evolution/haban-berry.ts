@@ -1,6 +1,6 @@
 import { CardType, State, StateUtils, StoreLike, TrainerCard, TrainerType } from '../../../game';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { IS_TOOL_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { GamePhase } from '../../../game/store/state/state';
@@ -16,7 +16,7 @@ export class HabanBerry extends TrainerCard {
   public text: string = 'If the Pokémon this card is attached to is damaged by an attack from your opponent\'s [N] Pokémon, it takes 60 less damage (after applying Weakness and Resistance), and discard this card.';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.tools.includes(this)) {
       if (state.phase !== GamePhase.ATTACK) {
         return state;
       }

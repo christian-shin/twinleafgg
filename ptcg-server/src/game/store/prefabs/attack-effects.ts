@@ -2,7 +2,7 @@ import { Card, CardTarget, ChooseCardsPrompt, ChooseEnergyPrompt, ChoosePokemonP
 import { CardType, SpecialCondition, SuperType, TrainerType } from '../card/card-types';
 import { EnergyCard } from '../card/energy-card';
 import { PokemonCard } from '../card/pokemon-card';
-import { AddSpecialConditionsEffect, AfterDamageEffect, ApplyWeaknessEffect, CardsToHandEffect, DealDamageEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, DiscardDefendingPokemonEffect, HealTargetEffect, KnockOutOpponentEffect, KnockOutPlayerEffect, MoveOpponentEnergyEffect, PutCountersEffect, PutDamageEffect } from '../effects/attack-effects';
+import { AddSpecialConditionsEffect, CardsToHandEffect, DealDamageEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, DiscardDefendingPokemonEffect, HealTargetEffect, KnockOutOpponentEffect, KnockOutPlayerEffect, MoveOpponentEnergyEffect, PutCountersEffect, PutDamageEffect } from '../effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../effects/check-effects';
 import { AttackEffect } from '../effects/game-effects';
 import { AfterAttackEffect, BeforeDoingDamageEffect, EndTurnEffect } from '../effects/game-phase-effects';
@@ -521,22 +521,14 @@ export function THIS_ATTACKS_DAMAGE_ISNT_AFFECTED_BY_EFFECTS(
   ignoreWeaknessAndResistance: boolean = false,
 ) {
 
-  const player = effect.player;
-  const opponent = StateUtils.getOpponent(state, player);
-
-  const applyWeakness = new ApplyWeaknessEffect(effect, effect.damage);
+  // Shred: the damage then goes through the normal DealDamage/PutDamage path, which applies Weakness,
+  // Resistance and the effects on the attacker (Maximum Belt, Intimidating Fang, ...) but skips every
+  // effect on the Defending Pokémon (rulings 1439, 1716, 1816, 531, 532).
+  effect.ignoreDefenderEffects = true;
   // "isn't affected by Weakness or Resistance, or by any effects on ..." (Swift-style text)
-  applyWeakness.ignoreWeakness = ignoreWeaknessAndResistance;
-  applyWeakness.ignoreResistance = ignoreWeaknessAndResistance;
-  store.reduceEffect(state, applyWeakness);
-  const damage = applyWeakness.damage;
-
-  effect.damage = 0;
-
-  if (damage > 0) {
-    opponent.active.damage += damage;
-    const afterDamage = new AfterDamageEffect(effect, damage);
-    state = store.reduceEffect(state, afterDamage);
+  if (ignoreWeaknessAndResistance) {
+    effect.ignoreWeakness = true;
+    effect.ignoreResistance = true;
   }
 }
 
