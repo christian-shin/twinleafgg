@@ -268,6 +268,9 @@ export class SelfPreventRetreatEffect extends EffectOfAttackEffect {
 
   constructor(base: AttackEffect) {
     super(base);
+    // Self effect: the target is the attacking Pokémon, not the defender (otherwise
+    // Mist Energy, Empoleon ex, ... prevent it).
+    this.target = base.source;
   }
 
   applyEffect(): void {
@@ -572,6 +575,8 @@ export function opponentPokemonCanOnlyUseAttackEffect(
 export class PreventAttackUntilLeavesActiveEffect extends EffectOfAttackEffect {
   constructor(base: AttackEffect, public attackName: string) {
     super(base);
+    // Self effect: the target is the attacking Pokémon, not the defender.
+    this.target = base.source;
   }
 
   applyEffect(): void {
