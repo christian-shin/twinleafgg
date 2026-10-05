@@ -2,7 +2,6 @@ import {
   AttachEnergyPrompt,
   CardTag,
   CardType,
-  EnergyCard,
   EnergyType,
   GameMessage,
   PlayerType,
@@ -67,10 +66,7 @@ export class MegaGardevoirex extends PokemonCard {
         return state;
       }
 
-      // one Basic [P] Energy for each Benched Pokemon, as many as the deck holds
-      const psychicInDeck = player.deck.cards.filter((c) =>
-        c.superType === SuperType.ENERGY && (c as EnergyCard).energyType === EnergyType.BASIC && c.name === 'Psychic Energy'
-      ).length;
+      // one Basic [P] Energy for each Benched Pokemon; the deck is hidden, so fewer (or none) can be found
 
       state = store.prompt(
         state,
@@ -81,7 +77,7 @@ export class MegaGardevoirex extends PokemonCard {
           PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH],
           { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Psychic Energy' },
-          { allowCancel: false, min: Math.min(benchedCount, psychicInDeck), max: benchedCount, differentTargets: true },
+          { allowCancel: false, min: 0, max: benchedCount, differentTargets: true },
         ),
         (transfers) => {
           transfers = transfers || [];
