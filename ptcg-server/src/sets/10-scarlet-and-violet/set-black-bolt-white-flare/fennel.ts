@@ -35,6 +35,17 @@ export class Fennel extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
+      // A Trainer can't be played for no effect: some Pokémon must have damage to heal
+      let hasDamage = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
+        if (cardList.damage > 0) {
+          hasDamage = true;
+        }
+      });
+      if (!hasDamage) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
       // We will discard this card after prompt confirmation
       effect.preventDefault = true;
