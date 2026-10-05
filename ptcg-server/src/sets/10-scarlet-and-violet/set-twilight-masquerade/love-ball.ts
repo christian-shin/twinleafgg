@@ -5,7 +5,7 @@ import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prom
 import { ShowCardsPrompt } from '../../../game/store/prompts/show-cards-prompt';
 import { ShuffleDeckPrompt } from '../../../game/store/prompts/shuffle-prompt';
 import { GameMessage } from '../../../game/game-message';
-import { Card, GameError, Player, PokemonCard, State, StateUtils, StoreLike } from '../../../game';
+import { Card, GameError, Player, PlayerType, PokemonCard, State, StateUtils, StoreLike } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -18,10 +18,11 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
-  const opponentBenchNames = opponent.bench.filter(card => card instanceof PokemonCard).map(card => (card as unknown as PokemonCard).name);
-  const opponentActiveName = opponent.active.cards[0].name;
-
-  const allowedNames = [opponentActiveName, ...opponentBenchNames];
+  // The name of each of the opponent's Pokémon in play (Active and Bench; the top card of an evolved Pokémon)
+  const allowedNames: string[] = [];
+  opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, pokemonCard) => {
+    allowedNames.push(pokemonCard.name);
+  });
 
   const blocked: number[] = [];
   player.deck.cards.forEach((card, index) => {
