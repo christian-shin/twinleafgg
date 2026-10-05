@@ -1,6 +1,7 @@
 import { CardType, State, StateUtils, StoreLike, TrainerCard, TrainerType } from '../../../game';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { shouldPreventAttackDamage } from '../../../game/store/effects/effect-of-attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { IS_TOOL_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { GamePhase } from '../../../game/store/state/state';
@@ -29,6 +30,11 @@ export class PayapaBerrySCRPool extends TrainerCard {
 
       const attacker = StateUtils.findOwner(state, effect.source);
       if (owner === attacker) {
+        return state;
+      }
+
+      // "If the Pokémon is damaged": no damage taken (none to begin with, or prevented) -> the Berry stays.
+      if (effect.preventDefault || effect.damage <= 0 || shouldPreventAttackDamage(effect.target, effect.source, effect.damage)) {
         return state;
       }
 
