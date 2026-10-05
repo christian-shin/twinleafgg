@@ -3,7 +3,7 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { PowerType } from '../../../game';
+import { GamePhase, PlayerType, PowerType, StateUtils } from '../../../game';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
@@ -42,12 +42,26 @@ export class Munkidoriex extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof KnockOutEffect && effect.target.cards.includes(this)) {
       const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
 
       if (IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }
 
-      if (player.pecharuntexIsInPlay == true) {
+      // Only when Knocked Out by damage from an attack from the opponent's Pokémon
+      if (state.phase !== GamePhase.ATTACK || state.players[state.activePlayer] !== opponent
+        || !player.marker.hasMarker(player.DAMAGE_DEALT_MARKER)) {
+        return state;
+      }
+
+      // "if you have any Pecharunt ex in play"
+      let hasPecharuntex = false;
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
+        if (card.name === 'Pecharunt ex') {
+          hasPecharuntex = true;
+        }
+      });
+      if (hasPecharuntex) {
         effect.prizeCount -= 1;
       }
     }
