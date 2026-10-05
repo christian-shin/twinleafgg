@@ -48,7 +48,7 @@ export class Larvitar extends PokemonCard {
             GameMessage.CHOOSE_CARD_TO_DISCARD,
             opponent.active,
             { superType: SuperType.ENERGY },
-            { min: 1, max: 1, allowCancel: true }
+            { min: 1, max: 1, allowCancel: false }
           ), selected => {
             cards = selected || [];
             const discardEnergy = new DiscardCardsEffect(effect, cards);
