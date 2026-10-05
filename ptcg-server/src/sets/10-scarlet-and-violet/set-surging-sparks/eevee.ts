@@ -1,6 +1,6 @@
-import { State, PowerType, PlayerType, CardType, PokemonCard, Stage, StoreLike } from '../../../game';
+import { State, PowerType, CardType, PokemonCard, Stage, StoreLike } from '../../../game';
 import { DealDamageEffect } from '../../../game/store/effects/attack-effects';
-import { CheckTableStateEffect } from '../../../game/store/effects/check-effects';
+import { CheckPokemonPlayedTurnEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { PowerEffect } from '../../../game/store/effects/game-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
@@ -66,11 +66,13 @@ export class Eevee extends PokemonCard {
       player.marker.addMarker(this.EVOLUTIONARY_ADVANTAGE_MARKER, this);
     }
 
-    if (effect instanceof CheckTableStateEffect) {
-      const player = state.players[state.activePlayer];
-      if (player.active.cards[0] == this) {
+    // Boosted Evolution: as long as this Pokémon is in the Active Spot, it can evolve during your first turn or the
+    // turn you play it. Only this Pokémon (not the player's other Pokémon) and only while it is still this card.
+    if (effect instanceof CheckPokemonPlayedTurnEffect) {
+      const owner = effect.player;
+      if (owner.active === effect.target && effect.target.getPokemonCard() === this) {
         try {
-          const stub = new PowerEffect(player, {
+          const stub = new PowerEffect(owner, {
             name: 'test',
             powerType: PowerType.ABILITY,
             text: ''
@@ -79,12 +81,8 @@ export class Eevee extends PokemonCard {
         } catch {
           return state;
         }
-        player.canEvolve = true;
-        player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
-          if (cardList.getPokemonCard() === this) {
-            cardList.pokemonPlayedTurn = state.turn - 1;
-          }
-        });
+        effect.pokemonPlayedTurn = state.turn - 1;
+        effect.canEvolveOnFirstTurn = true;
       }
       return state;
     }
