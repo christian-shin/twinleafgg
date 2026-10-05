@@ -23,9 +23,9 @@ function* playCard(next: Function, store: StoreLike, state: State, self: Tarrago
     throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
   }
 
-  MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: self });
-  // We will discard this card after prompt confirmation
-  effect.preventDefault = true;
+  // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
+  // opponent's hand as an attack effect)
+  const playedFromHand = player.hand.cards.includes(self);
 
   let pokemons = 0;
   let energies = 0;
@@ -40,6 +40,16 @@ function* playCard(next: Function, store: StoreLike, state: State, self: Tarrago
     }
   });
 
+  // No [F] Pokémon or Basic [F] Energy in the discard pile: it is public knowledge that the card would do nothing
+  // (rulings 851, 948)
+  if (pokemons === 0 && energies === 0) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
+
+  MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: self });
+  // We will discard this card after prompt confirmation
+  effect.preventDefault = true;
+
   const maxPokemons = Math.min(pokemons, 4);
   const maxEnergies = Math.min(energies, 4);
   const count = 4;
@@ -49,7 +59,8 @@ function* playCard(next: Function, store: StoreLike, state: State, self: Tarrago
     GameMessage.CHOOSE_CARD_TO_HAND,
     player.discard,
     {},
-    { min: 0, max: count, allowCancel: false, blocked, maxPokemons, maxEnergies }
+    // "up to 4" from a public zone: at least 1 from the hand (rulings 1778, 1853), 0 through an attack (ruling 1844)
+    { min: playedFromHand ? 1 : 0, max: count, allowCancel: false, blocked, maxPokemons, maxEnergies }
   ), selected => {
     cards = selected || [];
     next();
