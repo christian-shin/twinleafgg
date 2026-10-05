@@ -34,7 +34,7 @@ function* playCard(
       GameMessage.CHOOSE_POKEMON_TO_SWITCH,
       PlayerType.BOTTOM_PLAYER,
       [SlotType.BENCH],
-      { allowCancel: true },
+      { allowCancel: false },
     ),
     (results) => {
       targets = results || [];
