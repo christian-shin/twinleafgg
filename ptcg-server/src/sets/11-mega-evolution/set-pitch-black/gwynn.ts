@@ -40,7 +40,8 @@ function* playGwynn(
       GameMessage.CHOOSE_CARD_TO_DISCARD,
       player.hand,
       {},
-      { min: 1, max: 2, allowCancel: false, blocked },
+      // "Up to 2": at least 1 when played; as the effect of an attack (Look-Alike Show) it may discard none (rulings 1844, 1853).
+      { min: effect.usedAsAttackEffect ? 0 : 1, max: 2, allowCancel: false, blocked },
     ),
     (selected) => {
       cards = selected || [];
