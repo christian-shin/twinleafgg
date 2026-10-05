@@ -4,6 +4,7 @@ import { PokemonCard, PlayerType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { MoveDamageCountersEffect } from '../../../game/store/effects/game-effects';
 import { MoveCountersAttackEffect } from '../../../game/store/effects/attack-effects';
+import { IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 export class Patrat extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -40,7 +41,8 @@ export class Patrat extends PokemonCard {
       let hasPatrat = false;
       state.players.forEach((p) => {
         p.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-          if (card?.name === 'Patrat') hasPatrat = true;
+          // A Patrat whose Ability is blocked (e.g. Team Rocket's Watchtower) has no effect
+          if (card?.name === 'Patrat' && !IS_ABILITY_BLOCKED(store, state, p, card)) hasPatrat = true;
         });
       });
       if (hasPatrat) {
