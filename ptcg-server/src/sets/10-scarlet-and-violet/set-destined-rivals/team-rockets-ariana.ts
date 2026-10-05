@@ -25,11 +25,45 @@ export class TeamRocketsAriana extends TrainerCard {
   public text: string =
     "Draw cards until you have 5 cards in your hand. If all of your Pokémon in play are Team Rocket's Pokemon, draw cards until you have 8 cards in your hand instead.";
 
+  // Hand size to draw up to: 8 when all of your Pokémon in play are Team Rocket's Pokémon, else 5.
+  private targetHandSize(player: Player): number {
+    let allTeamRocket = true;
+    let hasPokemon = false;
+
+    // Check active
+    if (player.active.cards.length > 0) {
+      hasPokemon = true;
+      const activePokemon = player.active.getPokemonCard();
+      if (!activePokemon || !activePokemon.hasTag(CardTag.TEAM_ROCKET)) {
+        allTeamRocket = false;
+      }
+    }
+
+    // Check bench
+    player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
+      if (cardList !== player.active && card instanceof PokemonCard) {
+        hasPokemon = true;
+        if (!card.hasTag(CardTag.TEAM_ROCKET)) {
+          allTeamRocket = false;
+        }
+      }
+    });
+
+    return hasPokemon && allTeamRocket ? 8 : 5;
+  }
+
+  // "Draw cards until you have N cards in your hand": a card that would draw nothing (no card in the
+  // deck, or already N cards in hand without this one) can't be played (rulings 851, 959).
+  private canDraw(player: Player): boolean {
+    return player.deck.cards.length > 0
+      && player.hand.cards.filter(c => c !== this).length < this.targetHandSize(player);
+  }
+
   public canPlay(store: StoreLike, state: State, player: Player): boolean {
     if (player.supporterTurn > 0) {
       return false;
     }
-    return true;
+    return this.canDraw(player);
   }
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
@@ -41,35 +75,19 @@ export class TeamRocketsAriana extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
-      player.rocketSupporter = true;
+      if (!this.canDraw(player)) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
+      // Using the effect of a Supporter as the effect of an attack is not playing it from the hand
+      if (!effect.usedAsAttackEffect) {
+        player.rocketSupporter = true;
+      }
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
       effect.preventDefault = true;
 
-      // Check if all Pokémon in play are Team Rocket's Pokémon
-      let allTeamRocket = true;
-      let hasPokemon = false;
-
-      // Check active
-      if (player.active.cards.length > 0) {
-        hasPokemon = true;
-        const activePokemon = player.active.getPokemonCard();
-        if (!activePokemon || !activePokemon.hasTag(CardTag.TEAM_ROCKET)) {
-          allTeamRocket = false;
-        }
-      }
-
-      // Check bench
-      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-        if (cardList !== player.active && card instanceof PokemonCard) {
-          hasPokemon = true;
-          if (!card.hasTag(CardTag.TEAM_ROCKET)) {
-            allTeamRocket = false;
-          }
-        }
-      });
-
       // Set target hand size
-      const targetHandSize = hasPokemon && allTeamRocket ? 8 : 5;
+      const targetHandSize = this.targetHandSize(player);
 
       // Draw until target hand size is reached
       while (player.hand.cards.length < targetHandSize) {
