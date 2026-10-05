@@ -10,12 +10,9 @@ import {
   SlotType,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import {
-  AfterDamageEffect,
-  ApplyWeaknessEffect,
-  PutDamageEffect,
-} from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { THIS_ATTACKS_DAMAGE_ISNT_AFFECTED_BY_EFFECTS } from '../../../game/store/prefabs/attack-effects';
 
 export class MegaStarmieex extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -78,21 +75,9 @@ export class MegaStarmieex extends PokemonCard {
       }
     }
 
+    // Nebula Beam
     if (WAS_ATTACK_USED(effect, 1, this)) {
-      const opponent = effect.opponent;
-
-      effect.ignoreResistance = true;
-      const applyWeakness = new ApplyWeaknessEffect(effect, 210);
-      store.reduceEffect(state, applyWeakness);
-      const damage = applyWeakness.damage;
-
-      effect.damage = 0;
-
-      if (damage > 0) {
-        opponent.active.damage += damage;
-        const afterDamage = new AfterDamageEffect(effect, damage);
-        state = store.reduceEffect(state, afterDamage);
-      }
+      THIS_ATTACKS_DAMAGE_ISNT_AFFECTED_BY_EFFECTS(store, state, effect, 210, true);
     }
 
     return state;
