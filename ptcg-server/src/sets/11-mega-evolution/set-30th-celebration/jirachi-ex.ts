@@ -43,7 +43,7 @@ export class Jirachiex extends PokemonCard {
 
     // Swift
     if (WAS_ATTACK_USED(effect, 1, this)) {
-      THIS_ATTACKS_DAMAGE_ISNT_AFFECTED_BY_EFFECTS(store, state, effect, 150);
+      THIS_ATTACKS_DAMAGE_ISNT_AFFECTED_BY_EFFECTS(store, state, effect, 150, true);
     }
 
     return state;
