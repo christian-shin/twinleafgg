@@ -3,7 +3,6 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, PowerType } from '../../../game';
 import { AttackEffect, PowerEffect } from '../../../game/store/effects/game-effects';
 import { Effect } from '../../../game/store/effects/effect';
-import { AfterDamageEffect, ApplyWeaknessEffect } from '../../../game/store/effects/attack-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class WalkingWakeex extends PokemonCard {
@@ -70,21 +69,11 @@ export class WalkingWakeex extends PokemonCard {
           return state;
         }
 
+        // Kept as the serialized marker of the attack (no longer read by the damage path).
         effect.attack.shredAttack = true;
-
-        const opponent = StateUtils.getOpponent(state, player);
-
-        const applyWeakness = new ApplyWeaknessEffect(effect, effect.damage);
-        store.reduceEffect(state, applyWeakness);
-        const damage = applyWeakness.damage;
-
-        effect.damage = 0;
-
-        if (damage > 0) {
-          opponent.active.damage += damage;
-          const afterDamage = new AfterDamageEffect(effect, damage);
-          state = store.reduceEffect(state, afterDamage);
-        }
+        // Damage from attacks used by this Pokémon isn't affected by any effects on the Defending
+        // Pokémon: Weakness, Resistance and effects on the attacker still apply.
+        effect.ignoreDefenderEffects = true;
       }
     }
 
