@@ -61,7 +61,8 @@ export class BlackBeltsTraining extends TrainerCard {
 
       const oppActiveCard = effect.target.getPokemonCard();
       if (oppActiveCard && oppActiveCard.hasTag(CardTag.POKEMON_ex)) {
-        if (effect.target !== player.active && effect.target !== opponent.active) {
+        // Only your opponent's Active Pokémon (not damage your attack does to your own Pokémon)
+        if (effect.target !== opponent.active) {
           return state;
         }
 
