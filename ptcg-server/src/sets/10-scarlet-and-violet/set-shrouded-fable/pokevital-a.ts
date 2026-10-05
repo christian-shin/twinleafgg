@@ -14,7 +14,7 @@ import {
   PokemonCardList,
   SlotType,
 } from '../../../game';
-import { HealEffect } from '../../../game/store/effects/game-effects';
+import { HealEffect, MoveCardsEffect } from '../../../game/store/effects/game-effects';
 
 function* playCard(
   next: Function,
@@ -101,6 +101,40 @@ If this card is in your discard pile, it can't be put into your deck or hand.`;
     if (effect instanceof TrainerEffect && effect.trainerCard === this) {
       const generator = playCard(() => generator.next(), store, state, effect);
       return generator.next().value;
+    }
+
+    // "This card can't be put into your hand or deck from the discard pile."
+    // Ref: set-shrouded-fable/neutral-center.ts (same clause)
+    if (effect instanceof MoveCardsEffect) {
+      for (const player of state.players) {
+        if (effect.source !== player.discard || !player.discard.cards.includes(this)) {
+          continue;
+        }
+        if (effect.destination !== player.hand && effect.destination !== player.deck) {
+          continue;
+        }
+
+        if (effect.cards) {
+          if (!effect.cards.includes(this)) {
+            continue;
+          }
+          effect.cards = effect.cards.filter((c) => c !== this);
+          if (effect.cards.length === 0) {
+            effect.preventDefault = true;
+          }
+        } else if (effect.count !== undefined) {
+          effect.cards = player.discard.cards.filter((c) => c !== this).slice(0, effect.count);
+          effect.count = undefined;
+          if (effect.cards.length === 0) {
+            effect.preventDefault = true;
+          }
+        } else {
+          effect.cards = player.discard.cards.filter((c) => c !== this);
+          if (effect.cards.length === 0) {
+            effect.preventDefault = true;
+          }
+        }
+      }
     }
     return state;
   }
