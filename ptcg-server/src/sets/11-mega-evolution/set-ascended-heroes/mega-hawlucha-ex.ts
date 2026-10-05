@@ -11,7 +11,7 @@ import {
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 
-import {IS_ABILITY_BLOCKED, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {AFTER_ATTACK, IS_ABILITY_BLOCKED, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class MegaHawluchaex extends PokemonCard {
@@ -70,7 +70,14 @@ export class MegaHawluchaex extends PokemonCard {
       if (stadiumCard !== undefined) {
         // Add 140 damage if Stadium is in play
         effect.damage += 140;
+      }
+    }
 
+    // "Then, discard that Stadium": after the damage (the Stadium still affects the damage)
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const stadiumCard = StateUtils.getStadiumCard(state);
+
+      if (stadiumCard !== undefined) {
         // Discard the Stadium
         const cardList = StateUtils.findCardList(state, stadiumCard);
         const stadiumOwner = StateUtils.findOwner(state, cardList);
