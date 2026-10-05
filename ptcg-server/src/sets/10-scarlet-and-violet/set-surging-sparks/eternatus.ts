@@ -3,7 +3,7 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class Eternatus extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -63,13 +63,18 @@ export class Eternatus extends PokemonCard {
         effect.damage = 0;
         return state;
       }
-
-      // Discard Stadium
-      const cardList = StateUtils.findCardList(state, stadiumCard);
-      const player = StateUtils.findOwner(state, cardList);
-      MOVE_CARDS(store, state, cardList, player.discard, { sourceCard: this });
       effect.damage = 230; // Set the damage to 230 as specified in the original attack
       return state;
+    }
+
+    // The Stadium is discarded after the damage, before the Knock Out check (ruling 1589)
+    if (AFTER_ATTACK(effect, 1, this)) {
+      const stadiumCard = StateUtils.getStadiumCard(state);
+      if (stadiumCard !== undefined) {
+        const cardList = StateUtils.findCardList(state, stadiumCard);
+        const player = StateUtils.findOwner(state, cardList);
+        MOVE_CARDS(store, state, cardList, player.discard, { sourceCard: this });
+      }
     }
     return state;
   }
