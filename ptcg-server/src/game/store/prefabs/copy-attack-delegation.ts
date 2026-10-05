@@ -15,6 +15,7 @@ import { Player } from '../state/player';
 import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
 import { PlayerType } from '../actions/play-card-action';
+import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS } from './after-damage';
 
 export function cloneAttack(attack: Attack): Attack {
   return { ...attack, cost: [...(attack.cost || [])] };
@@ -370,6 +371,7 @@ export function runDelegatedCopiedAttack(ctx: DelegatedCopiedAttackContext): Sta
 
   // Fan-out while copycat still has its printed attacks (no index leak).
   // Session hook after propagateEffect runs source as .call(copycat).
+  OPEN_AFTER_DAMAGE_EFFECTS(attackEffect);
   state = store.reduceEffect(state, attackEffect);
 
   const beforeDoingDamageEffect = new BeforeDoingDamageEffect(attackEffect);
@@ -379,6 +381,8 @@ export function runDelegatedCopiedAttack(ctx: DelegatedCopiedAttackContext): Sta
     const dealDamage = new DealDamageEffect(attackEffect, attackEffect.damage);
     state = store.reduceEffect(state, dealDamage);
   }
+
+  state = RUN_AFTER_DAMAGE_EFFECTS(state, attackEffect);
 
   if (!skipAfterAttack) {
     const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack);
@@ -429,6 +433,7 @@ export function* runDelegatedCopiedAttackGenerator(
   const attackEffect = new AttackEffect(player, opponent, clonedAttack);
   attackEffect.source = sourceSlot ?? player.active;
 
+  OPEN_AFTER_DAMAGE_EFFECTS(attackEffect);
   state = store.reduceEffect(state, attackEffect);
 
   if (store.hasPrompts()) {
@@ -449,6 +454,12 @@ export function* runDelegatedCopiedAttackGenerator(
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());
     }
+  }
+
+  state = RUN_AFTER_DAMAGE_EFFECTS(state, attackEffect);
+
+  if (store.hasPrompts()) {
+    yield store.waitPrompt(state, () => next());
   }
 
   if (!skipAfterAttack) {

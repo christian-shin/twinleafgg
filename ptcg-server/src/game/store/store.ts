@@ -17,6 +17,7 @@ import {
   STAMP_ABILITY_LOCK_ACTIVATION,
   APPLY_ATTACK_EFFECT_ABILITY_LOCKS,
 } from './prefabs/ability-lock';
+import { DEFER_UNTIL_AFTER_DAMAGE } from './prefabs/after-damage';
 import { isDelegatingCopycat, resolveCopyAttackSessions } from './prefabs/copy-attack-delegation';
 import { effectWasBlocked, logAppliedEffect, logPreventedEffect, logResolvedPrompt, stampEffectBlocker } from './prefabs/auto-log';
 import { filterTrainerPromptResult, ResolvingTrainerSource } from './prefabs/trainer-target';
@@ -140,6 +141,10 @@ export class Store implements StoreLike {
   }
 
   public reduceEffect(state: State, effect: Effect): State {
+    // Energy removed as an effect of an attack waits for the damage (prefabs/after-damage.ts).
+    if (DEFER_UNTIL_AFTER_DAMAGE(this, effect)) {
+      return state;
+    }
     if (OracleHooks.onEffect !== undefined) {
       OracleHooks.onEffect(effect);
     }
