@@ -15,7 +15,7 @@ import {
   SuperType,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import {IS_ABILITY_BLOCKED, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 export class MegaDiancieex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -85,7 +85,7 @@ export class MegaDiancieex extends PokemonCard {
     }
 
     // Reduce damage by 30
-    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.cards.includes(this)) {
       const pokemonCard = effect.target.getPokemonCard();
 
       // It's not this pokemon card
