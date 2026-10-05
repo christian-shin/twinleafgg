@@ -29,7 +29,8 @@ export function DEFER_UNTIL_AFTER_DAMAGE(store: StoreLike, effect: Effect): bool
     || effect instanceof DiscardCardsFromOpponentsActivePokemonEffect
     || effect instanceof LostZoneCardsEffect
     || effect instanceof CardsToHandEffect) {
-    if (!effect.cards.every(card => card.superType === SuperType.ENERGY)) {
+    // An empty list is a probe ("is this prevented?"), not a removal: it is reduced at once
+    if (effect.cards.length === 0 || !effect.cards.every(card => card.superType === SuperType.ENERGY)) {
       return false;
     }
     attackEffect = effect.attackEffect;
