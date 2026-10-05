@@ -8,7 +8,7 @@ import {
   TrainerType,
 } from '../../../game/store/card/card-types';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
-import { PowerType, StoreLike, State, TrainerCard, GameMessage, GameError } from '../../../game';
+import { PowerType, StoreLike, State, TrainerCard, GameMessage } from '../../../game';
 import { AfterAttackEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import {
   ABILITY_USED,
@@ -59,8 +59,10 @@ export class Meowthex extends PokemonCard {
         return state;
       }
 
+      // Another "Last-Ditch" Ability was used this turn: this Pokémon can still be played, just
+      // without the Ability
       if (player.marker.hasMarker(this.TRUMP_CARD_MARKER)) {
-        throw new GameError(GameMessage.POWER_ALREADY_USED);
+        return state;
       }
 
       // Try to reduce PowerEffect, to check if something is blocking our ability
