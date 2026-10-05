@@ -4,7 +4,7 @@ import { State } from '../../../game/store/state/state';
 import { StoreLike } from '../../../game/store/store-like';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType } from '../../../game/store/card/card-types';
-import { ChooseCardsPrompt, GameMessage, Player, StateUtils } from '../../..';
+import { ChooseCardsPrompt, GameError, GameMessage, Player, StateUtils } from '../../..';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class HandTrimmer extends TrainerCard {
@@ -40,6 +40,12 @@ export class HandTrimmer extends TrainerCard {
 
       // Set discard amount to reach hand size of 5
       const discardAmount = opponentHandLength - 5;
+
+      // A Trainer can't be played when it obviously has no effect: both players already have 5 cards or fewer
+      // (ruling 959)
+      if (opponentHandLength <= 5 && player.hand.cards.filter(c => c !== this).length <= 5) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
 
       // We will discard this card after prompt confirmation
       effect.preventDefault = true;
