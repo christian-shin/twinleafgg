@@ -67,6 +67,8 @@ export class Decidueyeex extends PokemonCard {
           const index = cost.indexOf(CardType.COLORLESS);
           cost.splice(index, 1);
         }
+        // ...also the [C] that other effects add to the cost (ruling 252, 1552)
+        effect.ignoreColorless = true;
       }
     }
 
