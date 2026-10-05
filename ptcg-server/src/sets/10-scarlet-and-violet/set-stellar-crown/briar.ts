@@ -1,6 +1,7 @@
 import { GameError, GameMessage, GamePhase, Player, State, StateUtils, StoreLike, TrainerCard, TrainerType, PokemonCard } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
+import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -33,6 +34,12 @@ During this turn, if your opponent's Active Pokémon is Knocked Out by damage fr
   }
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+
+    // "During this turn": the bonus ends with the turn it was played in (it used to stay set until
+    // the next knock-out of any Active Pokémon, by either player)
+    if (effect instanceof EndTurnEffect) {
+      this.extraPrizes = false;
+    }
 
     if (effect instanceof TrainerEffect && effect.trainerCard === this) {
       const player = effect.player;
