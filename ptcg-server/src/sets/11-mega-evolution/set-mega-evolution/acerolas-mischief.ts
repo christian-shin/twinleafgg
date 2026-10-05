@@ -56,7 +56,8 @@ function* playCard(
     return state;
   }
 
-  ADD_MARKER(self.MISCHIEF_MARKER, targets[0], self);
+  // A Trainer effect, not an attack effect: it stays when the Pokémon moves to the Bench (ruling 1730).
+  targets[0].marker.addMarker(self.MISCHIEF_MARKER, self, 'trainer', 'pokemon');
   ADD_MARKER(self.CLEAR_MISCHIEF_MARKER, opponent, self);
 
   return state;
