@@ -63,13 +63,22 @@ export class Azumarillex extends PokemonCard {
       // Move from 1 of the other Pokémon to this Pokémon only
       const blockedFrom: CardTarget[] = [];
       const blockedTo: CardTarget[] = [];
+      let energyOnOthers = false;
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
         if (card === this) {
           blockedFrom.push(target);
         } else {
           blockedTo.push(target);
+          if (cardList.cards.some(c => c.superType === SuperType.ENERGY)) {
+            energyOnOthers = true;
+          }
         }
       });
+
+      // An Ability can't be used for no effect (ruling 12): no Energy on the other Pokémon
+      if (!energyOnOthers) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
 
       return store.prompt(
         state,
