@@ -1,9 +1,9 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { SuperType, TrainerType } from '../../../game/store/card/card-types';
-import { Card, ChooseCardsPrompt, GameError, GameMessage, Player, ShuffleDeckPrompt, State, StoreLike } from '../../../game';
+import { Card, ChooseCardsPrompt, GameError, GameMessage, Player, ShuffleDeckPrompt, State, StateUtils, StoreLike } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
-import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER } from '../../../game/store/prefabs/prefabs';
 
 export class HelperBell extends TrainerCard {
 
@@ -63,6 +63,7 @@ Search your deck for a Supporter card, reveal it, and put it into your hand. The
           cards.forEach((card, index) => {
             MOVE_CARDS(store, state, player.deck, player.hand, { cards: [card], sourceCard: this });
           });
+          SHOW_CARDS_TO_PLAYER(store, state, StateUtils.getOpponent(state, player), cards);
 
           MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [this], sourceCard: this });
 
