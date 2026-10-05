@@ -3,7 +3,9 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { Card, ChooseEnergyPrompt, ConfirmPrompt, GameMessage, StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
+import { CardsToHandEffect } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 
 export class PaldeanTaurosSSP39Pool extends PokemonCard {
@@ -65,7 +67,9 @@ export class PaldeanTaurosSSP39Pool extends PokemonCard {
         ), energy => {
           const cards: Card[] = (energy || []).map(e => e.card);
           if (cards.length > 0) {
-            MOVE_CARDS(store, state, opponent.active, opponent.hand, { cards, sourceCard: this });
+            // An effect of the attack on the Defending Pokémon: Mist Energy and the like prevent it (ruling 1843)
+            const toHand = new CardsToHandEffect(new AttackEffect(player, opponent, effect.attack), cards);
+            store.reduceEffect(state, toHand);
           }
         });
       });
