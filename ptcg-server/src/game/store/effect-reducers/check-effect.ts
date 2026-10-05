@@ -585,6 +585,13 @@ export function checkStateReducer(store: StoreLike, state: State, effect: Effect
         effect.cost = [];
       }
     }
+
+    // A cost that an effect set or ignored is final (see CheckAttackCostEffect.setCost)
+    if (effect.setCost !== undefined) {
+      effect.cost = [...effect.setCost];
+    } else if (effect.ignoreColorless) {
+      effect.cost = effect.cost.filter(t => t !== CardType.COLORLESS);
+    }
     return state;
   }
 
