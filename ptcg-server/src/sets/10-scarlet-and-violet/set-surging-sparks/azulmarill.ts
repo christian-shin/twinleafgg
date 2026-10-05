@@ -75,6 +75,8 @@ export class Azumarill extends PokemonCard {
 
         // [P][P][P][P] becomes [P]: remove 3 of the 4 Psychic Energy
         effect.cost.splice(index, 3);
+        // "can use the Double-Edge attack for [P]": a cost that is set is not increased or decreased
+        effect.setCost = [CardType.PSYCHIC];
       }
       return state;
     }
