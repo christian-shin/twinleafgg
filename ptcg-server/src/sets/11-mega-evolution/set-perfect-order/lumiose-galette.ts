@@ -53,7 +53,8 @@ export class LumioseGalette extends TrainerCard {
           values,
           { allowCancel: false, defaultValue: conditions[0], disabled: values.map((_, i) => !conditions.includes(i)) }
         ), choice => {
-          player.active.removeSpecialCondition(choice);
+          // The SelectOptionPrompt default answer (the first one listed) stands in for a missing choice.
+          player.active.removeSpecialCondition(choice ?? conditions[0]);
         });
       }
 
