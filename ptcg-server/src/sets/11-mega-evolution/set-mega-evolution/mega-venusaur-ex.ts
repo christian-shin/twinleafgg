@@ -24,14 +24,17 @@ function* moveEnergy(
 ): IterableIterator<State> {
   const player = effect.player;
 
-  let pokemonWithEnergy = 0;
+  // "Move a Basic [G] Energy" needs one on a Pokémon and another Pokémon to move it to
+  let pokemonInPlay = 0;
+  let hasGrassEnergy = false;
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-    if (cardList.cards.some((c) => c.superType === SuperType.ENERGY)) {
-      pokemonWithEnergy++;
+    pokemonInPlay++;
+    if (cardList.cards.some((c) => c.superType === SuperType.ENERGY && c.energyType === EnergyType.BASIC && c.name === 'Grass Energy')) {
+      hasGrassEnergy = true;
     }
   });
 
-  if (!pokemonWithEnergy) {
+  if (!hasGrassEnergy || pokemonInPlay < 2) {
     throw new GameError(GameMessage.CANNOT_USE_POWER);
   }
 
@@ -44,7 +47,7 @@ function* moveEnergy(
       PlayerType.BOTTOM_PLAYER,
       [SlotType.ACTIVE, SlotType.BENCH],
       { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Grass Energy' },
-      { min: 0, allowCancel: false },
+      { min: 1, max: 1, allowCancel: false },
     ),
     (result) => {
       transfers = result || [];
