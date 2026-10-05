@@ -4,7 +4,7 @@ import { GameError, GameMessage, PowerType, StoreLike, State, StateUtils } from 
 import { Effect, PowerEffect } from '../../../game/store/effects/game-effects';
 import { CheckTableStateEffect } from '../../../game/store/effects/check-effects';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 
 export class Eeveeex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -104,7 +104,7 @@ export class Eeveeex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {
