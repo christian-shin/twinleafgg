@@ -41,10 +41,6 @@ export class TeamRocketsAriana extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
-      player.rocketSupporter = true;
-      MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
-      effect.preventDefault = true;
-
       // Check if all Pokémon in play are Team Rocket's Pokémon
       let allTeamRocket = true;
       let hasPokemon = false;
@@ -70,6 +66,16 @@ export class TeamRocketsAriana extends TrainerCard {
 
       // Set target hand size
       const targetHandSize = hasPokemon && allTeamRocket ? 8 : 5;
+
+      // A Trainer can't be played when it obviously has no effect: nothing to draw, or the hand already has as
+      // many cards as the draw would reach (rulings 851, 959; Naveen's text says the same)
+      if (player.deck.cards.length === 0 || player.hand.cards.filter(c => c !== this).length >= targetHandSize) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
+      player.rocketSupporter = true;
+      MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
+      effect.preventDefault = true;
 
       // Draw until target hand size is reached
       while (player.hand.cards.length < targetHandSize) {
