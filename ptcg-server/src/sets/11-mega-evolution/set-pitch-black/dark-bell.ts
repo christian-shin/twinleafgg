@@ -1,6 +1,6 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType, CardType, SpecialCondition } from '../../../game/store/card/card-types';
-import { StoreLike, State, StateUtils, Player } from '../../../game';
+import { StoreLike, State, StateUtils, Player, GameError, GameMessage } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { ADD_CONFUSION_TO_PLAYER_ACTIVE, TRAINER_TARGET_BLOCKED } from '../../../game/store/prefabs/prefabs';
@@ -46,6 +46,19 @@ export class DarkBell extends TrainerCard {
     if (WAS_TRAINER_USED(effect, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
+
+      // Both Active Pokémon are [D] (or missing): nothing would be Confused, the card can't be played
+      const hasNonDarkActive = [player.active, opponent.active].some((active) => {
+        if (active.cards.length === 0) {
+          return false;
+        }
+        const checkType = new CheckPokemonTypeEffect(active);
+        store.reduceEffect(state, checkType);
+        return !checkType.cardTypes.includes(CardType.DARK);
+      });
+      if (!hasNonDarkActive) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
 
       const confuseTarget = (targetPlayer: typeof player, active: typeof player.active) => {
         if (active.cards.length === 0) {
