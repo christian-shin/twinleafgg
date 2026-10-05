@@ -64,9 +64,14 @@ export class Slowking extends PokemonCard {
         return state;
       }
 
-      return COPY_ATTACK_FROM_POKEMON_LIST(store, state, effect as AttackEffect, pokemonInQuestion, {
-        allowCancel: true,
-      });
+      // "Choose 1 of its attacks and use it": the choice can't be cancelled. Nothing is chosen when
+      // every attack is locked for this Pokémon (the prompt would have no valid answer).
+      const lockedAttacks = player.active.cannotUseAttacksNextTurn || [];
+      if (topdeck.attacks.every((a) => lockedAttacks.includes(a.name))) {
+        return state;
+      }
+
+      return COPY_ATTACK_FROM_POKEMON_LIST(store, state, effect as AttackEffect, pokemonInQuestion);
     }
 
     return state;
