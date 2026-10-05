@@ -115,11 +115,12 @@ function defaultsOf(ctor: new () => any): any {
 function nonDefaultFields(obj: any, ctor: new () => any, skip: Set<string>): any {
   const d = defaultsOf(ctor);
   const out: any = {};
+  const seen = new Set<any>(); // plain() leaves it empty
   for (const key of Object.keys(obj)) {
     if (skip.has(key)) {
       continue;
     }
-    const p = plain(obj[key], new Set());
+    const p = plain(obj[key], seen);
     if (p === undefined) {
       continue;
     }
@@ -241,6 +242,7 @@ function cardMutations(state: State): any {
   }
   const out: any = {};
   const seenCards = new Set<Card>();
+  const seen = new Set<any>(); // plain() leaves it empty
   for (const card of all) {
     if (seenCards.has(card)) {
       continue;
@@ -252,7 +254,7 @@ function cardMutations(state: State): any {
       if (CARD_SKIP.has(key)) {
         continue;
       }
-      const v = plain((card as any)[key], new Set());
+      const v = plain((card as any)[key], seen);
       if (v === undefined) {
         continue;
       }
