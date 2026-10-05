@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType } from '../../../game/store/card/card-types';
-import { StoreLike, State, PokemonCardList, Card, ChooseCardsPrompt, GameMessage, GameError } from '../../../game';
+import { StoreLike, State, PokemonCardList, Card, ChooseCardsPrompt, GameMessage } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
@@ -14,8 +14,9 @@ function* useKingsOrder(next: Function, store: StoreLike, state: State,
   const hasDuskullInDiscard = player.discard.cards.some(c => {
     return c instanceof PokemonCard && c.name === 'Duskull';
   });
+  // An attack can be used when it does nothing (ruling 1790); no prompt without a valid choice.
   if (!hasDuskullInDiscard || slots.length === 0) {
-    throw new GameError(GameMessage.CANNOT_USE_POWER);
+    return state;
   }
 
   let cards: Card[] = [];
@@ -24,7 +25,8 @@ function* useKingsOrder(next: Function, store: StoreLike, state: State,
     GameMessage.CHOOSE_CARD_TO_PUT_ONTO_BENCH,
     player.discard,
     { superType: SuperType.POKEMON, name: 'Duskull' },
-    { min: 1, max, allowCancel: false }
+    // "Up to 3" in an attack: any number from 0 to the maximum (rulings 1721, 1778)
+    { min: 0, max, allowCancel: false }
   ), selected => {
     cards = selected || [];
     next();
