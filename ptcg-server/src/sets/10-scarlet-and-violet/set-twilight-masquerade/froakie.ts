@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType } from '../../../game/store/card/card-types';
-import { StoreLike, State, PokemonCardList, Card, ChooseCardsPrompt, ShuffleDeckPrompt } from '../../../game';
+import { StoreLike, State, PokemonCardList, Card, ChooseCardsPrompt, ShuffleDeckPrompt, PlayerType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PlayPokemonFromDeckEffect } from '../../../game/store/effects/play-card-effects';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
@@ -14,6 +14,14 @@ function* useFlock(next: Function, store: StoreLike, state: State,
   const max = Math.min(slots.length, 2);
   // A full Bench is public knowledge: the attack does nothing, without even searching (ruling 337)
   if (max === 0) {
+    return state;
+  }
+  // All 4 copies in known zones (discard pile, in play): the search can't find any (ruling 336)
+  let knownCopies = player.discard.cards.filter(c => c.name === 'Froakie').length;
+  player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+    knownCopies += cardList.cards.filter(c => c.name === 'Froakie').length;
+  });
+  if (knownCopies >= 4) {
     return state;
   }
 
