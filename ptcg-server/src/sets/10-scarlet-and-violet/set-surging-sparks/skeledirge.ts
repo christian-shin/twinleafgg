@@ -2,7 +2,7 @@ import { PokemonCard, Stage, CardType, PowerType, StoreLike, State, StateUtils }
 import { AbstractAttackEffect, ApplyWeaknessEffect, PutDamageEffect, DealDamageEffect } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { PowerEffect } from '../../../game/store/effects/game-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { IS_ATTACK_EFFECT_FROM_OPPONENTS_POKEMON, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 
 export class Skeledirge extends PokemonCard {
@@ -55,6 +55,11 @@ export class Skeledirge extends PokemonCard {
       const sourceCard = effect.source.getPokemonCard();
 
       if (pokemonCard !== this) {
+        return state;
+      }
+
+      // Only attacks used by the opponent's Pokémon are prevented
+      if (!IS_ATTACK_EFFECT_FROM_OPPONENTS_POKEMON(state, effect)) {
         return state;
       }
 
