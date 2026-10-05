@@ -1,5 +1,7 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType } from '../../../game/store/card/card-types';
+import { GameError } from '../../../game/game-error';
+import { GameMessage } from '../../../game/game-message';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
@@ -47,16 +49,21 @@ export class JumboIce extends TrainerCard {
       const player = effect.player;
       const activePokemon = player.active.getPokemonCard();
 
-      if (activePokemon && player.active.damage > 0) {
-        // Check if the Pokemon has 3 or more Energy attached
-        const checkEnergy = new CheckProvidedEnergyEffect(player);
-        store.reduceEffect(state, checkEnergy);
-
-        if (checkEnergy.energyMap.length >= 3) {
-          const healEffect = new HealEffect(player, player.active, 80);
-          store.reduceEffect(state, healEffect);
-        }
+      // Nothing to heal: the card can't be played
+      if (!activePokemon || player.active.damage === 0) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
+
+      // Check if the Pokemon has 3 or more Energy attached
+      const checkEnergy = new CheckProvidedEnergyEffect(player);
+      store.reduceEffect(state, checkEnergy);
+
+      if (checkEnergy.energyMap.length < 3) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
+      const healEffect = new HealEffect(player, player.active, 80);
+      store.reduceEffect(state, healEffect);
       MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [this], sourceCard: this });
     }
 
