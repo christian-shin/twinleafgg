@@ -13,10 +13,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
-import {
-  AfterDamageEffect,
-  DealDamageEffect,
-} from '../../../game/store/effects/attack-effects';
+import { DealDamageEffect } from '../../../game/store/effects/attack-effects';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class IronCrownex extends PokemonCard {
@@ -87,16 +84,16 @@ export class IronCrownex extends PokemonCard {
             return state;
           }
 
+          // Not affected by Weakness or Resistance, or by any effects on those Pokémon (rulings
+          // 1490, 1629, 1875); effects on the attacker (Maximum Belt on the Active ex, ...) apply.
+          effect.ignoreDefenderEffects = true;
+          effect.ignoreWeakness = true;
+          effect.ignoreResistance = true;
+
           targets.forEach((target) => {
-            // Not affected by Weakness or Resistance, or by any effects on those Pokémon
-            const damage = 50;
-
-            effect.damage = 0;
-
-            target.damage += damage;
-            const afterDamage = new AfterDamageEffect(effect, damage);
-            afterDamage.target = target;
-            state = store.reduceEffect(state, afterDamage);
+            const dealDamage = new DealDamageEffect(effect, 50);
+            dealDamage.target = target;
+            state = store.reduceEffect(state, dealDamage);
           });
         },
       );
