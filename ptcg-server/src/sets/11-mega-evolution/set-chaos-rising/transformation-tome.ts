@@ -92,9 +92,26 @@ export class TransformationTome extends TrainerCard {
               if (fromDiscard.length === 0) return state;
               const inPlayCard = inPlayList.getPokemonCard();
               if (inPlayCard && inPlayList.cards.length > 0) {
-                MOVE_CARDS(store, state, inPlayList, player.discard, { cards: [inPlayList.cards[0]], sourceCard: this });
+                // "Any attached cards, damage counters, Special Conditions, turns in play, and any
+                // other effects remain on the new Pokémon", and it is the same Pokémon (ruling 1840):
+                // put the new card onto the slot first and then discard the old one, so the slot is
+                // never empty (emptying it discards the attachments and resets everything).
+                const oldCard = inPlayList.cards[0] as PokemonCard;
+                const newCard = fromDiscard[0] as PokemonCard;
+                MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [newCard], sourceCard: this });
+                MOVE_CARDS(store, state, inPlayList, player.discard, { cards: [oldCard], sourceCard: this });
+                // The new card takes the old card's place at the bottom of the stack.
+                inPlayList.cards = [newCard, ...inPlayList.cards.filter((c) => c !== newCard)];
+                // State kept on the card object moves with the Pokémon.
+                newCard.damageTakenLastTurn = oldCard.damageTakenLastTurn;
+                oldCard.damageTakenLastTurn = 0;
+                newCard.movedToActiveThisTurn = oldCard.movedToActiveThisTurn;
+                oldCard.movedToActiveThisTurn = false;
+                player.movedToActiveThisTurn = player.movedToActiveThisTurn.map((id) => (id === oldCard.id ? newCard.id : id));
+                player.movedFromActiveToBenchThisTurn = player.movedFromActiveToBenchThisTurn.map((id) => (id === oldCard.id ? newCard.id : id));
+              } else {
+                MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [fromDiscard[0]], sourceCard: this });
               }
-              MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [fromDiscard[0]], sourceCard: this });
               MOVE_CARDS(store, state, player.hand, player.discard, { cards: [second], sourceCard: this });
             },
           );
