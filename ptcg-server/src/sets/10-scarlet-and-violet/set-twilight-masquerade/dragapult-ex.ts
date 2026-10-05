@@ -5,7 +5,7 @@ import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game/store/state-utils';
 import { SlotType } from '../../../game/store/actions/play-card-action';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE } from '../../../game/store/prefabs/attack-effects';
 
@@ -59,7 +59,7 @@ export class Dragapultex extends PokemonCard {
     }
 
     if (
-      effect instanceof PutDamageEffect &&
+      effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) &&
       effect.target.cards.includes(this) &&
       effect.target.getPokemonCard() === this
     ) {
