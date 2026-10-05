@@ -3,7 +3,7 @@ import { CardTarget, PlayerType, SlotType } from '../../../game/store/actions/pl
 import { GameError } from '../../../game/game-error';
 import { GameMessage } from '../../../game/game-message';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { TrainerType, Stage, SuperType } from '../../../game/store/card/card-types';
+import { BoardEffect, TrainerType, Stage, SuperType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
@@ -12,7 +12,7 @@ import { ChoosePokemonPrompt } from '../../../game/store/prompts/choose-pokemon-
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { CardManager } from '../../../game/cards/card-manager';
 import { PokemonCardList } from '../../../game/store/state/pokemon-card-list';
-import { CheckPokemonPlayedTurnEffect } from '../../../game/store/effects/check-effects';
+import { CheckPokemonPlayedTurnEffect, CheckSpecialConditionRemovalEffect } from '../../../game/store/effects/check-effects';
 import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prompt';
 import { EvolveEffect } from '../../../game/store/effects/game-effects';
 import { Player } from '../../../game';
@@ -154,6 +154,21 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
       const pokemonCard = cards[0] as PokemonCard;
       const evolveEffect = new EvolveEffect(player, targets[0], pokemonCard);
       store.reduceEffect(state, evolveEffect);
+
+      // This counts as evolving the Pokémon: like a normal evolution it removes its Special
+      // Conditions and other effects (ruling 1045; PlayPokemonEffect does the same after EvolveEffect).
+      pokemonCard.cannotUseAttackUntilLeavesPlay = undefined;
+      pokemonCard.whileInPlayOpponentWeakness = undefined;
+      pokemonCard.marker.markers = [];
+      const checkRemovalEffect = new CheckSpecialConditionRemovalEffect(player, targets[0]);
+      store.reduceEffect(state, checkRemovalEffect);
+      targets[0]._preservedConditionsDuringEvolution = checkRemovalEffect.preservedConditions;
+      player.removePokemonEffects(targets[0]);
+      targets[0]._preservedConditionsDuringEvolution = undefined;
+      targets[0].marker.markers = [];
+      if (targets[0].boardEffect.includes(BoardEffect.ABILITY_USED)) {
+        targets[0].removeBoardEffect(BoardEffect.ABILITY_USED);
+      }
 
       // Discard trainer only when user selected a Pokemon
 
