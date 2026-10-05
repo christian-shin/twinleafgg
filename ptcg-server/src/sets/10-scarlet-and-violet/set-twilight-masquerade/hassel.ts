@@ -22,6 +22,9 @@ function* playCard(next: Function, store: StoreLike, state: State,
     throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
   }
 
+  // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
+  // opponent's hand as an attack effect)
+  const playedFromHand = player.hand.cards.includes(self);
   MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: self });
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
@@ -47,7 +50,9 @@ function* playCard(next: Function, store: StoreLike, state: State,
     GameMessage.CHOOSE_CARD_TO_HAND,
     deckTop,
     {},
-    { min: 0, max: 3, allowCancel: false }
+    // The top cards are looked at, not searched for: "up to 3" takes at least 1 when played from the hand
+    // (rulings 1778, 1853); through an attack it may be 0 (ruling 1844)
+    { min: playedFromHand ? 1 : 0, max: 3, allowCancel: false }
   ), selected => {
     MOVE_CARDS(store, state, deckTop, player.hand, { cards: selected, sourceCard: self });
     MOVE_CARDS(store, state, deckTop, player.deck, { sourceCard: self });
