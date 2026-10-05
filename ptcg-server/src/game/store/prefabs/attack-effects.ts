@@ -1170,16 +1170,22 @@ function* copyOpponentActiveAttackGenerator(
     return state;
   }
 
-  return yield* runDelegatedCopiedAttackGenerator(next, {
-    store,
-    state,
-    player,
-    opponent,
-    copycatCard,
-    sourceCard: pokemonCard,
-    selectedAttack: attack,
-    sourceSlot: effect.source,
-  });
+  try {
+    return yield* runDelegatedCopiedAttackGenerator(next, {
+      store,
+      state,
+      player,
+      opponent,
+      copycatCard,
+      sourceCard: pokemonCard,
+      selectedAttack: attack,
+      sourceSlot: effect.source,
+    });
+  } catch {
+    // The chosen attack can't be used after all (its own conditions, e.g. Follow Me with no
+    // Benched Pokémon): the copy does nothing, as in COPY_ATTACK_FROM_POKEMON_LIST.
+    return state;
+  }
 }
 
 export function COPY_OPPONENT_ACTIVE_ATTACK(
