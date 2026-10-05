@@ -58,6 +58,13 @@ export class MegaCharizardXex extends PokemonCard {
         totalEnergy += basicEnergyCount;
       });
 
+      // Nothing to discard (a copied Inferno X, the copycat has no [R] Energy): no damage, and no
+      // prompt without a valid answer
+      if (totalEnergy === 0) {
+        effect.damage = 0;
+        return state;
+      }
+
       // Create blocked map for energy that doesn't provide Fire or Any type
       const blockedFrom: CardTarget[] = [];
       const blockedMap: { source: CardTarget; blocked: number[] }[] = [];
