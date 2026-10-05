@@ -19,7 +19,7 @@ import { CardTag } from '../card/card-types';
 import { Attack } from '../card/pokemon-types';
 import { ChooseAttackPrompt } from '../prompts/choose-attack-prompt';
 import { runDelegatedCopiedAttackGenerator } from './copy-attack-delegation';
-import { blockCannotUseAttacksNextTurn } from './copy-attack-prefabs';
+import { blockCannotUseAttacksNextTurn, noAttackLeftToCopy } from './copy-attack-prefabs';
 
 export {
   cloneAttack,
@@ -1048,12 +1048,17 @@ function* copyBenchAttackGenerator(
     return state;
   }
 
+  const promptBlocked = blockCannotUseAttacksNextTurn(player, [benchedCard]);
+  if (!allowCancel && noAttackLeftToCopy([benchedCard], promptBlocked)) {
+    return state;
+  }
+
   let selected: Attack | null = null;
   yield store.prompt(
     state,
     new ChooseAttackPrompt(player.id, GameMessage.CHOOSE_ATTACK_TO_COPY, [benchedCard], {
       allowCancel,
-      blocked: blockCannotUseAttacksNextTurn(player, [benchedCard]),
+      blocked: promptBlocked,
     }),
     (result) => {
       selected = result;
@@ -1132,12 +1137,17 @@ function* copyOpponentActiveAttackGenerator(
     return state;
   }
 
+  const promptBlocked = blockCannotUseAttacksNextTurn(player, [pokemonCard]);
+  if (!allowCancel && noAttackLeftToCopy([pokemonCard], promptBlocked)) {
+    return state;
+  }
+
   let selected: any;
   yield store.prompt(
     state,
     new ChooseAttackPrompt(player.id, GameMessage.CHOOSE_ATTACK_TO_COPY, [pokemonCard], {
       allowCancel,
-      blocked: blockCannotUseAttacksNextTurn(player, [pokemonCard]),
+      blocked: promptBlocked,
     }),
     (result) => {
       selected = result;

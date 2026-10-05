@@ -78,6 +78,23 @@ export function blockCannotUseAttacksNextTurn(
   return merged;
 }
 
+/**
+ * True when a non-cancellable ChooseAttackPrompt would have no attack left to choose
+ * (validate rejects every blocked attack): the copy does nothing instead of opening it.
+ */
+export function noAttackLeftToCopy(
+  pokemonCards: Card[],
+  blocked: { index: number; attack: string }[],
+): boolean {
+  const blockedAttacks = blocked.map(b => {
+    const card = pokemonCards[b.index];
+    if (card && card.attacks) {
+      return card.attacks.find(a => a.name === b.attack);
+    }
+  });
+  return !pokemonCards.some(c => c.attacks.some(a => !blockedAttacks.includes(a)));
+}
+
 function isAttackLockedNextTurn(player: Player, attack: Attack): boolean {
   return (player.active.cannotUseAttacksNextTurn || []).includes(attack.name);
 }
@@ -142,6 +159,9 @@ function* copyAttackFromPokemonListGenerator(
   for (let retry = 0; retry < maxRetries; retry++) {
     let selected: Attack | null = null;
     const promptBlocked = blockCannotUseAttacksNextTurn(player, pokemonCards, blocked);
+    if (!allowCancel && noAttackLeftToCopy(pokemonCards, promptBlocked)) {
+      return state;
+    }
     yield store.prompt(
       state,
       new ChooseAttackPrompt(promptPlayerId ?? player.id, GameMessage.CHOOSE_ATTACK_TO_COPY, pokemonCards, {
