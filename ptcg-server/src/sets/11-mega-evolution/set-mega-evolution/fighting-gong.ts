@@ -1,5 +1,6 @@
 import { Card } from '../../../game/store/card/card';
 import { GameMessage } from '../../../game/game-message';
+import { GameError } from '../../../game/game-error';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType, CardType, EnergyType, Stage, SuperType } from '../../../game/store/card/card-types';
@@ -17,6 +18,10 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
   const player = effect.player;
   const opponent = StateUtils.getOpponent(state, player);
   let cards: Card[] = [];
+  // A Trainer can't be played when it obviously has no effect: nothing to search in an empty deck.
+  if (player.deck.cards.length === 0) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
 
   let pokemons = 0;
   let trainers = 0;

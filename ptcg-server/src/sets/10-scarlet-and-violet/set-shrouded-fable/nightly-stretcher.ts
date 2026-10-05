@@ -48,7 +48,7 @@ function* playCard(next: Function, store: StoreLike, state: State,
     GameMessage.CHOOSE_CARD_TO_HAND,
     player.discard,
     {},
-    { min: 0, max: 1, allowCancel: false, blocked, maxPokemons, maxEnergies }
+    { min: 1, max: 1, allowCancel: false, blocked, maxPokemons, maxEnergies }
   ), selected => {
     cards = selected || [];
     next();

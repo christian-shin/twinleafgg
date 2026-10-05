@@ -3,16 +3,15 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import {
   StoreLike,
   State,
-  GameMessage,
   StateUtils,
-  ChooseCardsPrompt,
-  SuperType,
   PowerType,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { CheckAttackCostEffect } from '../../../game/store/effects/check-effects';
+import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
-import {AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { DISCARD_AN_ENERGY_FROM_OPPONENTS_ACTIVE_POKEMON } from '../../../game/store/prefabs/attack-effects';
+import { AFTER_ATTACK, IS_ABILITY_BLOCKED } from '../../../game/store/prefabs/prefabs';
 
 export class Decidueyeex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -26,7 +25,7 @@ export class Decidueyeex extends PokemonCard {
   public powers = [
     {
       name: "Sniper's Eye",
-      useWhenInPlay: true,
+      useWhenInPlay: false,
       powerType: PowerType.ABILITY,
       text: 'If your opponent has exactly 4 cards in their hand, ignore all [C] Energy in the costs of attacks used by this Pokémon.',
     },
@@ -56,6 +55,11 @@ export class Decidueyeex extends PokemonCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
+      // Try to reduce PowerEffect, to check if something is blocking our ability
+      if (IS_ABILITY_BLOCKED(store, state, player, this)) {
+        return state;
+      }
+
       if (opponent.hand.cards.length === 4) {
         // Remove all [C] from the cost
         const cost = effect.cost;
@@ -66,32 +70,14 @@ export class Decidueyeex extends PokemonCard {
       }
     }
 
-    // Attack: Discard an Energy from opponent's Active Pokemon
+    // Attack: Discard an Energy from opponent's Active Pokemon.
+    // The discard is an effect of the attack (Mist Energy and the like can prevent it).
     if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
-      if (opponent.active.energies.cards.length === 0) {
-        return state;
-      }
-
-      const blocked: number[] = [];
-      return store.prompt(
-        state,
-        new ChooseCardsPrompt(
-          player,
-          GameMessage.CHOOSE_CARD_TO_DISCARD,
-          opponent.active,
-          { superType: SuperType.ENERGY },
-          { min: 1, max: 1, allowCancel: false, blocked },
-        ),
-        (selected) => {
-          const cards = selected || [];
-          if (cards.length > 0) {
-            MOVE_CARDS(store, state, opponent.active, opponent.discard, { cards: cards, sourceCard: this });
-          }
-        },
-      );
+      const attackStub = new AttackEffect(player, opponent, this.attacks[0]);
+      return DISCARD_AN_ENERGY_FROM_OPPONENTS_ACTIVE_POKEMON(store, state, attackStub);
     }
 
     if (

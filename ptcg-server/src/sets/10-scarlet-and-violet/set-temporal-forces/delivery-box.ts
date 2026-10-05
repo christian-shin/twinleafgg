@@ -4,7 +4,7 @@ import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
-import { Card, ChooseCardsPrompt, GameMessage, Player, ShowCardsPrompt, ShuffleDeckPrompt, StateUtils } from '../../../game';
+import { Card, ChooseCardsPrompt, GameError, GameMessage, Player, ShowCardsPrompt, ShuffleDeckPrompt, StateUtils } from '../../../game';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -37,15 +37,16 @@ export class DeliveryBox extends TrainerCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       let cards: Card[] = [];
-      const hasItemInDeck = player.deck.cards.some(c => {
-        return c instanceof TrainerCard && c.trainerType === TrainerType.ITEM;
-      });
+      // A Trainer can't be played when it obviously has no effect: nothing to search in an empty deck.
+      if (player.deck.cards.length === 0) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
       store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_HAND,
         player.deck,
         { superType: SuperType.TRAINER, trainerType: TrainerType.ITEM },
-        { min: hasItemInDeck ? 1 : 0, max: 2, allowCancel: false }
+        { min: 0, max: 2, allowCancel: false }
       ), selected => {
         cards = selected || [];
 

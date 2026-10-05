@@ -1,4 +1,4 @@
-import { TrainerCard, TrainerType, StoreLike, State, GameError, GameMessage, Player } from '../../../game';
+import { TrainerCard, TrainerType, StoreLike, State, GameError, GameMessage, Player, SelectOptionPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { HealEffect } from '../../../game/store/effects/game-effects';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
@@ -41,9 +41,21 @@ export class LumioseGalette extends TrainerCard {
       const healEffect = new HealEffect(player, player.active, 20);
       store.reduceEffect(state, healEffect);
 
-      // Remove 1 Special Condition
-      if (player.active.specialConditions.length > 0) {
-        player.active.removeSpecialCondition(player.active.specialConditions[0]);
+      // Remove a Special Condition: the player chooses which one when there are several
+      const conditions = [...player.active.specialConditions];
+      if (conditions.length === 1) {
+        player.active.removeSpecialCondition(conditions[0]);
+      } else if (conditions.length > 1) {
+        const values = ['Paralyzed', 'Confused', 'Asleep', 'Poisoned', 'Burned'];
+        return store.prompt(state, new SelectOptionPrompt(
+          player.id,
+          GameMessage.CHOOSE_OPTION,
+          values,
+          { allowCancel: false, defaultValue: conditions[0], disabled: values.map((_, i) => !conditions.includes(i)) }
+        ), choice => {
+          // The SelectOptionPrompt default answer (the first one listed) stands in for a missing choice.
+          player.active.removeSpecialCondition(choice ?? conditions[0]);
+        });
       }
 
 

@@ -41,12 +41,15 @@ export class DuskBall extends TrainerCard {
       const cardsToMove = player.deck.cards.splice(startIndex, numCardsToMove);
       temp.cards.push(...cardsToMove);
 
+      // "Choose 1 Pokémon you find there": required when one of the cards is a Pokémon.
+      const hasPokemon = temp.cards.some(c => c.superType === SuperType.POKEMON);
+
       return store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_HAND,
         temp,
         { superType: SuperType.POKEMON },
-        { allowCancel: false, min: 0, max: 1 }
+        { allowCancel: false, min: hasPokemon ? 1 : 0, max: 1 }
       ), chosenCards => {
 
         if (chosenCards.length <= 0) {

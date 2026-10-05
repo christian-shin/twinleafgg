@@ -13,6 +13,7 @@ import { PlayerType } from '../actions/play-card-action';
 import { StateUtils } from '../state-utils';
 import { RESOLVE_PENDING_END_OF_OPPONENTS_NEXT_TURN_EFFECTS } from '../prefabs/attack-effects';
 import { MOVE_CARDS } from '../prefabs/prefabs';
+import { PokemonCard } from '../card/pokemon-card';
 
 /** Silent hold so clients (and admin phase HUD) can show automatic phase transitions. */
 const PHASE_TRANSITION_WAIT_MS = 500;
@@ -454,7 +455,11 @@ export function gamePhaseReducer(store: StoreLike, state: State, effect: Effect)
         cardList.cannotAttackNextTurnPending = false;
       }
       if (cardList.cannotUseAttacksNextTurnPending.length > 0) {
-        cardList.cannotUseAttacksNextTurn = [...cardList.cannotUseAttacksNextTurnPending];
+        // "This Pokémon can't use [attack]" only locks an attack the Pokémon has: a Pokémon that copied
+        // the attack (Slowking's Seek Inspiration, Metronome, ...) used its own attack, so the copy
+        // doesn't lock the copied attack's name (Rulings Compendium: Slowking can copy it again).
+        cardList.cannotUseAttacksNextTurn = cardList.cannotUseAttacksNextTurnPending.filter(name =>
+          cardList.cards.some(c => c instanceof PokemonCard && c.attacks.some(a => a.name === name)));
         cardList.cannotUseAttacksNextTurnPending = [];
       }
 

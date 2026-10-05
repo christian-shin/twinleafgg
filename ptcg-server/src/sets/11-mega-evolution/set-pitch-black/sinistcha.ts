@@ -1,8 +1,8 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
-import { PlayerType, PowerType, StoreLike, State } from '../../../game';
+import { PowerType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { PlaceDamageCountersEffect } from '../../../game/store/effects/game-effects';
+import { PUT_X_DAMAGE_COUNTERS_ON_ALL_YOUR_OPPONENTS_POKEMON } from '../../../game/store/prefabs/attack-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { countHideNSneakPokemonInDiscard, reduceHideNSneak } from './hide-n-sneak';
 
@@ -43,20 +43,14 @@ export class Sinistcha extends PokemonCard {
 
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
-      const opponent = effect.opponent;
       effect.damage = 0;
 
       if (countHideNSneakPokemonInDiscard(player) < 6) {
         return state;
       }
 
-      opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList) => {
-        if (cardList.cards.length === 0) {
-          return;
-        }
-        const counters = new PlaceDamageCountersEffect(player, cardList, 40, this);
-        store.reduceEffect(state, counters);
-      });
+      // The counters are an effect of the attack (Mist Energy, Spherical Shield, ... can prevent them).
+      PUT_X_DAMAGE_COUNTERS_ON_ALL_YOUR_OPPONENTS_POKEMON(4, store, state, effect);
     }
 
     return state;

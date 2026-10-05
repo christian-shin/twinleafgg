@@ -1,5 +1,6 @@
 import {
   AttachEnergyPrompt,
+  CardTarget,
   GameError,
   GameMessage,
   PlayerType,
@@ -17,6 +18,7 @@ import {
   Stage,
   SuperType,
 } from '../../../game/store/card/card-types';
+import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/game-effects';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
 import {ABILITY_USED,
@@ -68,6 +70,16 @@ export class StevensMetagrossex extends PokemonCard {
       ABILITY_USED(player, this);
       ADD_MARKER(this.X_BOOT_MARKER, player, this);
 
+      // Only [P] Pokémon and [M] Pokémon can receive the Energy.
+      const blockedTo: CardTarget[] = [];
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
+        const checkType = new CheckPokemonTypeEffect(cardList);
+        store.reduceEffect(state, checkType);
+        if (!checkType.cardTypes.includes(CardType.PSYCHIC) && !checkType.cardTypes.includes(CardType.METAL)) {
+          blockedTo.push(target);
+        }
+      });
+
       return store.prompt(
         state,
         new AttachEnergyPrompt(
@@ -83,6 +95,7 @@ export class StevensMetagrossex extends PokemonCard {
             max: 2,
             differentTypes: true,
             validCardTypes: [CardType.PSYCHIC, CardType.METAL],
+            blockedTo,
           },
         ),
         (transfers) => {

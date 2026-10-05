@@ -66,12 +66,14 @@ export class Galvantula extends PokemonCard {
 
       let damage = 50;
 
-      checkEnergy.energyMap.forEach(em => {
+      // "Any [L] Energy": the 80 more damage applies once, not per Energy.
+      const hasLightningEnergy = checkEnergy.energyMap.some(em => {
         const energyCard = em.card;
-        if (energyCard instanceof EnergyCard && energyCard.provides.includes(CardType.LIGHTNING)) {
-          damage += 80;
-        }
+        return energyCard instanceof EnergyCard && energyCard.provides.includes(CardType.LIGHTNING);
       });
+      if (hasLightningEnergy) {
+        damage += 80;
+      }
 
       effect.damage = damage;
 
