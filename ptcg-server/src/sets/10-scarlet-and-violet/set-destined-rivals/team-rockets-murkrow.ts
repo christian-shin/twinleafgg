@@ -80,7 +80,10 @@ export class TeamRocketsMurkrow extends PokemonCard {
           const cards = selected || [];
 
           if (cards.length === 0) {
-            return state;
+            // Nothing found: the deck is still shuffled.
+            return store.prompt(state, new ShuffleDeckPrompt(player.id), (order) => {
+              player.deck.applyOrder(order);
+            });
           }
 
           MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: this });
