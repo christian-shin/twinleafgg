@@ -1,5 +1,6 @@
 import { Card } from '../../../game/store/card/card';
 import { GameMessage } from '../../../game/game-message';
+import { GameError } from '../../../game/game-error';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { TrainerType, EnergyType, CardType } from '../../../game/store/card/card-types';
@@ -24,6 +25,11 @@ function* playCard(
   const player = effect.player;
   const opponent = StateUtils.getOpponent(state, player);
   let cards: Card[] = [];
+
+  // Can't look at the top cards of an empty deck: the card would have no effect
+  if (player.deck.cards.length === 0) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
 
   MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: self });
   // We will discard this card after prompt confirmation
