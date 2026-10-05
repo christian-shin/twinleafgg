@@ -25,7 +25,7 @@ function* playCard(next: Function, store: StoreLike, state: State, self: Tarrago
 
   // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
   // opponent's hand as an attack effect)
-  const playedFromHand = player.hand.cards.includes(self);
+  const playedFromHand = !effect.usedAsAttackEffect;
 
   let pokemons = 0;
   let energies = 0;

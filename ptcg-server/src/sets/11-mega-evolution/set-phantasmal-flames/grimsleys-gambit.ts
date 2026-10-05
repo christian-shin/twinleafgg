@@ -58,7 +58,7 @@ export class GrimsleysGambit extends TrainerCard {
 
       // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
       // opponent's hand as an attack effect)
-      const playedFromHand = player.hand.cards.includes(this);
+      const playedFromHand = !effect.usedAsAttackEffect;
 
       const deckTop = new CardList();
       state = MOVE_CARDS(store, state, player.deck, deckTop, { count: 7 });

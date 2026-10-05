@@ -58,7 +58,7 @@ Attach up to 2 Basic Energy cards from your discard pile to 1 of your Stage 2 Po
 
       // Played from the hand (not through Mr. Mime's Look-Alike Show, which uses the effect of a Supporter in the
       // opponent's hand as an attack effect)
-      const playedFromHand = player.hand.cards.includes(this);
+      const playedFromHand = !effect.usedAsAttackEffect;
       // Check if player has more Prize cards remaining than opponent
       if (player.getPrizeLeft() <= opponent.getPrizeLeft()) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);

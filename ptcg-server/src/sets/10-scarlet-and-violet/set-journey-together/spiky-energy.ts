@@ -6,6 +6,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game';
 import { AfterDamageEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
 import { IS_SPECIAL_ENERGY_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_DAMAGE_OR_NOW } from '../../../game/store/prefabs/after-damage';
 
 
 export class SpikyEnergy extends EnergyCard {
@@ -44,9 +45,17 @@ export class SpikyEnergy extends EnergyCard {
       if (IS_SPECIAL_ENERGY_BLOCKED(store, state, effect.player, this, effect.target)) {
         return state;
       }
-      const putCountersEffect = new PutCountersEffect(effect, 20);
-      putCountersEffect.target = effect.source;
-      store.reduceEffect(state, putCountersEffect);
+      // Step 7 of the attack flow chart: the effects on the Defending Pokémon come after the effects of the
+      // attack's own text, so an attack that discards this card (Duraludon's Hyper Beam) stops it.
+      const damaged = effect.target;
+      return AFTER_DAMAGE_OR_NOW(state, effect.attackEffect, s => {
+        if (!damaged.cards.includes(this)) {
+          return s;
+        }
+        const putCountersEffect = new PutCountersEffect(effect, 20);
+        putCountersEffect.target = effect.source;
+        return store.reduceEffect(s, putCountersEffect);
+      });
     }
     return state;
   }
