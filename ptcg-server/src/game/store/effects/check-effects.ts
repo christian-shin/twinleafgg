@@ -132,6 +132,12 @@ export class CheckRetreatCostEffect implements Effect {
   public preventDefault = false;
   public player: Player;
   public cost: CardType[];
+  /**
+   * Set by an effect that gives the Pokémon no Retreat Cost (N's Castle, Metal Bridge, Rescue Board, ...).
+   * Such an effect takes priority over effects that increase the cost (Gravity Gemstone, ...),
+   * whichever handler runs first, so the cost is emptied after all handlers ran.
+   */
+  public noRetreatCost = false;
 
   constructor(player: Player) {
     this.player = player;
