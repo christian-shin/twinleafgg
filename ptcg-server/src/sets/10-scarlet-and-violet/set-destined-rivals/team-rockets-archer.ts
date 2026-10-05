@@ -54,7 +54,10 @@ export class TeamRocketsArcher extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
-      player.rocketSupporter = true;
+      // Using the effect of a Supporter as the effect of an attack is not playing it from the hand
+      if (!effect.usedAsAttackEffect) {
+        player.rocketSupporter = true;
+      }
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
       effect.preventDefault = true;
 
