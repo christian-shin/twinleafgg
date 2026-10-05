@@ -1,6 +1,6 @@
 import { CardType, State, StateUtils, StoreLike, TrainerCard, TrainerType } from '../../../game';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { IS_TOOL_BLOCKED } from '../../../game/store/prefabs/prefabs';
 import { GamePhase } from '../../../game/store/state/state';
@@ -19,7 +19,7 @@ export class ThickScaleASCPool extends TrainerCard {
   private readonly attackerTypes: CardType[] = [CardType.GRASS, CardType.FIRE, CardType.WATER, CardType.LIGHTNING];
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
+    if (effect instanceof PutDamageEffect && !ignoresDefenderEffects(effect) && effect.target.tools.includes(this)) {
       if (state.phase !== GamePhase.ATTACK) {
         return state;
       }
