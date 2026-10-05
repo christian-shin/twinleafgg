@@ -4,7 +4,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { CardTarget, GameError, GameMessage, ChooseCardsPrompt, ChoosePokemonPrompt, PlayerType, SlotType, StoreLike, State, Player } from '../../../game';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
-import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, TRANSFER_POKEMON_CARD_STATE } from '../../../game/store/prefabs/prefabs';
 
 export class TransformationTome extends TrainerCard {
   public trainerType: TrainerType = TrainerType.ITEM;
@@ -92,9 +92,21 @@ export class TransformationTome extends TrainerCard {
               if (fromDiscard.length === 0) return state;
               const inPlayCard = inPlayList.getPokemonCard();
               if (inPlayCard && inPlayList.cards.length > 0) {
-                MOVE_CARDS(store, state, inPlayList, player.discard, { cards: [inPlayList.cards[0]], sourceCard: this });
+                // "Any attached cards, damage counters, Special Conditions, turns in play, and any
+                // other effects remain on the new Pokémon", and it is the same Pokémon (ruling 1840):
+                // put the new card onto the slot first and then discard the old one, so the slot is
+                // never empty (emptying it discards the attachments and resets everything).
+                const oldCard = inPlayList.cards[0] as PokemonCard;
+                const newCard = fromDiscard[0] as PokemonCard;
+                MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [newCard], sourceCard: this });
+                MOVE_CARDS(store, state, inPlayList, player.discard, { cards: [oldCard], sourceCard: this });
+                // The new card takes the old card's place at the bottom of the stack.
+                inPlayList.cards = [newCard, ...inPlayList.cards.filter((c) => c !== newCard)];
+                // State kept on the card object moves with the Pokémon (ruling 1840).
+                TRANSFER_POKEMON_CARD_STATE(player, oldCard, newCard);
+              } else {
+                MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [fromDiscard[0]], sourceCard: this });
               }
-              MOVE_CARDS(store, state, player.discard, inPlayList, { cards: [fromDiscard[0]], sourceCard: this });
               MOVE_CARDS(store, state, player.hand, player.discard, { cards: [second], sourceCard: this });
             },
           );

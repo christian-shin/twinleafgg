@@ -52,6 +52,16 @@ export class Marker {
     this.markers.push({ name });
   }
 
+  /**
+   * Remove every marker except those a Trainer card put on this Pokemon
+   * (sourceType 'trainer'): moving to the Bench, switching, evolving and
+   * devolving remove attack effects and Special Conditions but not effects
+   * of Trainer cards (rulings 1730, 1259).
+   */
+  removeAllExceptTrainerEffects(): void {
+    this.markers = this.markers.filter(m => m.sourceType === 'trainer');
+  }
+
   /** Remove all markers that were created by attacks. */
   removeAttackEffects(): void {
     this.markers = this.markers.filter(m => {

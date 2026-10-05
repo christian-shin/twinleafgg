@@ -49,7 +49,8 @@ export class Eri extends TrainerCard {
       effect.preventDefault = true;
 
       // "Discard up to 2 Item cards you find there": when there is an Item, at least 1 must be discarded
-      // (Rulings Compendium: a Supporter can't choose to discard zero Item cards).
+      // (Rulings Compendium: a Supporter can't choose to discard zero Item cards); used as the effect of
+      // an attack (Look-Alike Show) it may discard zero (ruling 1844).
       const hasItem = opponent.hand.cards.some(c => c instanceof TrainerCard && c.trainerType === TrainerType.ITEM);
 
       return store.prompt(state, new ChooseCardsPrompt(
@@ -57,7 +58,7 @@ export class Eri extends TrainerCard {
         GameMessage.CHOOSE_CARD_TO_DISCARD,
         opponent.hand,
         { superType: SuperType.TRAINER, trainerType: TrainerType.ITEM },
-        { allowCancel: false, min: hasItem ? 1 : 0, max: 2 }
+        { allowCancel: false, min: hasItem && !effect.usedAsAttackEffect ? 1 : 0, max: 2 }
       ), cards => {
         if (cards === null || cards.length === 0) {
           MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [this], sourceCard: this });

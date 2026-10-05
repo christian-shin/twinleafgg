@@ -1,7 +1,7 @@
 import { PokemonCard, Stage, CardType, PowerType, State, StoreLike, StateUtils, ConfirmPrompt, GameLog, GameMessage, PlayerType, Card, ChooseCardsPrompt, ShuffleDeckPrompt, SuperType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { MovedFromActiveToBenchEffect, PowerEffect } from '../../../game/store/effects/game-effects';
-import {MOVED_FROM_ACTIVE_TO_BENCH_THIS_TURN, REMOVE_MARKER_AT_END_OF_TURN, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {MOVED_FROM_ACTIVE_TO_BENCH_THIS_TURN, REMOVE_MARKER_AT_END_OF_TURN, MOVE_CARDS, TRANSFER_POKEMON_CARD_STATE } from '../../../game/store/prefabs/prefabs';
 
 export class Palafin extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -93,6 +93,8 @@ export class Palafin extends PokemonCard {
           if (cards.length > 0) {
             MOVE_CARDS(store, state, player.deck, cardList, { cards: [cards[0]], sourceCard: this });
             MOVE_CARDS(store, state, cardList, player.deck, { cards: [this], sourceCard: this });
+            // It is the same Pokémon (ruling 1840): the state kept on the card object moves to the Palafin ex.
+            TRANSFER_POKEMON_CARD_STATE(player, this, cards[0] as PokemonCard);
           }
 
           return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {

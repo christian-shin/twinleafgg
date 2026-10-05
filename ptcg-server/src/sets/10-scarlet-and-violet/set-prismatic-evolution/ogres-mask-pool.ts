@@ -4,7 +4,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
-import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, TRANSFER_POKEMON_CARD_STATE } from '../../../game/store/prefabs/prefabs';
 
 // Ref: set-chaos-rising/transformation-tome.ts (switch a Pokémon in play with one from the discard pile)
 export class OgresMaskPREPool extends TrainerCard {
@@ -83,6 +83,9 @@ export class OgresMaskPREPool extends TrainerCard {
             slot.cards.splice(newIndex, 1);
             slot.cards.splice(Math.min(oldIndex, slot.cards.length), 0, newCard);
           }
+
+          // It is the same Pokémon (ruling 1840): the state kept on the card object moves to the new card.
+          TRANSFER_POKEMON_CARD_STATE(player, oldCard, newCard);
 
           MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [this], sourceCard: this });
         });

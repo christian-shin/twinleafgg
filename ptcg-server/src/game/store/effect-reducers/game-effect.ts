@@ -880,7 +880,7 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
     });
     effect.player.hand.moveCardTo(effect.pokemonCard, effect.target);
     effect.target.pokemonPlayedTurn = state.turn;
-    effect.target.marker.markers = [];
+    effect.target.marker.removeAllExceptTrainerEffects();
 
     // Evolving the Active Pokemon can bring a new ability lock online (e.g. Lazy).
     if (effect.player.active === effect.target) {

@@ -3,6 +3,7 @@ import { EnergyType, SuperType, TrainerType } from '../../../game/store/card/car
 import { StoreLike, State, StateUtils, GamePhase, CardList, AttachEnergyPrompt, GameMessage, PlayerType, SlotType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
+import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { CheckRetreatCostEffect } from '../../../game/store/effects/check-effects';
 import { IS_TOOL_BLOCKED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -26,8 +27,29 @@ export class HeavyBaton extends TrainerCard {
     'If the Pokémon this card is attached to has a Retreat Cost of 4 or higher, is in the Active Spot, and is Knocked Out by damage from an attack from your opponent\'s Pokémon, move up to 3 Basic Energy cards from that Pokémon to your Benched Pokémon in any way you like.';
 
   public readonly HEAVY_BATON_MARKER = 'HEAVY_BATON_MARKER';
+  // Set when the Pokémon is damaged by an attack while it is the Active Pokémon with a Retreat Cost of exactly 4.
+  public readonly HEAVY_BATON_ACTIVE_MARKER = 'HEAVY_BATON_ACTIVE_MARKER';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+
+    // The criteria are checked when the damage is dealt: an attack that moves the Pokémon to the
+    // Bench before the Knock Out is checked (Exciting Dance, Push Down) doesn't stop Heavy Baton (ruling 1547).
+    // The latest damage from an opponent's attack decides; the marker is consumed by the Knock Out.
+    if (effect instanceof PutDamageEffect && effect.target.tools.includes(this)) {
+      const owner = StateUtils.findOwner(state, effect.target);
+      if (state.phase === GamePhase.ATTACK && effect.player !== owner) {
+        effect.target.marker.removeMarker(this.HEAVY_BATON_ACTIVE_MARKER, this);
+        if (owner.active === effect.target && !effect.preventDefault && effect.damage > 0
+          && !IS_TOOL_BLOCKED(store, state, owner, this)) {
+          const checkRetreatCost = new CheckRetreatCostEffect(owner);
+          store.reduceEffect(state, checkRetreatCost);
+          if (checkRetreatCost.cost.length === 4) {
+            // A Trainer's effect on the Pokémon: it stays when the Pokémon moves to the Bench.
+            effect.target.marker.addMarker(this.HEAVY_BATON_ACTIVE_MARKER, this, 'trainer', 'pokemon');
+          }
+        }
+      }
+    }
 
     if (effect instanceof KnockOutEffect && effect.target.tools.includes(this)) {
       const player = effect.player;
@@ -50,19 +72,16 @@ export class HeavyBaton extends TrainerCard {
         return state;
       }
 
-      // Only the Active Spot, and only when Knocked Out by damage from an attack
-      if (player.active !== active || !player.marker.hasMarker(player.DAMAGE_DEALT_MARKER)) {
+      // Only when it was damaged by an attack while in the Active Spot with a Retreat Cost of exactly 4
+      // (checked when the damage was dealt) and Knocked Out by damage from an attack
+      const wasActive = active.marker.hasMarker(this.HEAVY_BATON_ACTIVE_MARKER, this);
+      active.marker.removeMarker(this.HEAVY_BATON_ACTIVE_MARKER, this);
+      if (!wasActive || !player.marker.hasMarker(player.DAMAGE_DEALT_MARKER)) {
         return state;
       }
 
-      // Check if the Pokemon has a retreat cost of exactly 4
       const pokemonCard = active.getPokemonCard();
       if (!pokemonCard) {
-        return state;
-      }
-      const checkRetreatCost = new CheckRetreatCostEffect(player);
-      store.reduceEffect(state, checkRetreatCost);
-      if (checkRetreatCost.cost.length !== 4) {
         return state;
       }
 

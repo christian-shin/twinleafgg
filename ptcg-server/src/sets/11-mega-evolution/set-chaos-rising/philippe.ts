@@ -61,9 +61,9 @@ export class Philippe extends TrainerCard {
           c.provides.includes(CardType.METAL),
       );
 
-      // Played from the hand with nothing to attach: unplayable. Copied from the
-      // opponent's hand (Mr. Mime's Look-Alike Show): the effect does nothing.
-      const playedFromHand = player.hand.cards.includes(this);
+      // Played from the hand with nothing to attach: unplayable. Used as the effect of an
+      // attack (Mr. Mime's Look-Alike Show): the effect does nothing.
+      const playedFromHand = !effect.usedAsAttackEffect;
 
       if (basicMetalInDiscard.length === 0) {
         if (!playedFromHand) {

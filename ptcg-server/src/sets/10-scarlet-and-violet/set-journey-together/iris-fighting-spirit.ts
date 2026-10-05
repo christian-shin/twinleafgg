@@ -35,6 +35,11 @@ export class IrisFightingSpirit extends TrainerCard {
     if (player.hand.cards.filter(c => c !== this).length === 0) {
       return false;
     }
+    // "Draw cards until you have 6 cards in your hand": a card that would draw nothing (no card in the
+    // deck, or 6 or more cards left after discarding another one) can't be played (rulings 851, 959, 1037).
+    if (player.deck.cards.length === 0 || player.hand.cards.filter(c => c !== this).length >= 7) {
+      return false;
+    }
     return true;
   }
 
@@ -48,6 +53,11 @@ export class IrisFightingSpirit extends TrainerCard {
       }
 
       if (player.hand.cards.filter(c => c !== this).length === 0) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
+      // Would draw nothing (see canPlay)
+      if (player.deck.cards.length === 0 || player.hand.cards.filter(c => c !== this).length >= 7) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 

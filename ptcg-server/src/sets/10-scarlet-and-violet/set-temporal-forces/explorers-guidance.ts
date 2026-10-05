@@ -75,7 +75,10 @@ export class ExplorersGuidance extends TrainerCard {
           { min, max: 2, allowCancel: false },
         ),
         (selected) => {
-          player.ancientSupporter = true;
+          // Using the effect of a Supporter as the effect of an attack is not playing it from the hand
+          if (!effect.usedAsAttackEffect) {
+            player.ancientSupporter = true;
+          }
           MOVE_CARDS(store, state, deckTop, player.hand, { cards: selected, sourceCard: this });
           MOVE_CARDS(store, state, deckTop, player.discard, { sourceCard: this });
         },

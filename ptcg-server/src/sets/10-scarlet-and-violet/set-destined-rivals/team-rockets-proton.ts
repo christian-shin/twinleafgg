@@ -53,7 +53,10 @@ Search your deck for up to 3 Basic Team Rocket's Pokémon, reveal them, and put 
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
-      player.rocketSupporter = true;
+      // Using the effect of a Supporter as the effect of an attack is not playing it from the hand
+      if (!effect.usedAsAttackEffect) {
+        player.rocketSupporter = true;
+      }
       effect.preventDefault = true;
       MOVE_CARDS(store, state, player.hand, player.supporter, { cards: [effect.trainerCard], sourceCard: this });
 

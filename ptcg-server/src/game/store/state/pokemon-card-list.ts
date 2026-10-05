@@ -421,8 +421,9 @@ export class PokemonCardList extends CardList {
   }
 
   clearEffects(): void {
-    // Nuclear option: wipe all markers (used by evolution/KO)
-    this.marker.markers = [];
+    // Nuclear option: wipe all markers (used by evolution/KO), except effects of
+    // Trainer cards (Acerola's Mischief); a slot that is vacated is reset separately.
+    this.marker.removeAllExceptTrainerEffects();
 
     this.triggerEvolutionAnimation = false;
     this.showBasicAnimation = false;

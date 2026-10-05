@@ -19,7 +19,8 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
   }
 
-  if (player.hand.cards.length <= 2) {
+  // 2 cards other than this one (used as the effect of an attack it isn't in the hand)
+  if (player.hand.cards.filter(c => c !== effect.trainerCard).length < 2) {
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 

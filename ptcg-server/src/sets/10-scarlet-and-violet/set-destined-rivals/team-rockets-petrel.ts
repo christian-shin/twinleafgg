@@ -36,7 +36,10 @@ function* playCard(
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
-  player.rocketSupporter = true;
+  // Using the effect of a Supporter as the effect of an attack is not playing it from the hand
+  if (!effect.usedAsAttackEffect) {
+    player.rocketSupporter = true;
+  }
 
   yield store.prompt(
     state,

@@ -22,8 +22,10 @@ export class Ruffian extends TrainerCard {
     const opponent = StateUtils.getOpponent(state, player);
     let hasTarget = false;
     opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList) => {
+      // The Tool and the Special Energy come from the same Pokémon (ruling 1645); if it only has one of
+      // them, do as much as you can (ruling 1610, Megaton Blower). The card can't be played for no effect.
       if (cardList.energies.cards.some(c => c.superType === SuperType.ENERGY && c.energyType === EnergyType.SPECIAL)
-        && cardList.tools.length > 0) {
+        || cardList.tools.length > 0) {
         hasTarget = true;
       }
     });
@@ -46,7 +48,7 @@ export class Ruffian extends TrainerCard {
       const blocked: CardTarget[] = [];
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card, target) => {
         if (cardList.energies.cards.some(c => c.superType === SuperType.ENERGY && c.energyType === EnergyType.SPECIAL)
-          && cardList.tools.some(c => c instanceof TrainerCard && c.trainerType === TrainerType.TOOL)) {
+          || cardList.tools.some(c => c instanceof TrainerCard && c.trainerType === TrainerType.TOOL)) {
           energyOrToolcard = true;
         } else {
           blocked.push(target);

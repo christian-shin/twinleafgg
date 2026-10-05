@@ -54,7 +54,9 @@ function* playCard(
       GameMessage.CHOOSE_CARD_TO_HAND,
       player.discard,
       {},
-      { min: 1, max: 3, allowCancel: false, blocked },
+      // "Up to 3" over the discard pile: at least 1 when played; as the effect of an attack
+      // (Look-Alike Show) it may take none (rulings 1844, 1853).
+      { min: effect.usedAsAttackEffect ? 0 : 1, max: 3, allowCancel: false, blocked },
     ),
     (selected) => {
       cards = selected || [];
