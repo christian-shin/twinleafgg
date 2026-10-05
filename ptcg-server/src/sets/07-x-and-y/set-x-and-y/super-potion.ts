@@ -18,7 +18,7 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
   const blocked: CardTarget[] = [];
   let hasPokemonWithDamage: boolean = false;
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
-    if (cardList.damage === 0 || !cardList.cards.some(c => c.superType === SuperType.ENERGY)) {
+    if (cardList.damage === 0) {
       blocked.push(target);
     } else {
       hasPokemonWithDamage = true;
@@ -49,23 +49,27 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
   }
 
   const target = targets[0];
-  let cards: Card[] = [];
-  yield store.prompt(state, new ChooseCardsPrompt(
-    player,
-    GameMessage.CHOOSE_CARD_TO_DISCARD,
-    target,
-    { superType: SuperType.ENERGY },
-    { min: 1, max: 1, allowCancel: true }
-  ), selected => {
-    cards = selected || [];
-    next();
-  });
 
-  if (cards.length === 0) {
-    return state;
+  // If you do (heal), discard an Energy attached to that Pokémon (a Pokémon with no Energy is only healed)
+  if (target.cards.some(c => c.superType === SuperType.ENERGY)) {
+    let cards: Card[] = [];
+    yield store.prompt(state, new ChooseCardsPrompt(
+      player,
+      GameMessage.CHOOSE_CARD_TO_DISCARD,
+      target,
+      { superType: SuperType.ENERGY },
+      { min: 1, max: 1, allowCancel: true }
+    ), selected => {
+      cards = selected || [];
+      next();
+    });
+
+    if (cards.length === 0) {
+      return state;
+    }
+
+    MOVE_CARDS(store, state, target, player.discard, { cards: cards, sourceCard: effect.trainerCard });
   }
-
-  MOVE_CARDS(store, state, target, player.discard, { cards: cards, sourceCard: effect.trainerCard });
 
   // Heal Pokemon
   const healEffect = new HealEffect(player, target, 60);
