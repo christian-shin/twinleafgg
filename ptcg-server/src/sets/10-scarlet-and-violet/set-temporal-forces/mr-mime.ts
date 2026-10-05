@@ -76,6 +76,8 @@ export class MrMime extends PokemonCard {
         player.supporterTurn = 0;
         try {
           const playTrainerEffect = new TrainerEffect(player, trainerCard);
+          playTrainerEffect.usedAsAttackEffect = true;
+          playTrainerEffect.usedAsAttackEffect = true;
           store.reduceEffect(state, playTrainerEffect);
         } catch (error) {
           if (!(error instanceof GameError)) {

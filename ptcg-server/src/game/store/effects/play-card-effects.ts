@@ -129,6 +129,12 @@ export class TrainerEffect implements Effect {
   public player: Player;
   public trainerCard: TrainerCard;
   public target: CardList | undefined;
+  /**
+   * The Supporter's effect is used as the effect of an attack (Mr. Mime's Look-Alike Show), not
+   * played from the hand: Supporter limits don't apply (rulings 1727, 1728) and the effect may do
+   * nothing / choose zero for "up to" (rulings 1844, 1853).
+   */
+  public usedAsAttackEffect = false;
 
   constructor(player: Player, trainerCard: TrainerCard, target?: CardList) {
     this.player = player;
