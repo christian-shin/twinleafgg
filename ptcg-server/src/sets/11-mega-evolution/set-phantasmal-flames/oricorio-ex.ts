@@ -109,7 +109,7 @@ export class Oricorioex extends PokemonCard {
           PlayerType.BOTTOM_PLAYER,
           [SlotType.BENCH],
           { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Fire Energy' },
-          { allowCancel: false, blockedTo: blocked },
+          { allowCancel: false, min: 1, max: 1, blockedTo: blocked },
         ),
         (transfers) => {
           transfers = transfers || [];
