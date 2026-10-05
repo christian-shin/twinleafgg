@@ -165,7 +165,8 @@ function handleBenchSizeChange(store: StoreLike, state: State, benchSizes: numbe
 function chooseActivePokemons(state: State): ChoosePokemonPrompt[] {
   const prompts: ChoosePokemonPrompt[] = [];
 
-  for (const player of state.players) {
+  for (const i of nextTurnPlayerOrder(state)) {
+    const player = state.players[i];
     const hasActive = player.active.cards.length > 0;
     const hasBenched = player.bench.some(bench => bench.cards.length > 0);
     if (!hasActive && hasBenched) {
@@ -210,10 +211,20 @@ function autoTakePrizeCards(
   return prizesToTake.length;
 }
 
+/**
+ * The player whose turn would be next takes Prizes first and promotes a new Active Pokémon first
+ * when both have Pokémon Knocked Out at the same time (ruling 754, 757).
+ */
+function nextTurnPlayerOrder(state: State): number[] {
+  const next = state.activePlayer ? 0 : 1;
+  return [next, next === 0 ? 1 : 0];
+}
+
 function choosePrizeCards(store: StoreLike, state: State, prizeGroups: PrizeGroup[][]): ChoosePrizePrompt[] {
   const prompts: ChoosePrizePrompt[] = [];
+  let tookLastPrize = false;
 
-  for (let i = 0; i < state.players.length; i++) {
+  for (const i of nextTurnPlayerOrder(state)) {
     const player = state.players[i];
     for (const group of prizeGroups[i]) {
       const prizeLeft = player.getPrizeLeft();
@@ -223,13 +234,13 @@ function choosePrizeCards(store: StoreLike, state: State, prizeGroups: PrizeGrou
         return [];
       }
 
-      // If prizes to take >= remaining prizes, automatically take all prizes and end game
+      // If prizes to take >= remaining prizes, automatically take all prizes. The game does not end here:
+      // every effect has to resolve and then all win conditions of both players are counted (checkWinner),
+      // e.g. an attacker whose own Knock Out left it without Pokémon also lost (ruling 234, 820, 1403, 1584).
       if (group.count >= prizeLeft && prizeLeft > 0) {
         autoTakePrizeCards(store, state, player, prizeLeft, group.destination || player.hand);
-
-        // End game with this player as winner
-        endGame(store, state, i === 0 ? GameWinner.PLAYER_1 : GameWinner.PLAYER_2);
-        return [];
+        tookLastPrize = true;
+        continue;
       }
 
       // Last Pokémon in play — take KO prizes without prompting
@@ -261,7 +272,8 @@ function choosePrizeCards(store: StoreLike, state: State, prizeGroups: PrizeGrou
       }
     }
   }
-  return prompts;
+  // A player took the last Prize card: no more Prize prompts
+  return tookLastPrize ? [] : prompts;
 }
 
 // function choosePrizeCards(state: State, prizesToTake: [number, number]): ChooseCardsPrompt[] {
@@ -339,8 +351,8 @@ export function checkWinner(store: StoreLike, state: State, onComplete?: () => v
   for (let i = 0; i < state.players.length; i++) {
     const player = state.players[i];
 
-    // Check for no active Pokemon
-    if (player.active.cards.length === 0) {
+    // Check for no Pokemon in play (an Active spot waiting for a promotion from the Bench is not a loss)
+    if (player.active.cards.length === 0 && !player.bench.some(b => b.cards.length > 0)) {
       store.log(state, GameLog.LOG_PLAYER_NO_ACTIVE_POKEMON, { name: player.name });
       points[i === 0 ? 1 : 0]++;
       reasons[i === 0 ? 1 : 0].push('no_active');
@@ -443,7 +455,8 @@ export function* executeCheckState(next: Function, store: StoreLike, state: Stat
         group = { destination, count: 0 };
         prizeGroups[opponentIndex].push(group);
       }
-      group.count += knockOutEffect.prizeCount;
+      // Prize reductions (Legacy Energy, Lillie's Pearl, ...) never go below 0 (ruling 1745)
+      group.count += Math.max(0, knockOutEffect.prizeCount);
     }
   }
 
@@ -493,8 +506,11 @@ export function* executeCheckState(next: Function, store: StoreLike, state: Stat
     return state;
   }
 
-  const prizesAlreadyTaken = state.players.some(p => p.prizes.every(pr => pr.cards.length === 0));
-  if (prizesAlreadyTaken) {
+  // A player has no Prize cards left: the game is decided now (checkWinner counts both players' win
+  // conditions) unless both players took their last Prize card at the same time: then the new Active
+  // Pokémon are promoted and their effects resolve before the winner is determined (ruling 820, 1584).
+  const prizesTaken = state.players.map(p => p.prizes.every(pr => pr.cards.length === 0));
+  if (prizesTaken.some(taken => taken) && !prizesTaken.every(taken => taken)) {
     return checkWinner(store, state, onComplete);
   }
 
