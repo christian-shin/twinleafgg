@@ -1,14 +1,16 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType, EnergyType } from '../../../game/store/card/card-types';
-import { Card, ChooseCardsPrompt, EnergyCard, GameError, GameMessage, ShuffleDeckPrompt, State, StoreLike } from '../../../game';
+import { Card, ChooseCardsPrompt, EnergyCard, GameMessage, ShowCardsPrompt, ShuffleDeckPrompt, State, StateUtils, StoreLike } from '../../../game';
 import { AttackEffect, Effect } from '../../../game/store/effects/game-effects';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 function* useColorfulCatch(next: Function, store: StoreLike, state: State, effect: AttackEffect): IterableIterator<State> {
   const player = effect.player;
+  const opponent = StateUtils.getOpponent(state, player);
 
+  // The attack can be used even if the deck is empty; the search then does nothing.
   if (player.deck.cards.length === 0) {
-    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+    return state;
   }
 
   const maxEnergies = 3;
@@ -28,15 +30,18 @@ function* useColorfulCatch(next: Function, store: StoreLike, state: State, effec
     { min: 0, max: uniqueBasicEnergies, allowCancel: false, differentTypes: true }
   ), selected => {
     cards = selected || [];
-
-    if (selected.length > 1) {
-      if (selected[0].name === selected[1].name) {
-        throw new GameError(GameMessage.CAN_ONLY_SELECT_TWO_DIFFERENT_ENERGY_TYPES);
-      }
-    }
-
-    MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: effect.source.getPokemonCard()! });
+    next();
   });
+
+  MOVE_CARDS(store, state, player.deck, player.hand, { cards: cards, sourceCard: effect.source.getPokemonCard()! });
+
+  if (cards.length > 0) {
+    yield store.prompt(state, new ShowCardsPrompt(
+      opponent.id,
+      GameMessage.CARDS_SHOWED_BY_THE_OPPONENT,
+      cards
+    ), () => next());
+  }
 
   return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
     player.deck.applyOrder(order);
