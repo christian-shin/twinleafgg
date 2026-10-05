@@ -6,8 +6,6 @@ import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 
 import { CardTag } from '../../../game/store/card/card-types';
-import { StateUtils } from '../../../game';
-import { ApplyWeaknessEffect, AfterDamageEffect } from '../../../game/store/effects/attack-effects';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Koraidon extends PokemonCard {
@@ -70,20 +68,9 @@ export class Koraidon extends PokemonCard {
     }
 
     if (WAS_ATTACK_USED(effect, 1, this)) {
-      const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
-
-      const applyWeakness = new ApplyWeaknessEffect(effect, 130);
-      store.reduceEffect(state, applyWeakness);
-      const damage = applyWeakness.damage;
-
-      effect.damage = 0;
-
-      if (damage > 0) {
-        opponent.active.damage += damage;
-        const afterDamage = new AfterDamageEffect(effect, damage);
-        state = store.reduceEffect(state, afterDamage);
-      }
+      // Shred: effects on the Defending Pokémon don't change the damage; Weakness, Resistance and
+      // effects on the attacker still apply.
+      effect.ignoreDefenderEffects = true;
     }
     return state;
   }
