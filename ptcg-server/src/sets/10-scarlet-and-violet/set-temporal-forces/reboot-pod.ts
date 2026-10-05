@@ -40,6 +40,15 @@ export class RebootPod extends TrainerCard {
     if (!hasBasicEnergy) {
       return false;
     }
+    let hasFuturePokemon = false;
+    player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card) => {
+      if (card.hasTag(CardTag.FUTURE)) {
+        hasFuturePokemon = true;
+      }
+    });
+    if (!hasFuturePokemon) {
+      return false;
+    }
     return true;
   }
 
@@ -61,11 +70,22 @@ export class RebootPod extends TrainerCard {
       }
 
       const blocked2: CardTarget[] = [];
+      let futurePokemonCount = 0;
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (list, card, target) => {
         if (!card.hasTag(CardTag.FUTURE)) {
           blocked2.push(target);
+        } else {
+          futurePokemonCount += 1;
         }
       });
+
+      // No Future Pokémon in play: nothing to attach to
+      if (futurePokemonCount === 0) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
+
+      // One Basic Energy card for each Future Pokémon (as many as the discard pile holds)
+      const attachCount = Math.min(futurePokemonCount, hasEnergyInDiscard);
 
       // We will discard this card after prompt confirmation
       effect.preventDefault = true;
@@ -81,8 +101,8 @@ export class RebootPod extends TrainerCard {
           { superType: SuperType.ENERGY, energyType: EnergyType.BASIC },
           {
             allowCancel: false,
-            min: 0,
-            max: hasEnergyInDiscard,
+            min: attachCount,
+            max: attachCount,
             blockedTo: blocked2,
             differentTargets: true,
           },
