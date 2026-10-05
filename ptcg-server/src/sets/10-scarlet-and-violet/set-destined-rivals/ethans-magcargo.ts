@@ -74,6 +74,7 @@ export class EthansMagcargo extends PokemonCard {
 
         if (checkProvidedEnergy.energyMap.length === 0) {
           effect.cost = [];
+          effect.noRetreatCost = true;
         }
       }
     }
