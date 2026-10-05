@@ -1,4 +1,4 @@
-import { PokemonCard, Stage, CardType, StoreLike, State, StateUtils, PowerType, GamePhase } from '../../../game';
+import { PokemonCard, Stage, CardType, StoreLike, State, StateUtils, PowerType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { IS_ABILITY_BLOCKED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
@@ -44,10 +44,8 @@ export class Togekiss extends PokemonCard {
         return state;
       }
 
-      // Do not activate between turns, or when it's not opponents turn.
-      if (state.phase !== GamePhase.ATTACK || state.players[state.activePlayer] !== attacker) {
-        return state;
-      }
+      // Any Knock Out counts, during either player's turn or Pokémon Checkup, by an attack or not
+      // (ruling 1591, 1619, 1623).
 
       // Try to reduce PowerEffect, to check if something is blocking our ability
       if (IS_ABILITY_BLOCKED(store, state, attacker, this)) {
