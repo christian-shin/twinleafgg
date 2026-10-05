@@ -10,9 +10,10 @@ import { StateUtils } from '../../../game/store/state-utils';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { KnockOutEffect, MoveCardsEffect } from '../../../game/store/effects/game-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
+import { ShuffleDeckPrompt } from '../../../game/store/prompts/shuffle-prompt';
 import {DRAW_CARDS,
   REMOVE_OPPONENT_LAST_TURN_MARKER_AT_END_OF_TURN,
-  SHUFFLE_DECK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+  MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class TeamRocketsArcher extends TrainerCard {
   public trainerType: TrainerType = TrainerType.SUPPORTER;
@@ -70,15 +71,21 @@ export class TeamRocketsArcher extends TrainerCard {
       });
       state = store.reduceEffect(state, opponentMoveEffect);
 
-      // opponent shuffle and draw
-      if (!opponentMoveEffect.preventDefault) {
-        SHUFFLE_DECK(store, state, opponent);
-        DRAW_CARDS(store, state, opponent, 3);
-      }
-
-      // player shuffle and draw
-      SHUFFLE_DECK(store, state, player);
-      DRAW_CARDS(store, state, player, 5);
+      // Each player shuffles their hand into their deck, then (after the shuffles) you draw 5 and your opponent draws 3
+      const opponentShuffles = !opponentMoveEffect.preventDefault;
+      const shuffles = opponentShuffles
+        ? [new ShuffleDeckPrompt(opponent.id), new ShuffleDeckPrompt(player.id)]
+        : [new ShuffleDeckPrompt(player.id)];
+      return store.prompt(state, shuffles, (deckOrder) => {
+        if (opponentShuffles) {
+          opponent.deck.applyOrder(deckOrder[0]);
+          player.deck.applyOrder(deckOrder[1]);
+          DRAW_CARDS(store, state, opponent, 3);
+        } else {
+          player.deck.applyOrder(deckOrder[0]);
+        }
+        DRAW_CARDS(store, state, player, 5);
+      });
     }
 
     // Track when a Team Rocket's Pokemon is knocked out
