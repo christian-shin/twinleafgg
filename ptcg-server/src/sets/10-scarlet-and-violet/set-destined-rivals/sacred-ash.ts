@@ -8,10 +8,11 @@ import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Player } from '../../../game/store/state/player';
+import { StateUtils } from '../../../game/store/state-utils';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prompt';
 import { ShuffleDeckPrompt } from '../../../game/store/prompts/shuffle-prompt';
-import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER } from '../../../game/store/prefabs/prefabs';
 
 function* playCard(next: Function, store: StoreLike, state: State,
   self: SacredAsh, effect: TrainerEffect): IterableIterator<State> {
@@ -50,6 +51,8 @@ function* playCard(next: Function, store: StoreLike, state: State,
   if (cards.length === 0) {
     return state;
   }
+  // Cards moving from the discard pile into the deck are revealed (Rulings Compendium, Meta-Rulings)
+  SHOW_CARDS_TO_PLAYER(store, state, StateUtils.getOpponent(state, player), cards);
   MOVE_CARDS(store, state, player.discard, player.deck, { cards, sourceCard: self });
 
   return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
