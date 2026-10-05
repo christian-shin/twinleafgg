@@ -7,7 +7,7 @@ import { StateUtils } from '../../../game/store/state-utils';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { Player } from '../../../game';
+import { GamePhase, Player } from '../../../game';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 export class IronDefender extends TrainerCard {
   public trainerType: TrainerType = TrainerType.ITEM;
@@ -40,7 +40,14 @@ export class IronDefender extends TrainerCard {
       store.reduceEffect(state, checkPokemonTypeEffect);
 
       if (hasMarker && checkPokemonTypeEffect.cardTypes.includes(CardType.METAL)) {
-        effect.damage -= 30;
+        // Only damage done to your Pokémon by attacks from your opponent's Pokémon
+        if (
+          state.phase === GamePhase.ATTACK
+          && StateUtils.findOwner(state, effect.target) === player
+          && StateUtils.findOwner(state, effect.source) !== player
+        ) {
+          effect.damage -= 30;
+        }
       }
       return state;
     }
