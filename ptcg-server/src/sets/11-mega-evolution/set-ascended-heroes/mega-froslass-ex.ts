@@ -1,8 +1,5 @@
-import {
-  ADD_SLEEP_TO_PLAYER_ACTIVE,
-  AFTER_ATTACK,
-  WAS_ATTACK_USED,
-} from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { YOUR_OPPPONENTS_ACTIVE_POKEMON_IS_NOW_ASLEEP } from '../../../game/store/prefabs/attack-effects';
 import { CardTag, CardType, Stage } from '../../../game/store/card/card-types';
 import { StateUtils } from '../../../game/store/state-utils';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
@@ -50,8 +47,9 @@ export class MegaFroslassex extends PokemonCard {
     }
 
     // Absolute Snow attack - 150 damage and put opponent's Active Pokemon to sleep
-    if (AFTER_ATTACK(effect, 1, this)) {
-      ADD_SLEEP_TO_PLAYER_ACTIVE(store, state, effect.opponent, this);
+    // (an effect of the attack, so Mist Energy and similar effects can prevent it)
+    if (WAS_ATTACK_USED(effect, 1, this)) {
+      YOUR_OPPPONENTS_ACTIVE_POKEMON_IS_NOW_ASLEEP(store, state, effect);
     }
 
     return state;
