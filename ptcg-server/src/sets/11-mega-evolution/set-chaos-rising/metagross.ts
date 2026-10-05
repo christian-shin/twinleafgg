@@ -10,8 +10,7 @@ import {
   ConfirmPrompt,
 } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
-import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
-import { AFTER_ATTACK, SWITCH_ACTIVE_WITH_BENCHED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK, SWITCH_OUT_OPPONENT_ACTIVE_POKEMON, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON } from '../../../game/store/prefabs/costs';
 
 export class Metagross extends PokemonCard {
@@ -52,38 +51,32 @@ export class Metagross extends PokemonCard {
       const opponent = StateUtils.getOpponent(state, player);
       const hasBench = opponent.bench.some((b) => b.cards.length > 0);
       if (!hasBench) return state;
-      // "Your opponent chooses the new Active Pokémon."
-      SWITCH_ACTIVE_WITH_BENCHED(store, state, opponent);
-      return state;
+      // "Switch out your opponent's Active Pokémon": an effect of the attack on the Defending Pokémon, so
+      // Mist Energy and the like prevent it (ruling 1574). "Your opponent chooses the new Active Pokémon."
+      return SWITCH_OUT_OPPONENT_ACTIVE_POKEMON(store, state, player, { sourceEffect: effect });
     }
     if (WAS_ATTACK_USED(effect, 1, this) && effect instanceof AttackEffect) {
       const player = effect.player;
-      const checkEnergy = new CheckProvidedEnergyEffect(player);
-      checkEnergy.source = effect.source;
-      state = store.reduceEffect(state, checkEnergy);
-      const metalCount = checkEnergy.energyMap.filter((e) =>
-        e.provides.some((p: CardType) => p === CardType.METAL),
-      ).length;
-      if (metalCount >= 3) {
-        return store.prompt(
-          state,
-          new ConfirmPrompt(player.id, GameMessage.WANT_TO_DISCARD_ENERGY),
-          (confirm) => {
-            if (confirm) {
-              effect.damage += 150;
-              return DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON(
-                store,
-                state,
-                effect,
-                3,
-                CardType.METAL,
-                3,
-                [SlotType.ACTIVE],
-              );
-            }
-          },
-        );
-      }
+      // The choice is always offered, also with fewer than 3 [M] Energy (a copy of this attack by a Pokémon
+      // with few or none): it then discards as many as it can (ruling 1822).
+      return store.prompt(
+        state,
+        new ConfirmPrompt(player.id, GameMessage.WANT_TO_DISCARD_ENERGY),
+        (confirm) => {
+          if (confirm) {
+            effect.damage += 150;
+            return DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON(
+              store,
+              state,
+              effect,
+              3,
+              CardType.METAL,
+              3,
+              [SlotType.ACTIVE],
+            );
+          }
+        },
+      );
     }
     return state;
   }
