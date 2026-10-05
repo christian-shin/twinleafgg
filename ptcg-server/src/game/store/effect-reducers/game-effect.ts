@@ -528,6 +528,76 @@ function* usePower(next: Function, store: StoreLike, state: State, effect: UsePo
   return state;
 }
 
+/**
+ * Takes a Knocked Out Pokémon out of play (attached cards, tools and the Pokémon go to the discard pile or the
+ * Lost Zone). The Check State step announces every Knock Out before any Pokémon leaves play
+ * (`KnockOutEffect.deferRemoval`), so abilities that react to a Knock Out still work for a Pokémon that is
+ * Knocked Out at the same time (ruling 1623: All effects have to be resolved before resolving KO's).
+ */
+export function completeKnockOut(store: StoreLike, state: State, effect: KnockOutEffect): State {
+  const card = effect.target.getPokemonCard();
+  if (card === undefined) {
+    return state;
+  }
+  // Handle Lost City marker or PRISM_STAR cards
+  if (effect.target.marker.hasMarker('LOST_CITY_MARKER') || card.tags.includes(CardTag.PRISM_STAR)) {
+    const lostZoned = new CardList();
+    const attachedCards = new CardList();
+
+    // Clear damage and effects before splitting cards
+    effect.target.damage = 0;
+    effect.target.clearEffects();
+
+    // Splice in reverse so indices remain valid; do NOT pre-move tools/energies
+    // or effect.target.cards shrinks and later splice(indices[i], 1) can be out of bounds
+    while (effect.target.cards.length > 0) {
+      const removedCard = effect.target.cards.splice(effect.target.cards.length - 1, 1)[0];
+
+      // Handle cardlist cards (energy, tools, etc.)
+      if (removedCard.cards) {
+        const cards = removedCard.cards;
+        while (cards.cards.length > 0) {
+          const card = cards.cards[0];
+          attachedCards.cards.push(card);
+          cards.cards.splice(0, 1);
+        }
+      }
+
+      // Handle the main card
+      if (removedCard.superType === SuperType.POKEMON || removedCard.tags.includes(CardTag.PRISM_STAR)) {
+        lostZoned.cards.push(removedCard);
+      } else {
+        attachedCards.cards.push(removedCard);
+      }
+    }
+
+    // Clear refs so the slot is fully emptied
+    effect.target.tools = [];
+    effect.target.energies.cards = [];
+
+    // Move attached cards to discard
+    if (attachedCards.cards.length > 0) {
+      state = MOVE_CARDS(store, state, attachedCards, effect.player.discard);
+    }
+
+    // Move Pokémon to lost zone
+    if (lostZoned.cards.length > 0) {
+      state = MOVE_CARDS(store, state, lostZoned, effect.player.lostzone);
+    }
+  } else {
+    // Default behavior - move to discard
+    const tools = [...effect.target.tools];
+    // Move tools to discard BEFORE clearing effects (directly)
+    for (const tool of tools) {
+      effect.target.moveCardTo(tool, effect.player.discard);
+    }
+    effect.target.clearEffects();
+    state = MOVE_CARDS(store, state, effect.target, effect.player.discard);
+  }
+
+  return state;
+}
+
 export function gameReducer(store: StoreLike, state: State, effect: Effect): State {
 
   if (effect instanceof KnockOutEffect) {
@@ -630,60 +700,9 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
         knockedOutOwner.pokemonKnockedOutByAttackDuringOpponentsLastTurn = true;
       }
 
-      // Handle Lost City marker or PRISM_STAR cards
-      if (effect.target.marker.hasMarker('LOST_CITY_MARKER') || card.tags.includes(CardTag.PRISM_STAR)) {
-        const lostZoned = new CardList();
-        const attachedCards = new CardList();
-
-        // Clear damage and effects before splitting cards
-        effect.target.damage = 0;
-        effect.target.clearEffects();
-
-        // Splice in reverse so indices remain valid; do NOT pre-move tools/energies
-        // or effect.target.cards shrinks and later splice(indices[i], 1) can be out of bounds
-        while (effect.target.cards.length > 0) {
-          const removedCard = effect.target.cards.splice(effect.target.cards.length - 1, 1)[0];
-
-          // Handle cardlist cards (energy, tools, etc.)
-          if (removedCard.cards) {
-            const cards = removedCard.cards;
-            while (cards.cards.length > 0) {
-              const card = cards.cards[0];
-              attachedCards.cards.push(card);
-              cards.cards.splice(0, 1);
-            }
-          }
-
-          // Handle the main card
-          if (removedCard.superType === SuperType.POKEMON || removedCard.tags.includes(CardTag.PRISM_STAR)) {
-            lostZoned.cards.push(removedCard);
-          } else {
-            attachedCards.cards.push(removedCard);
-          }
-        }
-
-        // Clear refs so the slot is fully emptied
-        effect.target.tools = [];
-        effect.target.energies.cards = [];
-
-        // Move attached cards to discard
-        if (attachedCards.cards.length > 0) {
-          state = MOVE_CARDS(store, state, attachedCards, effect.player.discard);
-        }
-
-        // Move Pokémon to lost zone
-        if (lostZoned.cards.length > 0) {
-          state = MOVE_CARDS(store, state, lostZoned, effect.player.lostzone);
-        }
-      } else {
-        // Default behavior - move to discard
-        const tools = [...effect.target.tools];
-        // Move tools to discard BEFORE clearing effects (directly)
-        for (const tool of tools) {
-          effect.target.moveCardTo(tool, effect.player.discard);
-        }
-        effect.target.clearEffects();
-        state = MOVE_CARDS(store, state, effect.target, effect.player.discard);
+      // The Check State step removes the Pokémon after every Knock Out was announced (completeKnockOut)
+      if (!effect.deferRemoval) {
+        state = completeKnockOut(store, state, effect);
       }
     }
   }

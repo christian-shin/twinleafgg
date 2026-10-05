@@ -7,6 +7,7 @@ import { PokemonCard } from '../card/pokemon-card';
 import { CheckHpEffect, CheckAttackCostEffect, CheckProvidedEnergyEffect, CheckTableStateEffect, CheckRetreatCostEffect, CheckPokemonTypeEffect } from '../effects/check-effects';
 import { Effect } from '../effects/effect';
 import { KnockOutEffect, MovedToActiveEffect } from '../effects/game-effects';
+import { completeKnockOut } from './game-effect';
 import { TAKE_SPECIFIC_PRIZES, MOVE_CARDS } from '../prefabs/prefabs';
 import { ChoosePokemonPrompt } from '../prompts/choose-pokemon-prompt';
 import { ChoosePrizePrompt } from '../prompts/choose-prize-prompt';
@@ -434,19 +435,33 @@ function setupSuddenDeathGame(store: StoreLike, state: State, firstPlayer: numbe
 export function* executeCheckState(next: Function, store: StoreLike, state: State, onComplete?: () => void): IterableIterator<State> {
   const prizeGroups: PrizeGroup[][] = state.players.map(() => []);
 
-  // Handle KOs first
+  // Handle KOs first. Every Knock Out is announced while all Pokémon are still in play, so a Pokémon that
+  // is Knocked Out at the same time still has its Ability (Togekiss' Wonder Kiss, ruling 1623); then they
+  // leave play and the Prizes are counted.
   const pokemonsToDiscard = findKoPokemons(store, state);
+  const announcedKnockOuts: { playerNum: number, knockOutEffect: KnockOutEffect }[] = [];
   for (const pokemonToDiscard of pokemonsToDiscard) {
     const owner = state.players[pokemonToDiscard.playerNum];
     const knockOutEffect = new KnockOutEffect(owner, pokemonToDiscard.cardList);
+    knockOutEffect.deferRemoval = true;
     state = store.reduceEffect(state, knockOutEffect);
 
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());
     }
 
+    announcedKnockOuts.push({ playerNum: pokemonToDiscard.playerNum, knockOutEffect });
+  }
+
+  for (const { playerNum, knockOutEffect } of announcedKnockOuts) {
     if (knockOutEffect.preventDefault === false) {
-      const opponentIndex = pokemonToDiscard.playerNum === 0 ? 1 : 0;
+      state = completeKnockOut(store, state, knockOutEffect);
+
+      if (store.hasPrompts()) {
+        yield store.waitPrompt(state, () => next());
+      }
+
+      const opponentIndex = playerNum === 0 ? 1 : 0;
       const defaultDestination = state.players[opponentIndex].hand;
       const destination = knockOutEffect.prizeDestination || defaultDestination;
 
