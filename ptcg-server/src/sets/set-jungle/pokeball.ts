@@ -8,7 +8,7 @@ import { ShuffleDeckPrompt } from '../../game/store/prompts/shuffle-prompt';
 import { State } from '../../game/store/state/state';
 import { StoreLike } from '../../game/store/store-like';
 import { Effect } from '../../game/store/effects/effect';
-import { ShowCardsPrompt, StateUtils } from '../../game';
+import { GameError, ShowCardsPrompt, StateUtils } from '../../game';
 
 import {COIN_FLIP_PROMPT, MOVE_CARDS } from '../../game/store/prefabs/prefabs';
 
@@ -16,6 +16,12 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
   const player = effect.player;
   const opponent = StateUtils.getOpponent(state, player);
   let coinResult = false;
+
+  // A search of an empty deck is not possible: it is public knowledge that the card would do nothing
+  // (rulings 779, 851)
+  if (player.deck.cards.length === 0) {
+    throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+  }
 
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
