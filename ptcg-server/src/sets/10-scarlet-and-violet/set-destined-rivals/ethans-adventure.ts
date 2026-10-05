@@ -84,12 +84,11 @@ export class EthansAdventure extends TrainerCard {
           { min: 0, max: 3, allowCancel: false, blocked },
         ),
         (cards) => {
-          if (!cards || cards.length === 0) {
-            return state;
+          if (cards && cards.length > 0) {
+            SHOW_CARDS_TO_PLAYER(store, state, opponent, cards);
+            MOVE_CARDS(store, state, player.deck, player.hand, { cards, sourceCard: this });
           }
-
-          SHOW_CARDS_TO_PLAYER(store, state, opponent, cards);
-          MOVE_CARDS(store, state, player.deck, player.hand, { cards, sourceCard: this });
+          // The deck is shuffled after searching, even when nothing was taken.
           SHUFFLE_DECK(store, state, player);
         },
       );
