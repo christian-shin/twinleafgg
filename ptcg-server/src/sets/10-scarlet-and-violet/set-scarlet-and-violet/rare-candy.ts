@@ -169,7 +169,8 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
       targets[0]._preservedConditionsDuringEvolution = checkRemovalEffect.preservedConditions;
       player.removePokemonEffects(targets[0]);
       targets[0]._preservedConditionsDuringEvolution = undefined;
-      targets[0].marker.markers = [];
+      // Like a normal evolution, Trainer-sourced effects stay (Acerola's Mischief, rulings 1730, 1259)
+      targets[0].marker.removeAllExceptTrainerEffects();
       if (targets[0].boardEffect.includes(BoardEffect.ABILITY_USED)) {
         targets[0].removeBoardEffect(BoardEffect.ABILITY_USED);
       }
