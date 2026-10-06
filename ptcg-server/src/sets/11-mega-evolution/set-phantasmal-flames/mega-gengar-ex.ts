@@ -23,6 +23,7 @@ import {ADD_MARKER,
   REMOVE_MARKER_AT_END_OF_TURN,
   WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
+import { ATTACKER_OF_KNOCK_OUT } from '../../../game/store/prefabs/last-attack';
 
 export class MegaGengarex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -88,8 +89,8 @@ export class MegaGengarex extends PokemonCard {
         return state;
       }
 
-      // Attacking Pokémon must be a Pokémon ex
-      const attackingPokemon = opponent.active.getPokemonCard();
+      // The Pokémon that used the attack must be a Pokémon ex, wherever it is by now (switched to the Bench, ...)
+      const attackingPokemon = ATTACKER_OF_KNOCK_OUT(state, effect)?.pokemon;
       const attackerIsEx = attackingPokemon?.hasTag(CardTag.POKEMON_ex) === true;
       if (!attackerIsEx) {
         return state;

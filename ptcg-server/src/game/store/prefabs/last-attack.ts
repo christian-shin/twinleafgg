@@ -45,19 +45,29 @@ export interface AttackThatKnockedOut {
 }
 
 /**
- * The attacker of the opponent's attack that damaged the Pokémon being Knocked Out while it was in the Active
- * Spot, or undefined when this Knock Out isn't a Knock Out by damage from an attack.
+ * The Pokémon that used the opponent's attack in progress, when a Pokémon of `effect.player` is being Knocked Out
+ * during it (also when it left play or was switched to the Bench by the attack's effects); undefined outside an
+ * attack of the opponent.
  */
-export function ATTACK_THAT_DAMAGED_KNOCKED_OUT(state: State, effect: KnockOutEffect): AttackThatKnockedOut | undefined {
+export function ATTACKER_OF_KNOCK_OUT(state: State, effect: KnockOutEffect): AttackThatKnockedOut | undefined {
   if (last === undefined || state.phase !== GamePhase.ATTACK) {
     return undefined;
   }
   if (state.players[state.activePlayer] === effect.player || last.player === effect.player) {
     return undefined;
   }
-  if (!last.damagedActive.includes(effect.target)) {
+  const inPlay = last.sourcePokemon !== undefined && last.source.getPokemonCard() === last.sourcePokemon;
+  return { pokemon: last.sourcePokemon, list: inPlay ? last.source : undefined };
+}
+
+/**
+ * The attacker of the opponent's attack that damaged the Pokémon being Knocked Out while it was in the Active
+ * Spot, or undefined when this Knock Out isn't a Knock Out by damage from an attack.
+ */
+export function ATTACK_THAT_DAMAGED_KNOCKED_OUT(state: State, effect: KnockOutEffect): AttackThatKnockedOut | undefined {
+  const attack = ATTACKER_OF_KNOCK_OUT(state, effect);
+  if (attack === undefined || last === undefined || !last.damagedActive.includes(effect.target)) {
     return undefined;
   }
-  const inPlay = last.source.getPokemonCard() === last.sourcePokemon && last.sourcePokemon !== undefined;
-  return { pokemon: last.sourcePokemon, list: inPlay ? last.source : undefined };
+  return attack;
 }
