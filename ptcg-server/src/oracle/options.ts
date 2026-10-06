@@ -33,7 +33,7 @@ import { ChoosePrizePrompt } from '../game/store/prompts/choose-prize-prompt';
 import { CoinFlipPrompt } from '../game/store/prompts/coin-flip-prompt';
 import { ConfirmCardsPrompt } from '../game/store/prompts/confirm-cards-prompt';
 import { ConfirmPrompt } from '../game/store/prompts/confirm-prompt';
-import { DiscardEnergyPrompt } from '../game/store/prompts/discard-energy-prompt';
+import { DiscardEnergyPrompt, isToolFilter } from '../game/store/prompts/discard-energy-prompt';
 import { MoveDamagePrompt } from '../game/store/prompts/move-damage-prompt';
 import { MoveEnergyPrompt } from '../game/store/prompts/move-energy-prompt';
 import { OrderCardsPrompt } from '../game/store/prompts/order-cards-prompt';
@@ -297,8 +297,9 @@ function energySources(state: State, player: Player, prompt: MoveEnergyPrompt | 
     const blockedEntry = prompt.options.blockedMap.find(m => sameTarget(m.source, from));
     const blocked = blockedEntry ? blockedEntry.blocked : [];
     const indices: number[] = [];
-    list.cards.forEach((c, i) => {
-      if (c.superType === SuperType.ENERGY && !blocked.includes(i) && matchesPromptFilter(c, prompt.filter)) {
+    const toolMode = isToolFilter(prompt.filter);
+    (toolMode ? (list as any).tools as Card[] : list.cards).forEach((c, i) => {
+      if ((toolMode || c.superType === SuperType.ENERGY) && !blocked.includes(i) && matchesPromptFilter(c, prompt.filter)) {
         indices.push(i);
       }
     });
@@ -671,7 +672,8 @@ export function encodeAnswer(state: State, prompt: Prompt<any>, decoded: any): a
   }
   if (prompt instanceof DiscardEnergyPrompt) {
     return (decoded as any[]).map(t => ({
-      from: tgt(t.from), index: listFor(state, player, t.from).cards.indexOf(t.card),
+      from: tgt(t.from),
+      index: (isToolFilter(prompt.filter) ? (listFor(state, player, t.from) as any).tools as Card[] : listFor(state, player, t.from).cards).indexOf(t.card),
     }));
   }
   if (prompt instanceof MoveEnergyPrompt) {

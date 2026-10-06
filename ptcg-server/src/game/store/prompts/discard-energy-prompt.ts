@@ -6,13 +6,22 @@ import { PlayerType, SlotType, CardTarget } from '../actions/play-card-action';
 import { State } from '../state/state';
 import { StateUtils } from '../state-utils';
 import { FilterType } from './choose-cards-prompt';
-import { SuperType } from '../card/card-types';
+import { SuperType, TrainerType } from '../card/card-types';
 import { CardList } from '../state/card-list';
 
 
 export const DiscardEnergyPromptType = 'Discard energy';
 
 export type DiscardEnergyResultType = { from: CardTarget, index: number }[];
+
+/**
+ * A discard prompt whose filter asks for Pokémon Tools chooses attached Tools (across Pokémon)
+ * instead of Energy (Minccino TEF Cleaning Up, Tool Scrapper). Tools are not in `cards`: the
+ * `index` of a Tool answer is its index in the Pokémon's `tools`.
+ */
+export function isToolFilter(filter: FilterType): boolean {
+  return filter.superType === SuperType.TRAINER && (filter as any).trainerType === TrainerType.TOOL;
+}
 
 export interface DiscardEnergyTransfer {
   from: CardTarget;
@@ -76,13 +85,13 @@ export class DiscardEnergyPrompt extends Prompt<DiscardEnergyTransfer[]> {
       }
       processedCards.add(key);
 
-      const card = cardList.cards[t.index];
+      const card = isToolFilter(this.filter) ? cardList.tools[t.index] : cardList.cards[t.index];
       // Verify this is a card.
       if (!(card instanceof Card)) {
         throw new GameError(GameMessage.INVALID_PROMPT_RESULT);
       }
-      // Verify card is an energy card
-      if (card.superType !== SuperType.ENERGY) {
+      // Verify card is an energy card (a Tool filter chose from the Pokémon's tools)
+      if (!isToolFilter(this.filter) && card.superType !== SuperType.ENERGY) {
         throw new GameError(GameMessage.INVALID_PROMPT_RESULT);
       }
       transfers.push({ from: t.from, card });

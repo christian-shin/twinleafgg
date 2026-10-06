@@ -1,7 +1,8 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { Stage, CardType, SuperType, TrainerType } from '../../../game/store/card/card-types';
-import { StoreLike, State, PokemonCardList, GameMessage, CardTarget, ChoosePokemonPrompt, PlayerType, SlotType, StateUtils, ChooseCardsPrompt } from '../../../game';
+import { StoreLike, State, GameMessage, PlayerType, SlotType, StateUtils } from '../../../game';
+import { DiscardEnergyPrompt, DiscardEnergyTransfer } from '../../../game/store/prompts/discard-energy-prompt';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
@@ -11,42 +12,35 @@ function* useCleaningUp(next: Function, store: StoreLike, state: State,
   const player = effect.player;
   const opponent = StateUtils.getOpponent(state, player);
 
-  let pokemonsWithTool = 0;
-  const blocked: CardTarget[] = [];
-  opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card, target) => {
-    if (cardList.tools.length > 0) {
-      pokemonsWithTool += 1;
-    } else {
-      blocked.push(target);
-    }
+  let toolsInPlay = 0;
+  opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList) => {
+    toolsInPlay += cardList.tools.length;
   });
 
   // The attack can be used even if there is no Tool to discard; it then does nothing.
-  if (pokemonsWithTool === 0) {
+  if (toolsInPlay === 0) {
     return state;
   }
 
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
 
-  const max = Math.min(2, pokemonsWithTool);
-  let targets: PokemonCardList[] = [];
-  yield store.prompt(state, new ChoosePokemonPrompt(
+  // "Discard up to 2 Pokémon Tools": the choice is over the Tools (an attack: 0 is allowed, ruling 1721)
+  let transfers: DiscardEnergyTransfer[] = [];
+  yield store.prompt(state, new DiscardEnergyPrompt(
     player.id,
-    GameMessage.CHOOSE_POKEMON_TO_DISCARD_CARDS,
+    GameMessage.CHOOSE_CARD_TO_DISCARD,
     PlayerType.TOP_PLAYER,
     [SlotType.ACTIVE, SlotType.BENCH],
-    { min: 1, max: max, allowCancel: true, blocked }
+    { superType: SuperType.TRAINER, trainerType: TrainerType.TOOL },
+    { min: 0, max: Math.min(2, toolsInPlay), allowCancel: false }
   ), results => {
-    targets = results || [];
+    transfers = results || [];
     next();
   });
 
-  if (targets.length === 0) {
-    return state;
-  }
-
-  targets.forEach(target => {
+  transfers.forEach(transfer => {
+    const target = StateUtils.getTarget(state, player, transfer.from);
     const owner = StateUtils.findOwner(state, target);
     // An effect of the attack on that Pokémon: Mist Energy and the like prevent it (a probe without cards, ruling 1843)
     const probe = new DiscardCardsEffect(effect, []);
@@ -55,24 +49,7 @@ function* useCleaningUp(next: Function, store: StoreLike, state: State,
     if (probe.preventDefault) {
       return;
     }
-    if (target.tools.length > 0) {
-      if (target.tools.length > 1) {
-        // Prompt to choose up to 2 tools
-        store.prompt(state, new ChooseCardsPrompt(
-          player,
-          GameMessage.CHOOSE_CARD_TO_DISCARD,
-          target,
-          { superType: SuperType.TRAINER, trainerType: TrainerType.TOOL },
-          { min: 1, max: 2, allowCancel: false }
-        ), selected => {
-          if (selected && selected.length > 0) {
-            MOVE_CARDS(store, state, target, owner.discard, { cards: selected, sourceCard: effect.source.getPokemonCard()! });
-          }
-        });
-      } else {
-        MOVE_CARDS(store, state, target, owner.discard, { cards: [target.tools[0]], sourceCard: effect.source.getPokemonCard()! });
-      }
-    }
+    MOVE_CARDS(store, state, target, owner.discard, { cards: [transfer.card], sourceCard: effect.source.getPokemonCard()! });
   });
 
   return state;
