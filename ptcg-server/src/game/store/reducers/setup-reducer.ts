@@ -74,6 +74,24 @@ function handHasStartingPokemon(state: State, player: Player): boolean {
   return hasVanillaBasic || hasSandboxPokemon || hasSetupTag;
 }
 
+/**
+ * A hand whose only possible starter is a card with "put it face down as your Active Pokémon during
+ * setup" (Cinderace's Explosiveness) and no Basic Pokémon: the player decides to put it out as the
+ * Active Pokémon or to show the hand and mulligan (ruling 1714). `out.has` is the answer.
+ */
+function* handHasStarter(next: Function, store: StoreLike, state: State, player: Player, out: { has: boolean }): IterableIterator<State> {
+  out.has = handHasStartingPokemon(state, player);
+  const basicPokemon = { superType: SuperType.POKEMON, stage: Stage.BASIC };
+  const hasBasic = player.hand.count(basicPokemon) > 0
+    || (sandboxAllPokemonBasicEnabled(state) && player.hand.cards.some(card => card instanceof PokemonCard));
+  if (out.has && !hasBasic) {
+    yield store.prompt(state, new ConfirmPrompt(player.id, GameMessage.WANT_TO_USE_ABILITY), choice => {
+      out.has = choice === true;
+      next();
+    });
+  }
+}
+
 function putStartingPokemonsAndPrizes(player: Player, cards: Card[], state: State): void {
   if (cards.length === 0) {
     return;
@@ -420,8 +438,11 @@ export function* setupGame(next: Function, store: StoreLike, state: State): Iter
   });
 
   // 3. Mulligan logic
-  let playerHasBasic = handHasStartingPokemon(state, player);
-  let opponentHasBasic = handHasStartingPokemon(state, opponent);
+  const starter = { has: false };
+  yield* handHasStarter(next, store, state, player, starter);
+  let playerHasBasic = starter.has;
+  yield* handHasStarter(next, store, state, opponent, starter);
+  let opponentHasBasic = starter.has;
 
   // Track mulligan hands for each player
   const playerMulliganHands: Card[][] = [];
@@ -447,8 +468,10 @@ export function* setupGame(next: Function, store: StoreLike, state: State): Iter
       opponent.deck.moveTo(opponent.hand, 7);
       next();
     });
-    playerHasBasic = handHasStartingPokemon(state, player);
-    opponentHasBasic = handHasStartingPokemon(state, opponent);
+    yield* handHasStarter(next, store, state, player, starter);
+    playerHasBasic = starter.has;
+    yield* handHasStarter(next, store, state, opponent, starter);
+    opponentHasBasic = starter.has;
   }
 
   // 5. If only one player has a Basic, that player sets up, the other continues to mulligan
@@ -465,7 +488,8 @@ export function* setupGame(next: Function, store: StoreLike, state: State): Iter
         opponent.deck.moveTo(opponent.hand, 7);
         next();
       });
-      opponentHasBasic = handHasStartingPokemon(state, opponent);
+      yield* handHasStarter(next, store, state, opponent, starter);
+      opponentHasBasic = starter.has;
     }
     // Opponent sets up
     yield* setupSinglePlayer(opponent, chooseCardsOptions, state, store, next);
@@ -511,7 +535,8 @@ export function* setupGame(next: Function, store: StoreLike, state: State): Iter
         player.deck.moveTo(player.hand, 7);
         next();
       });
-      playerHasBasic = handHasStartingPokemon(state, player);
+      yield* handHasStarter(next, store, state, player, starter);
+      playerHasBasic = starter.has;
     }
     // Player sets up
     yield* setupSinglePlayer(player, chooseCardsOptions, state, store, next);
