@@ -3,8 +3,8 @@ import { SuperType, TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State, GamePhase } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { AfterDamageEffect } from '../../../game/store/effects/attack-effects';
-import { AfterAttackTriggersEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
+import { AfterDamageEffect, AttackTriggerEffect } from '../../../game/store/effects/attack-effects';
+import { ATTACK_TRIGGER } from '../../../game/store/prefabs/after-damage';
 import { StateUtils } from '../../../game/store/state-utils';
 import { AttachEnergyPrompt, CardTarget, GameMessage, PlayerType, SlotType } from '../../../game';
 import { ToolEffect } from '../../../game/store/effects/play-card-effects';
@@ -22,12 +22,9 @@ export class HandyFan extends TrainerCard {
 
   public text: string = 'Whenever the Active Pokémon this card is attached to takes damage from an opponent\'s attack, move an Energy from the attacking Pokémon to 1 of your opponent\'s Benched Pokémon.';
 
-  public readonly HANDY_FAN_MARKER = 'HANDY_FAN_MARKER';
-
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    // The damage arms the effect on the attacking Pokémon (its slot, wherever it is when the attack
-    // is over); it resolves in AfterAttackTriggersEffect, after the attack's own effects and the prompts
-    // they opened (switches, ...) are resolved (ruling 1625, 1649, 1650, 1651).
+    // Step 7 of the attack flow chart: the damage records the trigger; it resolves after the attack's own
+    // effects and the prompts they opened (switches, ...) are resolved (rulings 1625, 1649, 1650, 1651).
     if (effect instanceof AfterDamageEffect && effect.target.tools.includes(this)) {
       const player = effect.player;
       const targetPlayer = StateUtils.findOwner(state, effect.target);
@@ -36,36 +33,29 @@ export class HandyFan extends TrainerCard {
         return state;
       }
 
+      return ATTACK_TRIGGER(store, state, effect, this);
+    }
+
+    if (effect instanceof AttackTriggerEffect && effect.card === this) {
+      if (!effect.target.tools.includes(this)) {
+        return state;
+      }
+
       // Try to reduce ToolEffect, to check if something is blocking the tool from working
       try {
-        const stub = new ToolEffect(targetPlayer, this);
+        const stub = new ToolEffect(effect.opponent, this);
         store.reduceEffect(state, stub);
       } catch {
         return state;
       }
 
-      if (state.phase === GamePhase.ATTACK) {
-        // An effect of a Trainer card: it stays on the attacker when an effect of the attack switches it to the Bench
-        effect.source.marker.addMarker(this.HANDY_FAN_MARKER, this, 'trainer');
-      }
-      return state;
-    }
-
-    if (effect instanceof AfterAttackTriggersEffect) {
-      const player = effect.player;
-      const opponent = effect.opponent;
-
-      let attackingPokemon: PokemonCardList | undefined;
-      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
-        if (cardList.marker.hasMarker(this.HANDY_FAN_MARKER, this)) {
-          attackingPokemon = cardList;
-        }
-      });
-      if (attackingPokemon === undefined) {
+      if (state.phase !== GamePhase.ATTACK || !effect.sourceInPlay) {
         return state;
       }
-      const attacker: PokemonCardList = attackingPokemon;
-      attacker.marker.removeMarker(this.HANDY_FAN_MARKER, this);
+
+      const player = effect.player;
+      const opponent = effect.opponent;
+      const attacker: PokemonCardList = effect.source;
 
       // The Energy moves to one of the attacking player's other Benched Pokémon; an attacker that
       // left play (Aqua Return) or has no Energy left has nothing to move.
@@ -73,7 +63,7 @@ export class HandyFan extends TrainerCard {
       const hasBench = player.bench.some(b => b.cards.length > 0 && b !== attacker);
       const hasEnergy = attacker.cards.some(c => c.superType === SuperType.ENERGY);
 
-      if (attacker.cards.length === 0 || hasBench === false || hasEnergy === false) {
+      if (hasBench === false || hasEnergy === false) {
         return state;
       }
 
@@ -96,12 +86,6 @@ export class HandyFan extends TrainerCard {
           const target = StateUtils.getTarget(state, opponent, transfer.to);
           MOVE_CARDS(store, state, attacker, target, { cards: [transfer.card], sourceCard: this });
         }
-      });
-    }
-
-    if (effect instanceof EndTurnEffect) {
-      effect.player.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
-        cardList.marker.removeMarker(this.HANDY_FAN_MARKER, this);
       });
     }
 
