@@ -1,9 +1,10 @@
-import { GameError, GameMessage, GamePhase, Player, State, StateUtils, StoreLike, TrainerCard, TrainerType, PokemonCard } from '../../../game';
+import { CardTag, GameError, GameMessage, GamePhase, Player, State, StateUtils, StoreLike, TrainerCard, TrainerType, PokemonCard } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { ATTACKER_OF_KNOCK_OUT } from '../../../game/store/prefabs/last-attack';
 
 export class Briar extends TrainerCard {
 
@@ -73,8 +74,9 @@ During this turn, if your opponent's Active Pokémon is Knocked Out by damage fr
 
       // Check if the knocked out Pokémon belongs to the opponent and if extra prize should be taken
       if (effect.target === player.active) {
-        const attackingPokemon = opponent.active;
-        if (attackingPokemon.isTera() && this.extraPrizes) {
+        // The Pokémon that used the attack, wherever it is by now (it can have switched to the Bench)
+        const attackingPokemon = ATTACKER_OF_KNOCK_OUT(state, effect)?.pokemon;
+        if (attackingPokemon?.tags.includes(CardTag.POKEMON_TERA) === true && this.extraPrizes) {
           if (effect.prizeCount > 0) {
             effect.prizeCount += 1;
           }
