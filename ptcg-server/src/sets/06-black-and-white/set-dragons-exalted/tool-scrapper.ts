@@ -8,65 +8,49 @@ import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 import {
   PlayerType, StateUtils, GameError, GameMessage,
-  PokemonCardList,
-  CardTarget,
-  ChoosePokemonPrompt,
   SlotType
 } from '../../../game';
+import { SuperType } from '../../../game/store/card/card-types';
+import { DiscardEnergyPrompt, DiscardEnergyTransfer } from '../../../game/store/prompts/discard-energy-prompt';
 
 function* playCard(next: Function, store: StoreLike, state: State, effect: TrainerEffect): IterableIterator<State> {
   const player = effect.player;
   const opponent = StateUtils.getOpponent(state, player);
 
-  let pokemonsWithTool = 0;
-  const blocked: CardTarget[] = [];
-  player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
-    if (cardList.tools.length > 0) {
-      pokemonsWithTool += 1;
-    } else {
-      blocked.push(target);
-    }
+  let toolsInPlay = 0;
+  player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
+    toolsInPlay += cardList.tools.length;
   });
-  opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card, target) => {
-    if (cardList.tools.length > 0) {
-      pokemonsWithTool += 1;
-    } else {
-      blocked.push(target);
-    }
+  opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList) => {
+    toolsInPlay += cardList.tools.length;
   });
 
-  if (pokemonsWithTool === 0) {
+  if (toolsInPlay === 0) {
     throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
   }
 
   // We will discard this card after prompt confirmation
   effect.preventDefault = true;
 
-  const max = Math.min(2, pokemonsWithTool);
-  let targets: PokemonCardList[] = [];
-  yield store.prompt(state, new ChoosePokemonPrompt(
+  // "Choose up to 2 Pokemon Tool cards attached to Pokemon in play": the choice is over the Tools, at least 1 and
+  // no cancel for a Trainer (cancelling would be choosing 0; rulings 1778, 1853)
+  let transfers: DiscardEnergyTransfer[] = [];
+  yield store.prompt(state, new DiscardEnergyPrompt(
     player.id,
-    GameMessage.CHOOSE_POKEMON_TO_DISCARD_CARDS,
+    GameMessage.CHOOSE_CARD_TO_DISCARD,
     PlayerType.ANY,
     [SlotType.ACTIVE, SlotType.BENCH],
-    // "up to 2" over cards in play: at least 1, and no cancel (cancelling would be choosing 0; rulings 1778, 1853)
-    { min: 1, max: max, allowCancel: false, blocked }
+    { superType: SuperType.TRAINER, trainerType: TrainerType.TOOL },
+    { min: 1, max: Math.min(2, toolsInPlay), allowCancel: false }
   ), results => {
-    targets = results || [];
+    transfers = results || [];
     next();
   });
 
-  if (targets.length === 0) {
-    return state;
-  }
-
-  // Discard trainer only when user selected a Pokemon
-
-  targets.forEach(target => {
+  transfers.forEach(transfer => {
+    const target = StateUtils.getTarget(state, player, transfer.from);
     const owner = StateUtils.findOwner(state, target);
-    if (target.tools.length > 0) {
-      MOVE_CARDS(store, state, target, owner.discard, { cards: [target.tools[0]], sourceCard: effect.trainerCard });
-    }
+    MOVE_CARDS(store, state, target, owner.discard, { cards: [transfer.card], sourceCard: effect.trainerCard });
   });
 
   return state;
