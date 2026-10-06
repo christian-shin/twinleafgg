@@ -213,6 +213,8 @@ export interface AttackTrigger {
   sourcePokemon: PokemonCard | undefined;
   /** Delayed trap of the damaged Pokémon (Bouffalant, Iron Boulder ex, ...). */
   retaliate?: StoredRetaliateOnDamage;
+  /** The trigger moves an Energy off the Attacking Pokémon (Handheld Fan). */
+  removesAttackerEnergy?: boolean;
 }
 
 export class AttackEffect implements Effect {

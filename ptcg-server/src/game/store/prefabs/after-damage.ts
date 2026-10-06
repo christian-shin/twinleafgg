@@ -1,6 +1,8 @@
 import { SuperType } from '../card/card-types';
 import { AfterDamageEffect, AttackTriggerEffect, CardsToHandEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, LostZoneCardsEffect, MoveOpponentEnergyEffect } from '../effects/attack-effects';
 import { Card } from '../card/card';
+import { GameMessage } from '../../game-message';
+import { SelectPrompt } from '../prompts/select-prompt';
 import { Effect } from '../effects/effect';
 import { AttackEffect, AttackTrigger, MoveCardsEffect } from '../effects/game-effects';
 import { State } from '../state/state';
@@ -93,6 +95,7 @@ export function ATTACK_TRIGGER(
   effect: AfterDamageEffect,
   card: Card,
   retaliate?: AttackTrigger['retaliate'],
+  removesAttackerEnergy: boolean = false,
 ): State {
   const trigger: AttackTrigger = {
     card,
@@ -101,6 +104,7 @@ export function ATTACK_TRIGGER(
     source: effect.source,
     sourcePokemon: effect.source.getPokemonCard(),
     retaliate,
+    removesAttackerEnergy,
   };
   const attackEffect = effect.attackEffect;
   if (attackEffect.attackTriggers !== undefined) {
@@ -110,7 +114,57 @@ export function ATTACK_TRIGGER(
   return store.reduceEffect(state, new AttackTriggerEffect(attackEffect, trigger));
 }
 
-/** Resolve the recorded step 7 triggers of the attack (after AfterAttackEffect and the prompts it opened). */
+/**
+ * Two pending triggers can give different results when resolved in a different order: Handheld Fan moves an
+ * Energy off the Attacking Pokémon, which can be the Mist Energy that blocks a delayed trap (Bouffalant, ...).
+ * All other triggers of the pool commute (damage counters on the attacker add up, a Burn, a draw).
+ */
+function ordersMatter(list: AttackTrigger[]): boolean {
+  for (const a of list) {
+    for (const b of list) {
+      if (a.removesAttackerEnergy === true && b.retaliate !== undefined
+        && b.sourcePokemon !== undefined && b.source.getPokemonCard() === b.sourcePokemon
+        && b.source.cards.some(c => c.superType === SuperType.ENERGY && c.name === 'Mist Energy')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** There are step 7 triggers left to resolve. */
+export function ATTACK_TRIGGERS_PENDING(attackEffect: AttackEffect): boolean {
+  return attackEffect.attackTriggers !== undefined && attackEffect.attackTriggers.length > 0;
+}
+
+/**
+ * Resolve the next recorded step 7 trigger (Advanced Player's Rulebook E-03: when several activate at the same
+ * time, the owner of the damaged Pokémon chooses the order). They resolve in the order they were recorded, except
+ * that the defending player picks which one goes first (a SelectPrompt over the cards' names) while 2 or more are
+ * pending and the order matters (`ordersMatter`). A trigger that opens a prompt is resolved (the prompt answered)
+ * before the next one starts: the caller waits for prompts between calls.
+ */
+export function RESOLVE_NEXT_ATTACK_TRIGGER(store: StoreLike, state: State, attackEffect: AttackEffect): State {
+  const list = attackEffect.attackTriggers;
+  if (list === undefined || list.length === 0) {
+    return state;
+  }
+  if (list.length >= 2 && ordersMatter(list)) {
+    return store.prompt(state, new SelectPrompt(
+      attackEffect.opponent.id,
+      GameMessage.CHOOSE_OPTION,
+      list.map(t => t.card.fullName),
+      { allowCancel: false }
+    ), choice => {
+      const [trigger] = list.splice(choice, 1);
+      state = store.reduceEffect(state, new AttackTriggerEffect(attackEffect, trigger));
+    });
+  }
+  const trigger = list.shift()!;
+  return store.reduceEffect(state, new AttackTriggerEffect(attackEffect, trigger));
+}
+
+/** Resolve every recorded step 7 trigger in the order recorded (no choice, no waiting for prompts). */
 export function RUN_ATTACK_TRIGGERS(store: StoreLike, state: State, attackEffect: AttackEffect): State {
   const queued = attackEffect.attackTriggers;
   attackEffect.attackTriggers = undefined;
@@ -118,4 +172,9 @@ export function RUN_ATTACK_TRIGGERS(store: StoreLike, state: State, attackEffect
     state = store.reduceEffect(state, new AttackTriggerEffect(attackEffect, trigger));
   }
   return state;
+}
+
+/** Close the step 7 trigger window of the attack. */
+export function CLOSE_ATTACK_TRIGGERS(attackEffect: AttackEffect): void {
+  attackEffect.attackTriggers = undefined;
 }

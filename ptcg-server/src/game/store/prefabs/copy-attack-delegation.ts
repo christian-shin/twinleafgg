@@ -16,7 +16,7 @@ import { Player } from '../state/player';
 import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
 import { PlayerType } from '../actions/play-card-action';
-import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, RUN_ATTACK_TRIGGERS } from './after-damage';
+import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, RUN_ATTACK_TRIGGERS, ATTACK_TRIGGERS_PENDING, RESOLVE_NEXT_ATTACK_TRIGGER, CLOSE_ATTACK_TRIGGERS } from './after-damage';
 
 export function cloneAttack(attack: Attack): Attack {
   return { ...attack, cost: [...(attack.cost || [])] };
@@ -474,7 +474,13 @@ export function* runDelegatedCopiedAttackGenerator(
     }
 
     state = store.reduceEffect(state, new AfterAttackTriggersEffect(player, opponent, clonedAttack));
-    state = RUN_ATTACK_TRIGGERS(store, state, attackEffect);
+    while (ATTACK_TRIGGERS_PENDING(attackEffect)) {
+      state = RESOLVE_NEXT_ATTACK_TRIGGER(store, state, attackEffect);
+      if (store.hasPrompts()) {
+        yield store.waitPrompt(state, () => next());
+      }
+    }
+    CLOSE_ATTACK_TRIGGERS(attackEffect);
 
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());

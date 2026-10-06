@@ -36,7 +36,7 @@ import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
 import { MoveCardsEffect } from '../effects/game-effects';
 import { runDelegatedCopiedAttackGenerator } from '../prefabs/copy-attack-delegation';
-import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, RUN_ATTACK_TRIGGERS } from '../prefabs/after-damage';
+import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, ATTACK_TRIGGERS_PENDING, RESOLVE_NEXT_ATTACK_TRIGGER, CLOSE_ATTACK_TRIGGERS } from '../prefabs/after-damage';
 import { GameStatsTracker } from '../game-stats-tracker';
 import { PokemonCardList } from '../state/pokemon-card-list';
 import { MOVE_CARDS, COIN_FLIP_PROMPT, IS_ABILITY_BLOCKED } from '../prefabs/prefabs';
@@ -390,7 +390,15 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
     }
 
     state = store.reduceEffect(state, new AfterAttackTriggersEffect(effect.player, opponent, attack));
-    state = RUN_ATTACK_TRIGGERS(store, state, attackEffect);
+    // Step 7 (Advanced Player's Rulebook E-03): one trigger at a time; a trigger that opens a prompt is
+    // answered before the next one resolves.
+    while (ATTACK_TRIGGERS_PENDING(attackEffect)) {
+      state = RESOLVE_NEXT_ATTACK_TRIGGER(store, state, attackEffect);
+      if (store.hasPrompts()) {
+        yield store.waitPrompt(state, () => next());
+      }
+    }
+    CLOSE_ATTACK_TRIGGERS(attackEffect);
 
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());

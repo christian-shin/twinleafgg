@@ -33,7 +33,7 @@ export class HandyFan extends TrainerCard {
         return state;
       }
 
-      return ATTACK_TRIGGER(store, state, effect, this);
+      return ATTACK_TRIGGER(store, state, effect, this, undefined, true);
     }
 
     if (effect instanceof AttackTriggerEffect && effect.card === this) {
