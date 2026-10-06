@@ -2,7 +2,7 @@ import { getCardTarget } from "../../../simple-bot/simple-tactics/simple-tactics
 import { GameError } from "../../game-error";
 import { GameMessage, GameLog } from "../../game-message";
 import { PlayerType } from "../actions/play-card-action";
-import { ignoresDefenderEffects, PutDamageEffect, AfterDamageEffect, ApplyWeaknessEffect, AfterWeaknessAndResistanceEffect, DealDamageEffect, KnockOutOpponentEffect, KOEffect, KnockOutPlayerEffect, PutCountersEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, DiscardDefendingPokemonEffect, LostZoneCardsEffect, CardsToHandEffect, MoveOpponentEnergyEffect, GustOpponentBenchEffect, SwitchOutOpponentsActiveEffect, AddMarkerEffect, HealTargetEffect, AddSpecialConditionsEffect, RemoveSpecialConditionsEffect } from "../effects/attack-effects";
+import { ignoresDefenderEffects, PutDamageEffect, AfterDamageEffect, AttackTriggerEffect, ApplyWeaknessEffect, AfterWeaknessAndResistanceEffect, DealDamageEffect, KnockOutOpponentEffect, KOEffect, KnockOutPlayerEffect, PutCountersEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, DiscardDefendingPokemonEffect, LostZoneCardsEffect, CardsToHandEffect, MoveOpponentEnergyEffect, GustOpponentBenchEffect, SwitchOutOpponentsActiveEffect, AddMarkerEffect, HealTargetEffect, AddSpecialConditionsEffect, RemoveSpecialConditionsEffect } from "../effects/attack-effects";
 import { CheckHpEffect } from "../effects/check-effects";
 import { Effect } from "../effects/effect";
 import { shouldPreventAttackEffects, shouldPreventAttackDamage, shouldApplyDamageReduction, getActiveSurviveOnTenHpOptions, shouldKnockOutIfDamaged, getActiveRetaliateOnDamage, retaliateDamageEffect, RetaliateDamageEffect, EffectOfAttackEffect } from "../effects/effect-of-attack-effects";
@@ -14,6 +14,7 @@ import { StateUtils } from "../state-utils";
 import { State, GamePhase } from "../state/state";
 import { StoreLike } from "../store-like";
 import { ADD_TEN_HP_SURVIVOR } from "../prefabs/survive-on-ten";
+import { ATTACK_TRIGGER } from "../prefabs/after-damage";
 
 function applyPutDamage(store: StoreLike, state: State, effect: PutDamageEffect): State {
   const target = effect.target;
@@ -410,8 +411,8 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
     const targetOwner = StateUtils.findOwner(state, effect.target);
     targetOwner.marker.addMarkerToState(effect.player.DAMAGE_DEALT_MARKER);
 
-    // Revenge trap (Shell Trap / Counter Press) — even if Knocked Out.
-    // Must be an EffectOfAttack attributed to the retaliator so Mist Energy blocks it.
+    // Revenge trap (Shell Trap / Counter Press) — even if Knocked Out. Step 7 of the attack flow chart: it is
+    // recorded now and resolves after the attack's own effects (AttackTriggerEffect below; rulings 529, 879).
     // coinFlipPrevent traps are resolved during PutDamageEffect instead.
     const retaliate = getActiveRetaliateOnDamage(effect.target);
     if (retaliate !== null
@@ -420,28 +421,37 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
       && targetOwner !== effect.player
       && state.phase === GamePhase.ATTACK
       && effect.source) {
-      let revengeDamage = 0;
-      if ('reflect' in retaliate && retaliate.reflect) {
-        revengeDamage = effect.damage;
-      } else if ('damage' in retaliate) {
-        revengeDamage = retaliate.damage;
+      state = ATTACK_TRIGGER(store, state, effect, retaliate.sourceCard, retaliate);
+    }
+  }
+
+  // Resolution of a revenge trap. Must be an EffectOfAttack attributed to the retaliator so Mist Energy blocks it.
+  // The Attacking Pokémon must still be in play (ruling 530); it takes the damage wherever it is (rulings 482, 1839).
+  if (effect instanceof AttackTriggerEffect && effect.retaliate !== undefined && effect.card === effect.retaliate.sourceCard) {
+    const retaliate = effect.retaliate;
+    const targetOwner = StateUtils.findOwner(state, effect.target);
+    let revengeDamage = 0;
+    if ('reflect' in retaliate && retaliate.reflect) {
+      revengeDamage = effect.damage;
+    } else if ('damage' in retaliate) {
+      revengeDamage = retaliate.damage;
+    }
+    // The trap is an effect of the damaged Pokémon: it is gone when that Pokémon left play
+    if (revengeDamage > 0 && effect.sourceInPlay && effect.target.cards.includes(retaliate.sourceCard)) {
+      let sourceList = effect.target;
+      const attackerPlayer = state.players.find(p => p.id === retaliate.attackerPlayerId);
+      if (attackerPlayer) {
+        attackerPlayer.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
+          if (card === retaliate.sourceCard) {
+            sourceList = cardList;
+          }
+        });
       }
-      if (revengeDamage > 0) {
-        let sourceList = effect.target;
-        const attackerPlayer = state.players.find(p => p.id === retaliate.attackerPlayerId);
-        if (attackerPlayer) {
-          attackerPlayer.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-            if (card === retaliate.sourceCard) {
-              sourceList = cardList;
-            }
-          });
-        }
-        const revengeBase = new AttackEffect(targetOwner, effect.player, retaliate.attack);
-        revengeBase.source = sourceList;
-        const retaliateEffect = retaliateDamageEffect(revengeBase, revengeDamage, effect.source);
-        retaliateEffect.markerSource = retaliate.sourceCard;
-        state = store.reduceEffect(state, retaliateEffect);
-      }
+      const revengeBase = new AttackEffect(targetOwner, effect.player, retaliate.attack);
+      revengeBase.source = sourceList;
+      const retaliateEffect = retaliateDamageEffect(revengeBase, revengeDamage, effect.source);
+      retaliateEffect.markerSource = retaliate.sourceCard;
+      state = store.reduceEffect(state, retaliateEffect);
     }
   }
 
