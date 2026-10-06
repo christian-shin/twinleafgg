@@ -1,8 +1,9 @@
 import { CardType, TrainerType } from '../../../game/store/card/card-types';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { AfterDamageEffect } from '../../../game/store/effects/attack-effects';
+import { AfterDamageEffect, AttackTriggerEffect } from '../../../game/store/effects/attack-effects';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
+import { ATTACK_TRIGGER } from '../../../game/store/prefabs/after-damage';
 import { ToolEffect } from '../../../game/store/effects/play-card-effects';
 
 import { StateUtils } from '../../../game/store/state-utils';
@@ -33,6 +34,16 @@ export class PunkHelmet extends TrainerCard {
         return state;
       }
 
+      // Step 7 of the attack flow chart: it resolves after the effects of the attack's own text.
+      return ATTACK_TRIGGER(store, state, effect, this);
+    }
+
+    if (effect instanceof AttackTriggerEffect && effect.card === this) {
+      // An attack that discarded this card stops it (ruling 1649)
+      if (!effect.target.tools.includes(this)) {
+        return state;
+      }
+
       // Try to reduce ToolEffect, to check if something is blocking the tool from working
       try {
         const stub = new ToolEffect(effect.player, this);
@@ -44,7 +55,8 @@ export class PunkHelmet extends TrainerCard {
       const checkPokemonType = new CheckPokemonTypeEffect(effect.target);
       store.reduceEffect(state, checkPokemonType);
 
-      if (checkPokemonType.cardTypes.includes(CardType.DARK) && state.phase === GamePhase.ATTACK) {
+      // Not when the Attacking Pokémon left play (ruling 530); on the Bench it still gets the counters (ruling 1839)
+      if (checkPokemonType.cardTypes.includes(CardType.DARK) && state.phase === GamePhase.ATTACK && effect.sourceInPlay) {
         effect.source.damage += 40;
       }
     }
