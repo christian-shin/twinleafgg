@@ -1,6 +1,6 @@
-import { CardType, GamePhase, PokemonCard, PowerType, Stage, State, StateUtils, StoreLike } from '../../../game';
-import { PutDamageEffect } from '../../../game/store/effects/attack-effects';
-import { CheckHpEffect } from '../../../game/store/effects/check-effects';
+import { CardType, PokemonCard, PowerType, Stage, State, StoreLike } from '../../../game';
+import { KnockOutEffect } from '../../../game/store/effects/game-effects';
+import { ATTACK_THAT_DAMAGED_KNOCKED_OUT } from '../../../game/store/prefabs/last-attack';
 import { Effect } from '../../../game/store/effects/effect';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { BLOCK_RETREAT } from '../../../game/store/prefabs/effect-of-attack-prefabs';
@@ -33,26 +33,19 @@ export class Maractus extends PokemonCard {
   public fullName: string = 'Maractus JTG';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    // Explosive Needle
-    if (effect instanceof PutDamageEffect && effect.target.cards.includes(this)) {
-      const player = StateUtils.findOwner(state, effect.target);
-      const pokemonCard = effect.target.getPokemonCard();
+    // Explosive Needle: step 8 of the attack flow chart, when the Knock Out is checked (after every effect of the
+    // attack is resolved). It was Active when the attack damaged it (ruling 1547); the Attacking Pokémon takes the
+    // counters wherever it is in play, and nothing happens when it left play (ruling 1631).
+    if (effect instanceof KnockOutEffect && effect.target.cards.includes(this) && !effect.preventDefault) {
+      const player = effect.player;
 
-      // Only while Active, and only from the opponent's attacks
-      if (pokemonCard !== this || player.active !== effect.target || effect.player === player) {
+      if (effect.target.getPokemonCard() !== this || IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }
 
-      if (state.phase !== GamePhase.ATTACK || IS_ABILITY_BLOCKED(store, state, player, this)) {
-        return state;
-      }
-
-      const checkHpEffect = new CheckHpEffect(player, effect.target);
-      store.reduceEffect(state, checkHpEffect);
-      const currentHp = checkHpEffect.hp - effect.target.damage;
-
-      if (effect.damage >= currentHp) {
-        effect.source.damage += 60;
+      const attack = ATTACK_THAT_DAMAGED_KNOCKED_OUT(state, effect);
+      if (attack !== undefined && attack.list !== undefined) {
+        attack.list.damage += 60;
       }
     }
     // Corner

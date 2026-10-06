@@ -15,6 +15,7 @@ import { State, GamePhase } from "../state/state";
 import { StoreLike } from "../store-like";
 import { ADD_TEN_HP_SURVIVOR } from "../prefabs/survive-on-ten";
 import { ATTACK_TRIGGER } from "../prefabs/after-damage";
+import { RECORD_ACTIVE_DAMAGED } from "../prefabs/last-attack";
 
 function applyPutDamage(store: StoreLike, state: State, effect: PutDamageEffect): State {
   const target = effect.target;
@@ -410,6 +411,10 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
   if (effect instanceof AfterDamageEffect) {
     const targetOwner = StateUtils.findOwner(state, effect.target);
     targetOwner.marker.addMarkerToState(effect.player.DAMAGE_DEALT_MARKER);
+
+    if (effect.damage > 0 && targetOwner !== effect.player && targetOwner.active === effect.target && state.phase === GamePhase.ATTACK) {
+      RECORD_ACTIVE_DAMAGED(effect.target);
+    }
 
     // Revenge trap (Shell Trap / Counter Press) — even if Knocked Out. Step 7 of the attack flow chart: it is
     // recorded now and resolves after the attack's own effects (AttackTriggerEffect below; rulings 529, 879).

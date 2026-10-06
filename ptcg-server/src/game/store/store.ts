@@ -14,6 +14,7 @@ import { CheckAttackCostEffect, CheckPokemonPowersEffect, CheckRetreatCostEffect
 import { AttackEffect, MovedFromActiveToBenchEffect, MovedToActiveEffect, PowerEffect } from './effects/game-effects';
 import { AfterAttackEffect } from './effects/game-phase-effects';
 import { CLEAR_TEN_HP_SURVIVORS } from './prefabs/survive-on-ten';
+import { BEGIN_LAST_ATTACK } from './prefabs/last-attack';
 import {
   CLEAR_ABILITY_LOCK_ACTIVATION,
   STAMP_ABILITY_LOCK_ACTIVATION,
@@ -191,6 +192,7 @@ export class Store implements StoreLike {
     }
     if (effect instanceof AttackEffect) {
       CLEAR_TEN_HP_SURVIVORS();
+      BEGIN_LAST_ATTACK(effect);
     }
     if (OracleHooks.onEffect !== undefined) {
       OracleHooks.onEffect(effect);
