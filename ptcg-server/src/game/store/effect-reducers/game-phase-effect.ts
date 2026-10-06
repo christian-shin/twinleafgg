@@ -14,6 +14,7 @@ import { StateUtils } from '../state-utils';
 import { RESOLVE_PENDING_END_OF_OPPONENTS_NEXT_TURN_EFFECTS } from '../prefabs/attack-effects';
 import { MOVE_CARDS } from '../prefabs/prefabs';
 import { PokemonCard } from '../card/pokemon-card';
+import { KEEP_TEN_HP_SURVIVORS } from '../prefabs/survive-on-ten';
 
 /** Silent hold so clients (and admin phase HUD) can show automatic phase transitions. */
 const PHASE_TRANSITION_WAIT_MS = 500;
@@ -229,6 +230,7 @@ function handleSpecialConditions(store: StoreLike, state: State, effect: Between
 export function gamePhaseReducer(store: StoreLike, state: State, effect: Effect): State {
 
   if (effect instanceof AfterAttackEffect) {
+    KEEP_TEN_HP_SURVIVORS(store, state, effect.player);
     effect.opponent.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
       if (cardList.defendingPokemonExtraDamageRearmAfterAttack) {
         cardList.defendingPokemonExtraDamageRearmAfterAttack = false;

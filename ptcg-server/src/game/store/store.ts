@@ -11,8 +11,9 @@ import { ChangeAvatarAction } from './actions/change-avatar-action';
 import { Effect } from './effects/effect';
 import { PlayPokemonEffect, TrainerEffect } from './effects/play-card-effects';
 import { CheckAttackCostEffect, CheckPokemonPowersEffect, CheckRetreatCostEffect } from './effects/check-effects';
-import { MovedFromActiveToBenchEffect, MovedToActiveEffect, PowerEffect } from './effects/game-effects';
+import { AttackEffect, MovedFromActiveToBenchEffect, MovedToActiveEffect, PowerEffect } from './effects/game-effects';
 import { AfterAttackEffect } from './effects/game-phase-effects';
+import { CLEAR_TEN_HP_SURVIVORS } from './prefabs/survive-on-ten';
 import {
   CLEAR_ABILITY_LOCK_ACTIVATION,
   STAMP_ABILITY_LOCK_ACTIVATION,
@@ -187,6 +188,9 @@ export class Store implements StoreLike {
     // Energy removed as an effect of an attack waits for the damage (prefabs/after-damage.ts).
     if (DEFER_UNTIL_AFTER_DAMAGE(this, effect)) {
       return state;
+    }
+    if (effect instanceof AttackEffect) {
+      CLEAR_TEN_HP_SURVIVORS();
     }
     if (OracleHooks.onEffect !== undefined) {
       OracleHooks.onEffect(effect);

@@ -13,6 +13,7 @@ import { CoinFlipPrompt } from "../prompts/coin-flip-prompt";
 import { StateUtils } from "../state-utils";
 import { State, GamePhase } from "../state/state";
 import { StoreLike } from "../store-like";
+import { ADD_TEN_HP_SURVIVOR } from "../prefabs/survive-on-ten";
 
 function applyPutDamage(store: StoreLike, state: State, effect: PutDamageEffect): State {
   const target = effect.target;
@@ -54,6 +55,7 @@ function applyPutDamage(store: StoreLike, state: State, effect: PutDamageEffect)
           reason: effect.surviveOnTenHPReason,
         });
         target.damage = checkHpEffect.hp - 10;
+        ADD_TEN_HP_SURVIVOR(target);
       }
     }
 
