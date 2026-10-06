@@ -4,7 +4,7 @@ import { StoreLike } from '../../../game/store/store-like';
 import { State, GamePhase } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { AfterDamageEffect } from '../../../game/store/effects/attack-effects';
-import { AfterAttackEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
+import { AfterAttackTriggersEffect, EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { StateUtils } from '../../../game/store/state-utils';
 import { AttachEnergyPrompt, CardTarget, GameMessage, PlayerType, SlotType } from '../../../game';
 import { ToolEffect } from '../../../game/store/effects/play-card-effects';
@@ -26,7 +26,8 @@ export class HandyFan extends TrainerCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // The damage arms the effect on the attacking Pokémon (its slot, wherever it is when the attack
-    // is over); it resolves after the attack's own effects (ruling 1625, 1649, 1650, 1651).
+    // is over); it resolves in AfterAttackTriggersEffect, after the attack's own effects and the prompts
+    // they opened (switches, ...) are resolved (ruling 1625, 1649, 1650, 1651).
     if (effect instanceof AfterDamageEffect && effect.target.tools.includes(this)) {
       const player = effect.player;
       const targetPlayer = StateUtils.findOwner(state, effect.target);
@@ -44,12 +45,13 @@ export class HandyFan extends TrainerCard {
       }
 
       if (state.phase === GamePhase.ATTACK) {
-        effect.source.marker.addMarker(this.HANDY_FAN_MARKER, this);
+        // An effect of a Trainer card: it stays on the attacker when an effect of the attack switches it to the Bench
+        effect.source.marker.addMarker(this.HANDY_FAN_MARKER, this, 'trainer');
       }
       return state;
     }
 
-    if (effect instanceof AfterAttackEffect) {
+    if (effect instanceof AfterAttackTriggersEffect) {
       const player = effect.player;
       const opponent = effect.opponent;
 

@@ -6,6 +6,7 @@ import { Effect } from '../effects/effect';
 import { AttackEffect, KnockOutEffect } from '../effects/game-effects';
 import {
   AfterAttackEffect,
+  AfterAttackTriggersEffect,
   BeforeDoingDamageEffect,
   BeginTurnEffect,
   BetweenTurnsEffect,
@@ -387,6 +388,7 @@ export function runDelegatedCopiedAttack(ctx: DelegatedCopiedAttackContext): Sta
   if (!skipAfterAttack) {
     const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack);
     state = store.reduceEffect(state, afterAttackEffect);
+    state = store.reduceEffect(state, new AfterAttackTriggersEffect(player, opponent, clonedAttack));
   }
 
   return state;
@@ -465,6 +467,12 @@ export function* runDelegatedCopiedAttackGenerator(
   if (!skipAfterAttack) {
     const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack);
     state = store.reduceEffect(state, afterAttackEffect);
+
+    if (store.hasPrompts()) {
+      yield store.waitPrompt(state, () => next());
+    }
+
+    state = store.reduceEffect(state, new AfterAttackTriggersEffect(player, opponent, clonedAttack));
 
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());

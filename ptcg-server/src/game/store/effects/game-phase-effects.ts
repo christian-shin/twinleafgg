@@ -14,6 +14,7 @@ export enum GamePhaseEffects {
   DREW_TOPDECK_EFFECT = 'DREW_TOPDECK_EFFECT',
   CHOOSE_PRIZE_EFFECT = 'CHOOSE_PRIZE_EFFECT',
   AFTER_ATTACK_EFFECT = 'AFTER_ATTACK_EFFECT',
+  AFTER_ATTACK_TRIGGERS_EFFECT = 'AFTER_ATTACK_TRIGGERS_EFFECT',
   BEFORE_DOING_DAMAGE_EFFECT = 'BEFORE_DOING_DAMAGE_EFFECT',
 }
 
@@ -78,6 +79,25 @@ export class BeforeDoingDamageEffect implements Effect {
 
 export class AfterAttackEffect implements Effect {
   readonly type: string = GamePhaseEffects.AFTER_ATTACK_EFFECT;
+  public preventDefault = false;
+  public player: Player;
+  public opponent: Player;
+  public attack: Attack;
+
+  constructor(player: Player, opponent: Player, attack: Attack) {
+    this.player = player;
+    this.opponent = opponent;
+    this.attack = attack;
+  }
+}
+
+/**
+ * Sent once everything the attack itself did (AfterAttackEffect, including the prompts its handlers
+ * opened: switches, discards, ...) is resolved. Effects that trigger on the Defending Pokemon, like
+ * Handheld Fan, resolve here (rulings 1625, 1650, 1651).
+ */
+export class AfterAttackTriggersEffect implements Effect {
+  readonly type: string = GamePhaseEffects.AFTER_ATTACK_TRIGGERS_EFFECT;
   public preventDefault = false;
   public player: Player;
   public opponent: Player;

@@ -27,7 +27,7 @@ import {
   UseTrainerPowerEffect,
   EffectOfAbilityEffect,
 } from '../effects/game-effects';
-import { AfterAttackEffect, BeforeDoingDamageEffect, EndTurnEffect } from '../effects/game-phase-effects';
+import { AfterAttackEffect, AfterAttackTriggersEffect, BeforeDoingDamageEffect, EndTurnEffect } from '../effects/game-phase-effects';
 import { CoinFlipPrompt } from '../prompts/coin-flip-prompt';
 import { PlayerType, SlotType } from '../actions/play-card-action';
 import { StateUtils } from '../state-utils';
@@ -383,6 +383,12 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
 
     const afterAttackEffect = new AfterAttackEffect(effect.player, opponent, attack);
     state = store.reduceEffect(state, afterAttackEffect);
+
+    if (store.hasPrompts()) {
+      yield store.waitPrompt(state, () => next());
+    }
+
+    state = store.reduceEffect(state, new AfterAttackTriggersEffect(effect.player, opponent, attack));
 
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());
