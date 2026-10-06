@@ -4,7 +4,7 @@ import { Attack } from '../card/pokemon-types';
 import { Player } from '../state/player';
 import { PokemonCardList } from '../state/pokemon-card-list';
 import { Effect } from './effect';
-import { AttackEffect } from './game-effects';
+import { AttackEffect, AttackTrigger } from './game-effects';
 import { AfterAttackEffect } from './game-phase-effects';
 
 export enum AttackEffects {
@@ -14,6 +14,7 @@ export enum AttackEffects {
   KNOCK_OUT_OPPONENT_EFFECT = 'KNOCK_OUT_OPPONENT_EFFECT',
   KNOCK_OUT_PLAYER_EFFECT = 'KNOCK_OUT_PLAYER_EFFECT',
   AFTER_DAMAGE_EFFECT = 'AFTER_DAMAGE_EFFECT',
+  ATTACK_TRIGGER_EFFECT = 'ATTACK_TRIGGER_EFFECT',
   PUT_COUNTERS_EFFECT = 'PUT_COUNTERS_EFFECT',
   DISCARD_CARD_EFFECT = 'DISCARD_CARD_EFFECT',
   DISCARD_CARDS_FROM_OPPONENTS_ACTIVE_EFFECT = 'DISCARD_CARDS_FROM_OPPONENTS_ACTIVE_EFFECT',
@@ -121,6 +122,39 @@ export class AfterDamageEffect extends AbstractAttackEffect implements Effect {
   constructor(base: AttackEffect, damage: number) {
     super(base);
     this.damage = damage;
+  }
+}
+
+/**
+ * Step 7 of the attack flow chart: a recorded trigger (`AttackTrigger`) resolves. Only `card` reacts
+ * (it re-checks that it is still attached and not blocked); `sourceInPlay` tells whether the Attacking
+ * Pokémon is still in play (in the Active Spot or on the Bench).
+ */
+export class AttackTriggerEffect implements Effect {
+  readonly type: string = AttackEffects.ATTACK_TRIGGER_EFFECT;
+  public preventDefault = false;
+  public attackEffect: AttackEffect;
+  public attack: Attack;
+  public player: Player;
+  public opponent: Player;
+  public card: Card;
+  public target: PokemonCardList;
+  public damage: number;
+  public source: PokemonCardList;
+  public sourceInPlay: boolean;
+  public retaliate?: AttackTrigger['retaliate'];
+
+  constructor(attackEffect: AttackEffect, trigger: AttackTrigger) {
+    this.attackEffect = attackEffect;
+    this.attack = attackEffect.attack;
+    this.player = attackEffect.player;
+    this.opponent = attackEffect.opponent;
+    this.card = trigger.card;
+    this.target = trigger.target;
+    this.damage = trigger.damage;
+    this.source = trigger.source;
+    this.sourceInPlay = trigger.sourcePokemon !== undefined && trigger.source.getPokemonCard() === trigger.sourcePokemon;
+    this.retaliate = trigger.retaliate;
   }
 }
 

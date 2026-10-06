@@ -1,7 +1,8 @@
 import { SuperType } from '../card/card-types';
-import { CardsToHandEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, LostZoneCardsEffect, MoveOpponentEnergyEffect } from '../effects/attack-effects';
+import { AfterDamageEffect, AttackTriggerEffect, CardsToHandEffect, DiscardCardsEffect, DiscardCardsFromOpponentsActivePokemonEffect, LostZoneCardsEffect, MoveOpponentEnergyEffect } from '../effects/attack-effects';
+import { Card } from '../card/card';
 import { Effect } from '../effects/effect';
-import { AttackEffect, MoveCardsEffect } from '../effects/game-effects';
+import { AttackEffect, AttackTrigger, MoveCardsEffect } from '../effects/game-effects';
 import { State } from '../state/state';
 import { StoreLike } from '../store-like';
 
@@ -18,6 +19,7 @@ import { StoreLike } from '../store-like';
  */
 export function OPEN_AFTER_DAMAGE_EFFECTS(attackEffect: AttackEffect): void {
   attackEffect.afterDamageEffects = [];
+  attackEffect.attackTriggers = [];
 }
 
 /**
@@ -69,6 +71,51 @@ export function RUN_AFTER_DAMAGE_EFFECTS(state: State, attackEffect: AttackEffec
   attackEffect.afterDamageEffects = undefined;
   for (const step of queued || []) {
     state = step(state);
+  }
+  return state;
+}
+
+/**
+ * Step 7 of the attack flow chart: "resolve effects of the opponent's Active Pokémon, effects that activate
+ * when a Pokémon receives the attack". The effect of `card` on the damaged Pokémon is recorded when the damage
+ * is done (the cards call this from AfterDamageEffect once they know they apply: damage above 0, the damaged
+ * Pokémon in the Active Spot, an opponent's attack) and resolves in RUN_ATTACK_TRIGGERS, after every effect of
+ * the attack's text and its prompts. Pending triggers resolve in the order they were recorded (the order the
+ * damage was done, then the order the cards react to the AfterDamageEffect). Outside an attack flow with an open
+ * window the trigger resolves at once.
+ *
+ * The card then re-checks, when its AttackTriggerEffect reaches it, that it is still attached to the damaged
+ * Pokémon (a discard by the attack stops it, ruling 1649) and not blocked.
+ */
+export function ATTACK_TRIGGER(
+  store: StoreLike,
+  state: State,
+  effect: AfterDamageEffect,
+  card: Card,
+  retaliate?: AttackTrigger['retaliate'],
+): State {
+  const trigger: AttackTrigger = {
+    card,
+    target: effect.target,
+    damage: effect.damage,
+    source: effect.source,
+    sourcePokemon: effect.source.getPokemonCard(),
+    retaliate,
+  };
+  const attackEffect = effect.attackEffect;
+  if (attackEffect.attackTriggers !== undefined) {
+    attackEffect.attackTriggers.push(trigger);
+    return state;
+  }
+  return store.reduceEffect(state, new AttackTriggerEffect(attackEffect, trigger));
+}
+
+/** Resolve the recorded step 7 triggers of the attack (after AfterAttackEffect and the prompts it opened). */
+export function RUN_ATTACK_TRIGGERS(store: StoreLike, state: State, attackEffect: AttackEffect): State {
+  const queued = attackEffect.attackTriggers;
+  attackEffect.attackTriggers = undefined;
+  for (const trigger of queued || []) {
+    state = store.reduceEffect(state, new AttackTriggerEffect(attackEffect, trigger));
   }
   return state;
 }

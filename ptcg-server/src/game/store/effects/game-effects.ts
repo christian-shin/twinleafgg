@@ -9,6 +9,7 @@ import { TrainerCard } from '../card/trainer-card';
 import { CardList } from '../state/card-list';
 import { EnergyCard } from '../card/energy-card';
 import { State } from '../state/state';
+import { StoredRetaliateOnDamage } from '../state/pokemon-card-list';
 
 export enum GameEffects {
   RETREAT_EFFECT = 'RETREAT_EFFECT',
@@ -196,6 +197,24 @@ export class UseStadiumEffect implements Effect {
   }
 }
 
+/**
+ * Step 7 of the attack flow chart: an effect that activates when a Pokémon receives the attack
+ * (Spiky Energy, Punk Helmet, Handheld Fan, Heatran, the delayed traps, ...). It is recorded when the
+ * damage is done and resolves after the attack's own effects (`prefabs/after-damage.ts`).
+ */
+export interface AttackTrigger {
+  /** The card whose effect triggered (a Tool, an Energy, a Pokémon). */
+  card: Card;
+  /** The damaged Pokémon (the Defending Pokémon when the damage was done). */
+  target: PokemonCardList;
+  damage: number;
+  /** The Attacking Pokémon's slot and the Pokémon card that was in it. */
+  source: PokemonCardList;
+  sourcePokemon: PokemonCard | undefined;
+  /** Delayed trap of the damaged Pokémon (Bouffalant, Iron Boulder ex, ...). */
+  retaliate?: StoredRetaliateOnDamage;
+}
+
 export class AttackEffect implements Effect {
   readonly type: string = GameEffects.ATTACK_EFFECT;
   public preventDefault = false;
@@ -213,6 +232,8 @@ export class AttackEffect implements Effect {
   public invisibleTentacles?: boolean = false;
   /** Energy removals of this attack that wait for the damage (`prefabs/after-damage.ts`); undefined when no window is open. */
   public afterDamageEffects?: Array<(state: State) => State>;
+  /** Step 7 triggers of the damage this attack did, resolved after the attack's own effects; undefined when no window is open. */
+  public attackTriggers?: AttackTrigger[];
   target: any;
 
   constructor(player: Player, opponent: Player, attack: Attack) {

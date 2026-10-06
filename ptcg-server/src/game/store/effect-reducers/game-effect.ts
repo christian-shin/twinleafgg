@@ -35,7 +35,7 @@ import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
 import { MoveCardsEffect } from '../effects/game-effects';
 import { runDelegatedCopiedAttackGenerator } from '../prefabs/copy-attack-delegation';
-import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS } from '../prefabs/after-damage';
+import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, RUN_ATTACK_TRIGGERS } from '../prefabs/after-damage';
 import { GameStatsTracker } from '../game-stats-tracker';
 import { PokemonCardList } from '../state/pokemon-card-list';
 import { MOVE_CARDS, COIN_FLIP_PROMPT, IS_ABILITY_BLOCKED } from '../prefabs/prefabs';
@@ -389,6 +389,7 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
     }
 
     state = store.reduceEffect(state, new AfterAttackTriggersEffect(effect.player, opponent, attack));
+    state = RUN_ATTACK_TRIGGERS(store, state, attackEffect);
 
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());

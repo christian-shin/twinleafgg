@@ -4,9 +4,9 @@ import { StoreLike } from '../../../game/store/store-like';
 import { State, GamePhase } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game';
-import { AfterDamageEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
+import { AfterDamageEffect, AttackTriggerEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
 import { IS_SPECIAL_ENERGY_BLOCKED } from '../../../game/store/prefabs/prefabs';
-import { AFTER_DAMAGE_OR_NOW } from '../../../game/store/prefabs/after-damage';
+import { ATTACK_TRIGGER } from '../../../game/store/prefabs/after-damage';
 
 
 export class SpikyEnergy extends EnergyCard {
@@ -35,27 +35,33 @@ export class SpikyEnergy extends EnergyCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     // Triggers when the Pokémon is damaged: not when the damage was prevented or reduced to 0 (AfterDamageEffect,
-    // like Punk Helmet and Lucky Helmet), even if it is Knocked Out (the Knock Out is checked later)
+    // like Punk Helmet and Lucky Helmet), even if it is Knocked Out (the Knock Out is checked later).
+    // "In the Active Spot" is judged when the damage is done (ruling 1839).
     if (effect instanceof AfterDamageEffect && effect.target.cards.includes(this) && state.phase === GamePhase.ATTACK) {
       const player = StateUtils.findOwner(state, effect.target);
       const opponent = effect.player;
       if (player === opponent || player.active !== effect.target)
         return state;
 
+      // Step 7 of the attack flow chart: it resolves after the effects of the attack's own text.
+      return ATTACK_TRIGGER(store, state, effect, this);
+    }
+
+    if (effect instanceof AttackTriggerEffect && effect.card === this) {
+      // An attack that discarded this card (Duraludon's Hyper Beam) stops it (ruling 1649)
+      if (!effect.target.cards.includes(this)) {
+        return state;
+      }
       if (IS_SPECIAL_ENERGY_BLOCKED(store, state, effect.player, this, effect.target)) {
         return state;
       }
-      // Step 7 of the attack flow chart: the effects on the Defending Pokémon come after the effects of the
-      // attack's own text, so an attack that discards this card (Duraludon's Hyper Beam) stops it.
-      const damaged = effect.target;
-      return AFTER_DAMAGE_OR_NOW(state, effect.attackEffect, s => {
-        if (!damaged.cards.includes(this)) {
-          return s;
-        }
-        const putCountersEffect = new PutCountersEffect(effect, 20);
-        putCountersEffect.target = effect.source;
-        return store.reduceEffect(s, putCountersEffect);
-      });
+      // The Attacking Pokémon is affected wherever it is in play (ruling 1839); not when it left play (ruling 530)
+      if (!effect.sourceInPlay) {
+        return state;
+      }
+      const putCountersEffect = new PutCountersEffect(effect.attackEffect, 20);
+      putCountersEffect.target = effect.source;
+      return store.reduceEffect(state, putCountersEffect);
     }
     return state;
   }
