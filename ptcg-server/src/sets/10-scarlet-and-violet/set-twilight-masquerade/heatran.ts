@@ -1,9 +1,10 @@
 import { Card, GamePhase, PowerType, State, StateUtils, StoreLike } from '../../../game';
 import { CardType, SpecialCondition, Stage } from '../../../game/store/card/card-types';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
-import { AfterDamageEffect, DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
+import { AfterDamageEffect, AttackTriggerEffect, DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
+import { ATTACK_TRIGGER } from '../../../game/store/prefabs/after-damage';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Heatran extends PokemonCard {
@@ -68,11 +69,22 @@ export class Heatran extends PokemonCard {
         return state;
       }
 
-      if (IS_ABILITY_BLOCKED(store, state, player, this)) {
+      // Step 7 of the attack flow chart: it resolves after the effects of the attack's own text.
+      return ATTACK_TRIGGER(store, state, effect, this);
+    }
+
+    if (effect instanceof AttackTriggerEffect && effect.card === this) {
+      if (!effect.target.cards.includes(this)) {
         return state;
       }
 
-      if (state.phase === GamePhase.ATTACK) {
+      if (IS_ABILITY_BLOCKED(store, state, effect.player, this)) {
+        return state;
+      }
+
+      // Special Conditions exist only in the Active Spot: an Attacking Pokémon that was switched to the Bench
+      // (or left play) can't be Burned any more.
+      if (state.phase === GamePhase.ATTACK && effect.sourceInPlay && effect.player.active === effect.source) {
         effect.source.addSpecialCondition(SpecialCondition.BURNED);
       }
     }
