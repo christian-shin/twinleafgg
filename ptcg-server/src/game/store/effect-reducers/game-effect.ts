@@ -29,7 +29,8 @@ import {
 } from '../effects/game-effects';
 import { AfterAttackEffect, AfterAttackTriggersEffect, BeforeDoingDamageEffect, EndTurnEffect } from '../effects/game-phase-effects';
 import { CoinFlipPrompt } from '../prompts/coin-flip-prompt';
-import { PlayerType, SlotType } from '../actions/play-card-action';
+import { CardTarget, PlayerType, SlotType } from '../actions/play-card-action';
+import { ATTACKER_OF_KNOCK_OUT } from '../prefabs/last-attack';
 import { StateUtils } from '../state-utils';
 import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
@@ -653,7 +654,10 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
         && effect.target.discardAttackerEnergyIfKnockedOutNextTurnSourceCard
         && effect.target.discardAttackerEnergyIfKnockedOutNextTurnAttackerId !== undefined) {
         const prizeTaker = StateUtils.getOpponent(state, effect.player);
-        const attackerEnergy = prizeTaker.active.cards.filter(c => c.superType === SuperType.ENERGY);
+        // "The Attacking Pokémon" is the Pokémon that used the attack, wherever it is by now (ruling 460);
+        // nothing happens when it left play.
+        const attackerList = ATTACKER_OF_KNOCK_OUT(state, effect)?.list;
+        const attackerEnergy = attackerList === undefined ? [] : attackerList.cards.filter(c => c.superType === SuperType.ENERGY);
         const grudgeAttack = effect.target.discardAttackerEnergyIfKnockedOutNextTurnAttack;
         const grudgeSourceCard = effect.target.discardAttackerEnergyIfKnockedOutNextTurnSourceCard;
         const grudgeAttackerId = effect.target.discardAttackerEnergyIfKnockedOutNextTurnAttackerId;
@@ -675,20 +679,29 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
           const base = new AttackEffect(grudgeOwner, prizeTaker, grudgeAttack);
           base.source = sourceList;
           const discard = new DiscardCardsEffect(base, cards);
-          discard.target = prizeTaker.active;
+          discard.target = attackerList!;
           store.reduceEffect(state, discard);
         };
 
         if (attackerEnergy.length === 1) {
           discardSelected(attackerEnergy);
         } else if (attackerEnergy.length > 1) {
+          const attackerOnBench = prizeTaker.bench.indexOf(attackerList!);
+          const blockedFrom: CardTarget[] = [];
+          if (attackerOnBench !== -1) {
+            prizeTaker.bench.forEach((_, i) => {
+              if (i !== attackerOnBench) {
+                blockedFrom.push({ player: PlayerType.TOP_PLAYER, slot: SlotType.BENCH, index: i });
+              }
+            });
+          }
           state = store.prompt(state, new DiscardEnergyPrompt(
             effect.player.id,
             GameMessage.CHOOSE_ENERGIES_TO_DISCARD,
             PlayerType.TOP_PLAYER,
-            [SlotType.ACTIVE],
+            [attackerOnBench === -1 ? SlotType.ACTIVE : SlotType.BENCH],
             { superType: SuperType.ENERGY },
-            { allowCancel: false, min: 1, max: 1 }
+            { allowCancel: false, min: 1, max: 1, blockedFrom }
           ), transfers => {
             if (!transfers || transfers.length === 0) {
               return;
