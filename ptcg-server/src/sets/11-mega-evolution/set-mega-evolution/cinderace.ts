@@ -56,7 +56,8 @@ export class Cinderace extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
-      if (player.deck.cards.length === 0) {
+      // The attack is still used when nothing can be attached; it just does its damage (rulings 1790, 336).
+      if (player.deck.cards.length === 0 || !player.bench.some((b) => b.cards.length > 0)) {
         return state;
       }
 
