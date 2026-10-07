@@ -96,7 +96,8 @@ export class PutDamageEffect extends AbstractAttackEffect implements Effect {
     if (source && this.nonstackingDamageReducers.includes(source)) {
       return;
     }
-    this.damage = Math.max(0, this.damage - amount);
+    // Step 5 effects are summed; the damage is floored at 0 once, when it is put on the Pokemon (Advanced Rulebook B-05)
+    this.damage -= amount;
     if (source) {
       this.nonstackingDamageReducers.push(source);
     }

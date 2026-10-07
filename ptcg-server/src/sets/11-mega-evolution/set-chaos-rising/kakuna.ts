@@ -49,7 +49,7 @@ export class Kakuna extends PokemonCard {
         return state;
       }
       if (effect.target.getPokemonCard() === this) {
-        effect.damage = Math.max(0, effect.damage - 20);
+        effect.damage -= 20;
       }
     }
     return state;
