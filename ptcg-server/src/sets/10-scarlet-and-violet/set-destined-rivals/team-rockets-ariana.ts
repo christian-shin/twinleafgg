@@ -7,7 +7,6 @@ import { StoreLike } from '../../../game/store/store-like';
 import { Player } from '../../../game/store/state/player';
 import { State } from '../../../game/store/state/state';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
-import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { PlayerType } from '../../../game/store/actions/play-card-action';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
@@ -39,9 +38,10 @@ export class TeamRocketsAriana extends TrainerCard {
       }
     }
 
-    // Check bench
+    // Check bench. A Fossil in play (a Trainer card) counts as a Pokémon, so it is not a Team Rocket's Pokémon
+    // (rulings 1880, 1101, 1053, 691): no instanceof check.
     player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card) => {
-      if (cardList !== player.active && card instanceof PokemonCard) {
+      if (cardList !== player.active) {
         hasPokemon = true;
         if (!card.hasTag(CardTag.TEAM_ROCKET)) {
           allTeamRocket = false;
