@@ -59,8 +59,7 @@ export class Crabominable extends PokemonCard {
           kofuCount += 1;
         }
       });
-      const index = effect.cost.indexOf(CardType.COLORLESS);
-      effect.cost.splice(index, kofuCount);
+      effect.costReduction += kofuCount;
 
       return state;
     }

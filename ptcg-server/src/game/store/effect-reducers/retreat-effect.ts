@@ -120,7 +120,10 @@ export function retreatReducer(store: StoreLike, state: State, effect: Effect): 
       const selection = StateUtils.selectMinimalEnergyForCost(
         checkProvidedEnergy.energyMap, checkRetreatCost.cost
       );
-      if (selection && selection.length > 0) {
+      // A cost paid by Energy providing several units has a choice (ruling 1652: 1 or 2 Double Turbo Energy for cost 2)
+      const hasChoice = selection !== null && selection.length < checkRetreatCost.cost.length
+        && checkProvidedEnergy.energyMap.length >= checkRetreatCost.cost.length;
+      if (selection && selection.length > 0 && !hasChoice) {
         const cards = selection.map(e => e.card);
         player.active.clearEffects();
         player.active.moveCardsTo(cards, player.discard);
@@ -194,7 +197,10 @@ export function retreatReducer(store: StoreLike, state: State, effect: Effect): 
       const selection = StateUtils.selectMinimalEnergyForCost(
         checkProvidedEnergy.energyMap, checkRetreatCost.cost
       );
-      if (selection && selection.length > 0) {
+      // A cost paid by Energy providing several units has a choice (ruling 1652: 1 or 2 Double Turbo Energy for cost 2)
+      const hasChoice = selection !== null && selection.length < checkRetreatCost.cost.length
+        && checkProvidedEnergy.energyMap.length >= checkRetreatCost.cost.length;
+      if (selection && selection.length > 0 && !hasChoice) {
         const cards = selection.map(e => e.card);
         player.active.clearEffects();
         player.active.moveCardsTo(cards, effect.moveRetreatCostTo);

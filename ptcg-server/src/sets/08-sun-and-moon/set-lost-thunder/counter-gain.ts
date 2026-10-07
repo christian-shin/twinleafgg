@@ -1,4 +1,4 @@
-import { CardType, TrainerType } from '../../../game/store/card/card-types';
+import { TrainerType } from '../../../game/store/card/card-types';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
 import { CheckAttackCostEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
@@ -29,20 +29,14 @@ export class CounterGain extends TrainerCard {
     if (effect instanceof CheckAttackCostEffect && effect.player.active.tools.includes(this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
-      const index = effect.cost.indexOf(CardType.COLORLESS);
 
       // Blocked by Jamming Tower or "Stadiums and Tools have no effect"
       if (IS_TOOL_BLOCKED(store, state, player, this)) {
         return state;
       }
 
-      // No cost to reduce
-      if (index === -1) {
-        return state;
-      }
-
       if (player.getPrizeLeft() > opponent.getPrizeLeft()) {
-        effect.cost.splice(index, 1);
+        effect.costReduction += 1;
       }
 
       return state;
