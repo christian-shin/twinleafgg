@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH, WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class VolbeatTWMPool extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -33,7 +33,7 @@ export class VolbeatTWMPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Quick Sign
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const openSlots = player.bench.filter(b => b.cards.length === 0).length;
       // The attack can be used even if nothing can be found; the search then does nothing.

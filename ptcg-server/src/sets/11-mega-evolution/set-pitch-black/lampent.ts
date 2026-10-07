@@ -7,7 +7,7 @@ import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prom
 import {
   GET_PLAYER_BENCH_SLOTS,
   SHUFFLE_DECK,
-  WAS_ATTACK_USED,
+  AFTER_ATTACK,
 } from '../../../game/store/prefabs/prefabs';
 
 export class Lampent extends PokemonCard {
@@ -37,7 +37,7 @@ export class Lampent extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Ref: set-unbroken-bonds/krookodile.ts (deck interaction); prefabs SEARCH bench pattern — manual slots for variable max
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const slots = GET_PLAYER_BENCH_SLOTS(player);
       const maxPut = Math.min(3, slots.length);

@@ -3,8 +3,8 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import {
-  WAS_ATTACK_USED,
   SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH,
+  AFTER_ATTACK,
 } from '../../../game/store/prefabs/prefabs';
 
 export class Drilbur extends PokemonCard {
@@ -38,7 +38,7 @@ export class Drilbur extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Ref: set-sword-and-shield/grookey.ts (Call for Family — up to 2 Basic)
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       return SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH(
         store,
         state,

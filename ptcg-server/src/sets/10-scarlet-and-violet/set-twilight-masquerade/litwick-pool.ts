@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SEARCH_YOUR_DECK_FOR_POKEMON_AND_PUT_ONTO_BENCH, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class LitwickTWMPool extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -31,7 +31,7 @@ export class LitwickTWMPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Call for Family
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       // The attack can be used even if nothing can be found; the search then does nothing.
       if (player.deck.cards.length === 0 || !player.bench.some(b => b.cards.length === 0)) {
