@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { SEARCH_DECK_FOR_CARDS_TO_HAND, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SEARCH_DECK_FOR_CARDS_TO_HAND, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class DelibirdMEGPool extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -32,7 +32,7 @@ export class DelibirdMEGPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Quick Gift
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       SEARCH_DECK_FOR_CARDS_TO_HAND(store, state, effect.player, this, {}, { min: 1, max: 1, allowCancel: false }, effect);
     }
     return state;

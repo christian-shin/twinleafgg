@@ -2,7 +2,7 @@ import { State, StoreLike, TrainerCard } from '../../../game';
 import { CardType, Stage, SuperType, TrainerType } from '../../../game/store/card/card-types';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
-import { SEARCH_DECK_FOR_CARDS_TO_HAND, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SEARCH_DECK_FOR_CARDS_TO_HAND, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Piplup extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -33,7 +33,7 @@ export class Piplup extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       let blocked: number[] = [];
       effect.player.deck.cards.forEach((card, index) => {
         if (!(card instanceof TrainerCard && card.trainerType === TrainerType.SUPPORTER)) {

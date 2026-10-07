@@ -1,6 +1,6 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, TrainerType } from '../../../game/store/card/card-types';
-import { SEARCH_DECK_FOR_CARDS_TO_HAND, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SEARCH_DECK_FOR_CARDS_TO_HAND, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { State, StoreLike, TrainerCard, pokemonHasCardType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
@@ -34,7 +34,7 @@ export class Celebi extends PokemonCard {
   public regulationMark: string = 'I';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       const blocked: number[] = [];

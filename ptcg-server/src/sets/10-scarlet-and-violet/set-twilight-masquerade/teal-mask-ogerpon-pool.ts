@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, EnergyType, StoreLike, State, StateUtils, SuperType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { SEARCH_DECK_FOR_CARDS_TO_HAND, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SEARCH_DECK_FOR_CARDS_TO_HAND, WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class TealMaskOgerponTWMPool extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -32,7 +32,7 @@ export class TealMaskOgerponTWMPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Mountain Stroll
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       SEARCH_DECK_FOR_CARDS_TO_HAND(store, state, effect.player, this,
         { superType: SuperType.ENERGY, energyType: EnergyType.BASIC } as any,
         { min: 0, max: 2, allowCancel: false }, effect);
