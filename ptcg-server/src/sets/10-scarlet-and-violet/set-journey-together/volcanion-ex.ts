@@ -23,6 +23,7 @@ import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { AddSpecialConditionsPowerEffect } from '../../../game/store/effects/check-effects';
 import {WAS_ATTACK_USED, WAS_POWER_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { WOULD_CHANGE_SPECIAL_CONDITIONS } from '../../../game/store/prefabs/special-condition-change';
 
 export class Volcanionex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex];
@@ -74,6 +75,11 @@ export class Volcanionex extends PokemonCard {
       }
 
       if (player.marker.hasMarker(this.SCORCHING_STEAM, this)) {
+        throw new GameError(GameMessage.CANNOT_USE_POWER);
+      }
+
+      // Can't be used when the Defending Pokemon is already Burned (Advanced Rulebook A-02, ruling 1565).
+      if (!WOULD_CHANGE_SPECIAL_CONDITIONS(opponent.active, [SpecialCondition.BURNED])) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 
