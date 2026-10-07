@@ -16,7 +16,7 @@ import {
   SlotType,
   StateUtils,
 } from '../../../game';
-import {SHUFFLE_DECK, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {SHUFFLE_DECK, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Miraidon extends PokemonCard {
   protected _tags = [CardTag.FUTURE];
@@ -57,7 +57,7 @@ export class Miraidon extends PokemonCard {
   public fullName: string = 'Miraidon TEF';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       // Only Future Pokémon can receive the Energy.

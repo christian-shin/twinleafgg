@@ -14,7 +14,7 @@ import {
   SuperType,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class MegaLucarioex extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -49,7 +49,7 @@ export class MegaLucarioex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Aura Jab
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       state = store.prompt(

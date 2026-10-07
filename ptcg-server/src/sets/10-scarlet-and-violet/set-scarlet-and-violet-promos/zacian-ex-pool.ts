@@ -2,6 +2,7 @@ import { PokemonCard, Stage, CardType, CardTag, EnergyType, SlotType, StoreLike,
 import { Effect } from '../../../game/store/effects/effect';
 import {
   ATTACH_UP_TO_X_ENERGY_FROM_DECK_TO_Y_OF_YOUR_POKEMON, THIS_POKEMON_CANNOT_USE_THIS_ATTACK_NEXT_TURN, WAS_ATTACK_USED,
+  AFTER_ATTACK,
 } from '../../../game/store/prefabs/prefabs';
 
 export class ZacianexSVPPool extends PokemonCard {
@@ -34,7 +35,7 @@ export class ZacianexSVPPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Steel Armament
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       return ATTACH_UP_TO_X_ENERGY_FROM_DECK_TO_Y_OF_YOUR_POKEMON(store, state, effect.player, 1, 1, {
         destinationSlots: [SlotType.ACTIVE],
         energyFilter: { energyType: EnergyType.BASIC, name: 'Metal Energy' },

@@ -20,7 +20,7 @@ import { KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON } from '../../../game/store/prefabs/
 import { Effect } from '../../../game/store/effects/effect';
 
 import { AttachEnergyEffect } from '../../../game/store/effects/play-card-effects';
-import { TERA_RULE, WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { TERA_RULE, WAS_ATTACK_USED, COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class AlolanExeggutorex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -55,7 +55,7 @@ export class AlolanExeggutorex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Tropical Fever
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       const hasEnergyInHand = player.hand.cards.some((c) => {

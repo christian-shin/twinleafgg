@@ -18,7 +18,7 @@ import { DiscardCardsEffect, PutDamageEffect, ignoresDefenderEffects } from '../
 import { GameMessage } from '../../../game/game-message';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { ChooseEnergyPrompt } from '../../../game/store/prompts/choose-energy-prompt';
-import {DAMAGE_OPPONENT_POKEMON, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {DAMAGE_OPPONENT_POKEMON, WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Greninjaex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -54,7 +54,7 @@ export class Greninjaex extends PokemonCard {
   public usedMirageBarrage: boolean = false;
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       if (player.deck.cards.length === 0) {
