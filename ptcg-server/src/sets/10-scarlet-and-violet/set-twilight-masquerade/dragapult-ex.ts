@@ -6,7 +6,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game/store/state-utils';
 import { SlotType } from '../../../game/store/actions/play-card-action';
 import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE } from '../../../game/store/prefabs/attack-effects';
 
 export class Dragapultex extends PokemonCard {
@@ -54,8 +54,8 @@ export class Dragapultex extends PokemonCard {
   public fullName: string = 'Dragapult ex TWM';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 1, this)) {
-      PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE(6, store, state, effect, [SlotType.BENCH]);
+    if (AFTER_ATTACK(effect, 1, this)) {
+      PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE(6, store, state, effect.attackEffect, [SlotType.BENCH]);
     }
 
     if (

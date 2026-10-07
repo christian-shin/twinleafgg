@@ -5,7 +5,7 @@ import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { SlotType, StateUtils } from '../../../game';
 import { PowerType } from '../../../game/store/card/pokemon-types';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE } from '../../../game/store/prefabs/attack-effects';
 import {
   HANDLE_ABILITY_LOCK,
@@ -87,8 +87,8 @@ export class FlutterMane extends PokemonCard {
       },
     );
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE(2, store, state, effect, [SlotType.BENCH]);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE(2, store, state, effect.attackEffect, [SlotType.BENCH]);
     }
 
     return state;
