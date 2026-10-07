@@ -42,7 +42,11 @@ export class Gholdengo extends PokemonCard {
       const cardList = StateUtils.findCardList(state, this);
 
       if (cardList instanceof PokemonCardList) {
-        if (cardList.pokemonPlayedTurn === state.turn) {
+        // "If this Pokémon evolved from Gimmighoul during this turn" (Advanced Rulebook E-24): a Pokémon copying
+        // this attack (Zoroark's Foul Play) evolved from something else, so the card under the user decides.
+        const stack = cardList.getPokemons();
+        const under = stack[stack.indexOf(this) - 1];
+        if (cardList.pokemonPlayedTurn === state.turn && under !== undefined && under.name === 'Gimmighoul') {
           effect.damage += 90;
         }
       }
