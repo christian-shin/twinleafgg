@@ -23,7 +23,8 @@ function* playCard(next: Function, store: StoreLike, state: State, effect: Train
     const checkHpEffect = new CheckHpEffect(player, cardList);
     store.reduceEffect(state, checkHpEffect);
 
-    if (checkHpEffect.hp - cardList.damage > 30) {
+    // A Pokémon without damage counters can't be chosen to heal (Advanced Rulebook C-06)
+    if (cardList.damage === 0 || checkHpEffect.hp - cardList.damage > 30) {
       blocked.push(target);
     } else {
       hasValidTarget = true;
@@ -85,7 +86,7 @@ export class BiancasDevotion extends TrainerCard {
     player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
       const checkHpEffect = new CheckHpEffect(player, cardList);
       store.reduceEffect(state, checkHpEffect);
-      if (checkHpEffect.hp - cardList.damage <= 30) {
+      if (cardList.damage > 0 && checkHpEffect.hp - cardList.damage <= 30) {
         hasValidTarget = true;
       }
     });

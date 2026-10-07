@@ -8,6 +8,7 @@ import { StoreLike, State, GameError, GameMessage, PlayerType, ChoosePokemonProm
 import { Effect } from '../../../game/store/effects/effect';
 import { HealEffect } from '../../../game/store/effects/game-effects';
 import { SlotType } from '../../../game/store/actions/play-card-action';
+import { CardTarget } from '../../../game/store/actions/play-card-action';
 import { WAS_TRAINER_USED } from '../../../game/store/prefabs/trainer-prefabs';
 
 export class PokemonCenterLady extends TrainerCard {
@@ -35,12 +36,21 @@ export class PokemonCenterLady extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
+      // A Pokémon with no damage counters and no Special Condition has nothing to heal and can't be chosen
+      // (Advanced Rulebook C-06; ruling 43)
+      const blocked: CardTarget[] = [];
+      player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
+        if (cardList.damage === 0 && cardList.specialConditions.length === 0) {
+          blocked.push(target);
+        }
+      });
+
       return store.prompt(state, new ChoosePokemonPrompt(
         player.id,
         GameMessage.CHOOSE_POKEMON_TO_HEAL,
         PlayerType.BOTTOM_PLAYER,
         [SlotType.ACTIVE, SlotType.BENCH],
-        { min: 1, max: 1, allowCancel: false }
+        { min: 1, max: 1, allowCancel: false, blocked }
       ), targets => {
         if (targets && targets.length > 0) {
           const target = targets[0];
