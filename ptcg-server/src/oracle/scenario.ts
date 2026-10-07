@@ -36,7 +36,7 @@
  *   active_conditions: ["POISONED", ...]   PARALYZED CONFUSED ASLEEP POISONED BURNED
  *   active_played: "this_turn" | "earlier" (default "earlier")
  *   bench: [{card: name | [names], energy, tool, damage, conditions, played}]
- *   supporter_played / energy_attached / retreated: true   this turn's flags
+ *   supporter_played / energy_attached / retreated / stadium_played: true   this turn's flags
  *   prizes_left: N               after every other edit, Prizes N..5 go to the
  *                                bottom of the deck (N Prize cards left)
  *
@@ -83,6 +83,7 @@ export interface ScenarioSide {
   bench?: ScenarioPokemon[];
   supporter_played?: boolean;
   energy_attached?: boolean;
+  stadium_played?: boolean;
   retreated?: boolean;
   prizes_left?: number;
 }
@@ -251,6 +252,9 @@ function applySide(store: StoreLike, state: State, player: Player, side: Scenari
   }
   if (side.energy_attached) {
     player.energyPlayedTurn = state.turn;
+  }
+  if (side.stadium_played) {
+    player.stadiumPlayedTurn = state.turn;
   }
   if (side.retreated) {
     player.retreatedTurn = state.turn;

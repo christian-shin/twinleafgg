@@ -22,7 +22,7 @@ import { Chance, ChanceEvent, Rng } from '../game/core/chance';
 import { OracleHooks } from '../game/core/oracle-hooks';
 import { Player } from '../game/store/state/player';
 import { Snapshot, withRollback } from './rollback';
-import { canonicalState, stableStringify, fnv1a64 } from './canonical';
+import { canonicalState, stableStringify, fnv1a64, cardRef } from './canonical';
 import {
   classifyPrompt, describePrompt, decodeAnswer, randomAnswer, infoAnswer, encodeAnswer,
   turnCandidates, describeAction, playerIndex, TurnOption,
@@ -320,7 +320,25 @@ export class GameRunner {
 
   private decideTurn(options: TurnOption[], player: Player, playerIdx: number): number {
     if (this.script.length > 0) {
-      const want = stableStringify(this.script.shift());
+      const scripted = this.script.shift();
+      // `{"a": "play", "name": "<card>", "target": {...}}`: play the card of that name from the hand (a card's
+      // id in its reference is not known when the scenario is written); `target` is optional.
+      if (scripted && scripted.a === 'play' && typeof scripted.name === 'string') {
+        const i = options.findIndex(o => {
+          const d: any = o.desc;
+          if (d.a !== 'play') {
+            return false;
+          }
+          const card = player.hand.cards.find(c => cardRef(c) === d.card);
+          return card !== undefined && (card.fullName === scripted.name || card.name === scripted.name)
+            && (scripted.target === undefined || stableStringify(d.target) === stableStringify(scripted.target));
+        });
+        if (i === -1) {
+          throw new Error('scenario: scripted play not among options: ' + stableStringify(scripted));
+        }
+        return i;
+      }
+      const want = stableStringify(scripted);
       const i = options.findIndex(o => stableStringify(o.desc) === want);
       if (i === -1) {
         throw new Error('scenario: scripted answer not among options: ' + want);
