@@ -50,6 +50,15 @@ export class BossOrders extends TrainerCard {
         throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
       }
 
+      // A Supporter can't be played when it would not change the game state (Advanced Rulebook B-03, ruling 851):
+      // the opponent has no Benched Pokemon. Used through an attack (Look-Alike Show) it just does nothing.
+      if (!effect.usedAsAttackEffect) {
+        const opponent = StateUtils.getOpponent(state, effect.player);
+        if (!opponent.bench.some(b => b.cards.length > 0)) {
+          throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+        }
+      }
+
       SWITCH_IN_OPPONENT_BENCHED_POKEMON(store, state, effect.player, { allowCancel: false });
     }
     return state;
