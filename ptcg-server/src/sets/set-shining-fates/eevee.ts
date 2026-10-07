@@ -6,7 +6,7 @@ import { PokemonCard } from '../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType } from '../../game/store/card/card-types';
 import { StoreLike, State } from '../../game';
 import { Effect } from '../../game/store/effects/effect';
-import { WAS_ATTACK_USED, SEARCH_DECK_FOR_CARDS_TO_HAND, COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, SEARCH_DECK_FOR_CARDS_TO_HAND, COIN_FLIP_PROMPT } from '../../game/store/prefabs/prefabs';
 
 export class Eevee extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -38,7 +38,7 @@ export class Eevee extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Attack 1: Signs of Evolution
     // Ref: set-vivid-voltage/celebi.ts (Amazing Bloom - filter deck by evolvesFrom)
-    if (AFTER_ATTACK(effect, 0, this)) {
+    if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
       const blocked: number[] = [];

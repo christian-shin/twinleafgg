@@ -3,7 +3,7 @@ import { CardType, Stage } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Ralts extends PokemonCard {
@@ -28,8 +28,8 @@ export class Ralts extends PokemonCard {
   public fullName: string = 'Ralts SIT';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (AFTER_ATTACK(effect, 0, this)) {
-      return OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK(store, state, effect.attackEffect, this);
+    if (WAS_ATTACK_USED(effect, 0, this)) {
+      return OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK(store, state, effect, this);
     }
 
     return state;

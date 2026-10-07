@@ -2,7 +2,7 @@ import { CardList, GameMessage, OrderCardsPrompt, SelectPrompt, State, StateUtil
 import { CardType, Stage } from '../../../game/store/card/card-types';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
-import {MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class Duskull extends PokemonCard {
 
@@ -42,7 +42,7 @@ export class Duskull extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     // Future Sight
-    if (AFTER_ATTACK(effect, 0, this)) {
+    if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 

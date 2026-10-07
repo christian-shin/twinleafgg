@@ -6,7 +6,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED, SHOW_CARDS_TO_PLAYER, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, SHOW_CARDS_TO_PLAYER } from '../../../game/store/prefabs/prefabs';
 import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
 
 export class Noctowl extends PokemonCard {
@@ -43,7 +43,7 @@ export class Noctowl extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Attack 1: Silent Wing
     // Ref: set-furious-fists/watchog.ts (Held-Item Inspection - SHOW_CARDS_TO_PLAYER reveal hand)
-    if (AFTER_ATTACK(effect, 0, this)) {
+    if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       const opponentHandSnapshot = [...opponent.hand.cards];
