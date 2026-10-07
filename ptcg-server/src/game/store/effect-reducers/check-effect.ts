@@ -13,7 +13,7 @@ import { ChoosePokemonPrompt } from '../prompts/choose-pokemon-prompt';
 import { ChoosePrizePrompt } from '../prompts/choose-prize-prompt';
 import { CoinFlipPrompt } from '../prompts/coin-flip-prompt';
 import { ShuffleDeckPrompt } from '../prompts/shuffle-prompt';
-import { setupGame } from '../reducers/setup-reducer';
+import { setupGame, createPlayer } from '../reducers/setup-reducer';
 import { CardList } from '../state/card-list';
 import { Player } from '../state/player';
 import { PokemonCardList } from '../state/pokemon-card-list';
@@ -229,12 +229,6 @@ function choosePrizeCards(store: StoreLike, state: State, prizeGroups: PrizeGrou
     const player = state.players[i];
     for (const group of prizeGroups[i]) {
       const prizeLeft = player.getPrizeLeft();
-      // In sudden death, taking any prize card means winning
-      if (group.count > 0 && state.isSuddenDeath) {
-        endGame(store, state, i === 0 ? GameWinner.PLAYER_1 : GameWinner.PLAYER_2);
-        return [];
-      }
-
       // If prizes to take >= remaining prizes, automatically take all prizes. The game does not end here:
       // every effect has to resolve and then all win conditions of both players are counted (checkWinner),
       // e.g. an attacker whose own Knock Out left it without Pokémon also lost (ruling 234, 820, 1403, 1584).
@@ -373,6 +367,14 @@ export function checkWinner(store: StoreLike, state: State, onComplete?: () => v
   }
 
   if (points[0] + points[1] === 0) {
+    // A Tiebreaker game is over as soon as a player has Prize advantage: fewer Prize cards remaining than the
+    // opponent, after everything has resolved (rulings 567, 580; Advanced Player's Rulebook I-E)
+    if (state.isSuddenDeath) {
+      const left = state.players.map(p => p.getPrizeLeft());
+      if (left[0] !== left[1]) {
+        state = endGame(store, state, left[0] < left[1] ? GameWinner.PLAYER_1 : GameWinner.PLAYER_2);
+      }
+    }
     if (onComplete) {
       onComplete();
     }
@@ -393,25 +395,63 @@ export function checkWinner(store: StoreLike, state: State, onComplete?: () => v
   return state;
 }
 
+/** Fields of a Player that belong to the person, the deck or the cards, not to the game being played. */
+const TIEBREAKER_KEPT_PLAYER_FIELDS = [
+  'id', 'name', 'deckId', 'sleeveImagePath', 'deckBoxImagePath', 'coinImagePath', 'avatarName', 'deck',
+];
+
+/** Instance fields cards write while a game is played that the Tiebreaker game must not inherit. */
+const TIEBREAKER_CARD_FLAGS = ['movedToActiveThisTurn', 'extraPrizes', 'strafeUsed', 'discardedStadiumCard'];
+
+/**
+ * A Tiebreaker game is a new game (Advanced Player's Rulebook I-E; rulings 234, 820, 1403, 1487): every card goes
+ * back to the deck and everything the first game left on the players, the Pokémon slots and the cards is reset.
+ */
 function initiateSuddenDeath(store: StoreLike, state: State): State {
   store.log(state, GameLog.LOG_SUDDEN_DEATH);
 
-  // Reset decks
   state.players.forEach(player => {
-    // Collect all cards back to deck including stadium, lost zone and any other zones
-    [player.active, ...player.bench, player.discard, ...player.prizes, player.hand, player.lostzone, player.stadium]
+    // Collect all cards back to deck including tools, the Supporter, stadium, lost zone and any other zones
+    [player.active, ...player.bench].forEach(cardList => {
+      for (const tool of [...cardList.tools]) {
+        cardList.moveCardTo(tool, player.deck);
+      }
+    });
+    [player.active, ...player.bench, player.discard, ...player.prizes, player.hand, player.lostzone, player.stadium, player.supporter]
       .forEach(cardList => cardList.moveTo(player.deck));
+    for (const card of player.deck.cards) {
+      const flags = card as any;
+      for (const flag of TIEBREAKER_CARD_FLAGS) {
+        if (flags[flag]) {
+          flags[flag] = false;
+        }
+      }
+      if (flags.damageTakenLastTurn) {
+        flags.damageTakenLastTurn = 0;
+      }
+    }
 
-    // Reset VSTAR and GX markers
-    player.usedGX = false;
-    player.usedVSTAR = false;
-    player.cannotUseGXAttacks = false;
+    // A fresh Player for everything else: Pokémon slots, Prize lists, markers, per-turn and per-game flags
+    // (damage and Special Conditions on the old Bench slots, prizesTaken, Legacy Energy, turn stamps ...).
+    const fresh = createPlayer(player.id, player.name, state.gameSettings?.format);
+    for (const key of Object.keys(fresh)) {
+      if (!TIEBREAKER_KEPT_PLAYER_FIELDS.includes(key)) {
+        (player as any)[key] = (fresh as any)[key];
+      }
+    }
+    for (const key of ['usedRapidStrikeSearchThisTurn', 'usedExcitingStageThisTurn', 'usedSquawkAndSeizeThisTurn',
+      'usedTurnSkip', 'usedTableTurner', 'usedMinusCharge', 'usedPlusCharge', 'usedLunarCycle', 'usedRunErrand',
+      'usedTributeDance', 'chainsOfControlUsed']) {
+      delete (player as any)[key];
+    }
 
     // Shuffle deck
     return store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
       player.deck.applyOrder(order);
     });
   });
+  state.lastAttack = null;
+  state.playerLastAttack = {};
 
   // Coin flip for first player
   return store.prompt(state, new CoinFlipPrompt(
