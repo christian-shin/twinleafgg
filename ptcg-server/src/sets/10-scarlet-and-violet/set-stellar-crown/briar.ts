@@ -77,9 +77,7 @@ During this turn, if your opponent's Active Pokémon is Knocked Out by damage fr
         // The Pokémon that used the attack, wherever it is by now (it can have switched to the Bench)
         const attackingPokemon = KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect)?.pokemon;
         if (attackingPokemon?.tags.includes(CardTag.POKEMON_TERA) === true && this.extraPrizes) {
-          if (effect.prizeCount > 0) {
-            effect.prizeCount += 1;
-          }
+          effect.prizeCount += 1;
         }
         this.extraPrizes = false;
       }

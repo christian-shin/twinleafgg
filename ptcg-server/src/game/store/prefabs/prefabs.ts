@@ -1338,15 +1338,14 @@ export function IF_OPPONENTS_POKEMON_KO_BY_ATTACK_DAMAGE_TAKE_MORE_PRIZES(
     return state;
   }
 
-  if (effect.prizeCount > 0) {
-    const prizeBonus = getExtraPrizes
-      ? getExtraPrizes(store, state, effect, attacker, knockedOutOwner)
-      : extraPrizes;
+  // Prize modifiers add up, the total never goes below 0 (check-effect.ts; ruling 1745)
+  const prizeBonus = getExtraPrizes
+    ? getExtraPrizes(store, state, effect, attacker, knockedOutOwner)
+    : extraPrizes;
 
-    if (prizeBonus > 0) {
-      effect.prizeCount += prizeBonus;
-      onAwarded?.(store, state, effect, attacker, knockedOutOwner, prizeBonus);
-    }
+  if (prizeBonus > 0) {
+    effect.prizeCount += prizeBonus;
+    onAwarded?.(store, state, effect, attacker, knockedOutOwner, prizeBonus);
   }
 
   return state;

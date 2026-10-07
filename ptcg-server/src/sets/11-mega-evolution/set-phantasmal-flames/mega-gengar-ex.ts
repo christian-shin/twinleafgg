@@ -104,9 +104,8 @@ export class MegaGengarex extends PokemonCard {
       }
       effect.target.marker.addMarker(NON_STACK_MARKER, this);
 
-      if (effect.prizeCount > 0) {
-        effect.prizeCount -= 1;
-      }
+      // Prize modifiers add up and the total never goes below 0 (check-effect.ts floors it; ruling 1745)
+      effect.prizeCount -= 1;
     }
 
     if (WAS_ATTACK_USED(effect, 0, this)) {
