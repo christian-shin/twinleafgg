@@ -34,11 +34,8 @@ export class GravityGemstone extends TrainerCard {
       if (IS_TOOL_BLOCKED(store, state, player, this)) { return state; }
 
       if (player.active.tools.includes(this) || opponent.active.tools.includes(this)) {
-        // A Retreat Cost that an effect set to none (Skyliner, Metal Bridge...) can't be increased
-        const activeCard = player.active.getPokemonCard();
-        if (activeCard !== undefined && activeCard.retreat.length > 0 && effect.cost.length === 0) {
-          return state;
-        }
+        // A cost that an effect set to none is emptied after all handlers ran (CheckRetreatCostEffect.noRetreatCost,
+        // ruling 1617); a cost reduced to 0 by "less" effects is calculated together with this one (Advanced Rulebook D-11).
         effect.cost.push(CardType.COLORLESS);
       }
     }

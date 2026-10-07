@@ -1,5 +1,5 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { CardType, TrainerType } from '../../../game/store/card/card-types';
+import { TrainerType } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
@@ -41,10 +41,7 @@ export class EmergencyBoard extends TrainerCard {
           effect.cost = [];
           effect.noRetreatCost = true;
         } else {
-          const index = effect.cost.indexOf(CardType.COLORLESS);
-          if (index !== -1) {
-            effect.cost.splice(index, 1);
-          }
+          effect.costReduction += 1;
         }
       }
       return state;
