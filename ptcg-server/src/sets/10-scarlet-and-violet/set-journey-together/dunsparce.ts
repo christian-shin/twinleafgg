@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { SWITCH_ACTIVE_WITH_BENCHED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { SWITCH_ACTIVE_WITH_BENCHED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Dunsparce extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -34,7 +34,7 @@ export class Dunsparce extends PokemonCard {
   public fullName = 'Dunsparce JTG';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this))
+    if (AFTER_ATTACK(effect, 0, this))
       SWITCH_ACTIVE_WITH_BENCHED(store, state, effect.player);
     return state;
   }
