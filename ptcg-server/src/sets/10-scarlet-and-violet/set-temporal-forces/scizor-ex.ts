@@ -3,7 +3,6 @@ import {
   Stage,
   CardType,
   SuperType,
-  EnergyType,
   CardTag,
 } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
@@ -12,6 +11,8 @@ import { Effect } from '../../../game/store/effects/effect';
 
 import { DiscardEnergyPrompt, GameMessage, PlayerType, SlotType, StateUtils } from '../../../game';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { BLOCKED_NON_TYPE_ENERGY } from '../../../game/store/prefabs/costs';
+import { CardTarget } from '../../../game/store/actions/play-card-action';
 
 export class Scizorex extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -55,6 +56,15 @@ export class Scizorex extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
 
+      // "[M] Energy": every Energy that provides [M], including an Energy that provides every type (Legacy
+      // Energy, Prism Energy on a Basic Pokémon) (Advanced Rulebook D-08).
+      const blockedMap: { source: CardTarget, blocked: number[] }[] = [];
+      const activeBlocked = BLOCKED_NON_TYPE_ENERGY(store, state, player, player.active,
+        { player: PlayerType.BOTTOM_PLAYER, slot: SlotType.ACTIVE, index: 0 }, CardType.METAL);
+      if (activeBlocked !== undefined) {
+        blockedMap.push(activeBlocked);
+      }
+
       return store.prompt(
         state,
         new DiscardEnergyPrompt(
@@ -62,8 +72,8 @@ export class Scizorex extends PokemonCard {
           GameMessage.CHOOSE_ENERGIES_TO_DISCARD,
           PlayerType.BOTTOM_PLAYER,
           [SlotType.ACTIVE], // Card source is target Pokemon
-          { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Metal Energy' },
-          { min: 0, max: 2, allowCancel: false },
+          { superType: SuperType.ENERGY },
+          { min: 0, max: 2, allowCancel: false, blockedMap },
         ),
         (transfers) => {
           if (transfers === null) {

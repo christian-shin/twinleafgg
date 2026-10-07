@@ -5,6 +5,7 @@ import { DiscardCardsEffect } from '../effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../effects/check-effects';
 import { AttackEffect } from '../effects/game-effects';
 import { PokemonCardList } from '../state/pokemon-card-list';
+import { Player } from '../state/player';
 
 // =============================================================================
 // Internal helpers
@@ -28,11 +29,49 @@ function cardMatchesEnergyFilter(card: Card, filter: Partial<EnergyCard>): card 
   return true;
 }
 
-function energyCardProvidesType(card: Card, cardType: CardType): boolean {
-  if (!(card instanceof EnergyCard)) {
-    return false;
-  }
-  return card.provides.includes(cardType) || card.provides.includes(CardType.ANY);
+/**
+ * The Energy cards attached to `cardList` that provide `cardType`, as the Pokémon's Energy provides it right now
+ * (CheckProvidedEnergyEffect): an Energy that provides every type (Legacy Energy, Prism Energy on a Basic Pokémon)
+ * is a [R] Energy, a [W] Energy, ... for every "[X] Energy" in card text (Advanced Rulebook D-08).
+ */
+export function ENERGY_CARDS_THAT_PROVIDE_TYPE(
+  store: StoreLike,
+  state: State,
+  player: Player,
+  cardList: PokemonCardList,
+  cardType: CardType
+): Card[] {
+  const checkProvidedEnergy = new CheckProvidedEnergyEffect(player, cardList);
+  store.reduceEffect(state, checkProvidedEnergy);
+  const cards: Card[] = [];
+  checkProvidedEnergy.energyMap.forEach(entry => {
+    if ((entry.provides.includes(cardType) || entry.provides.includes(CardType.ANY)) && !cards.includes(entry.card)) {
+      cards.push(entry.card);
+    }
+  });
+  return cards;
+}
+
+/**
+ * Prompt `blockedMap` entry for `cardList`: every Energy card that does not provide `cardType` (undefined when
+ * there is none).
+ */
+export function BLOCKED_NON_TYPE_ENERGY(
+  store: StoreLike,
+  state: State,
+  player: Player,
+  cardList: PokemonCardList,
+  target: CardTarget,
+  cardType: CardType
+): { source: CardTarget, blocked: number[] } | undefined {
+  const providing = ENERGY_CARDS_THAT_PROVIDE_TYPE(store, state, player, cardList, cardType);
+  const blocked: number[] = [];
+  cardList.cards.forEach((card, index) => {
+    if (card instanceof EnergyCard && !providing.includes(card)) {
+      blocked.push(index);
+    }
+  });
+  return blocked.length > 0 ? { source: target, blocked } : undefined;
 }
 
 type EnergyDiscardTransfer = { from: CardTarget, card: Card };
@@ -183,19 +222,21 @@ export function DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON(
 
   let availableTypedEnergy = 0;
   const blockedMap: { source: CardTarget, blocked: number[] }[] = [];
+  const typedEnergy: Card[] = [];
 
   player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, pokemonCard, target) => {
     if (!slots.includes(target.slot)) {
       return;
     }
 
+    const providing = ENERGY_CARDS_THAT_PROVIDE_TYPE(store, state, player, cardList, cardType);
+    typedEnergy.push(...providing);
+    availableTypedEnergy += providing.length;
+
     const blocked: number[] = [];
     cardList.cards.forEach((card, index) => {
-      const isTypedEnergy = energyCardProvidesType(card, cardType);
-      if (!isTypedEnergy) {
+      if (!providing.includes(card)) {
         blocked.push(index);
-      } else {
-        availableTypedEnergy += 1;
       }
     });
 
@@ -221,7 +262,7 @@ export function DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON(
       return state;
     }
 
-    if (!transfers.every(transfer => energyCardProvidesType(transfer.card, cardType))) {
+    if (!transfers.every(transfer => typedEnergy.includes(transfer.card))) {
       throw new GameError(GameMessage.INVALID_PROMPT_RESULT);
     }
 

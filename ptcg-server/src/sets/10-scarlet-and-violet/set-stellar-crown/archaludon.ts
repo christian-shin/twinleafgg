@@ -58,7 +58,8 @@ export class Archaludon extends PokemonCard {
       const checkProvidedEnergyEffect = new CheckProvidedEnergyEffect(player, player.active);
       store.reduceEffect(state, checkProvidedEnergyEffect);
 
-      const activeHasMetalEnergy = checkProvidedEnergyEffect.energyMap.some(p => p.provides.includes(M));
+      // Energy that provides every type counts as a [M] Energy (Advanced Rulebook D-08)
+      const activeHasMetalEnergy = checkProvidedEnergyEffect.energyMap.some(p => p.provides.includes(M) || p.provides.includes(CardType.ANY));
 
       if (inPlay && activeHasMetalEnergy) {
         effect.cost = [];

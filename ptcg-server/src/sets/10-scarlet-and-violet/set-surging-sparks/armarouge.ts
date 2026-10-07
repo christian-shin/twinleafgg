@@ -1,9 +1,10 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
-import { StoreLike, State, EnergyCard } from '../../../game';
+import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
+import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { THIS_ATTACK_DOES_X_DAMAGE_TO_1_OF_YOUR_OPPONENTS_BENCHED_POKEMON } from '../../../game/store/prefabs/attack-effects';
 
 export class Armarouge extends PokemonCard {
@@ -40,9 +41,14 @@ export class Armarouge extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
 
-      const fireEnergy = player.active.cards.filter(card =>
-        card instanceof EnergyCard && card.name === 'Fire Energy'
-      );
+      // "Discard all [R] Energy": every Energy that provides [R], including one that provides every type
+      // (Legacy Energy, Prism Energy on a Basic Pokémon), which can't be left out (Advanced Rulebook D-08).
+      const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
+      store.reduceEffect(state, checkProvidedEnergy);
+      const fireEnergy = checkProvidedEnergy.energyMap
+        .filter(e => e.provides.includes(CardType.FIRE) || e.provides.includes(CardType.ANY))
+        .map(e => e.card)
+        .filter((card, i, all) => all.indexOf(card) === i);
 
       const discardEnergy = new DiscardCardsEffect(effect, fireEnergy);
       discardEnergy.target = player.active;
