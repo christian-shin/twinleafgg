@@ -36,6 +36,7 @@ import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
 import { MoveCardsEffect } from '../effects/game-effects';
 import { runDelegatedCopiedAttackGenerator } from '../prefabs/copy-attack-delegation';
+import { RESOLVE_SURVIVE_COIN_FLIPS } from '../prefabs/survive-on-ten';
 import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, ATTACK_TRIGGERS_PENDING, RESOLVE_NEXT_ATTACK_TRIGGER, CLOSE_ATTACK_TRIGGERS } from '../prefabs/after-damage';
 import { GameStatsTracker } from '../game-stats-tracker';
 import { PokemonCardList } from '../state/pokemon-card-list';
@@ -381,6 +382,9 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());
     }
+
+    // Tenacious Body / Durable Body: the coin is flipped after all the damage is done (ruling 1770).
+    RESOLVE_SURVIVE_COIN_FLIPS(store, state);
 
     const afterAttackEffect = new AfterAttackEffect(effect.player, opponent, attack, attackEffect);
     state = store.reduceEffect(state, afterAttackEffect);

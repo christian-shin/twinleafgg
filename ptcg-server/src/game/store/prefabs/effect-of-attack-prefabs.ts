@@ -10,6 +10,8 @@ import { PreventDamageOptions, PlayLockOptions, KnockOutIfDamagedOptions, preven
 import { AttackEffect } from "../effects/game-effects";
 import { CheckHpEffect } from "../effects/check-effects";
 import { CoinFlipEffect } from "../effects/play-card-effects";
+import { GamePhase } from "../state/state";
+import { ADD_PENDING_SURVIVE_COIN } from "./survive-on-ten";
 import { ChooseAttackPrompt } from "../prompts/choose-attack-prompt";
 import { StateUtils } from "../state-utils";
 import { Player } from "../state/player";
@@ -1079,8 +1081,10 @@ export function SURVIVE_ON_TEN_IF_FULL_HP(
  * Compound helper for text like:
  * "If this Pokemon would be Knocked Out by damage from an attack, flip a coin.
  * If heads, this Pokemon is not Knocked Out, and its remaining HP becomes 10."
- * The coin is read right away (CoinFlipEffect.result): a COIN_FLIP_PROMPT callback
- * runs after the flip's wait prompt, i.e. after this PutDamageEffect was applied.
+ * During an attack the coin is flipped after all the damage is done (ruling 1770, Tenacious Body):
+ * the PutDamageEffect only records the Pokemon (RESOLVE_SURVIVE_COIN_FLIPS flips). Otherwise the coin is
+ * read right away (CoinFlipEffect.result): a COIN_FLIP_PROMPT callback runs after the flip's wait
+ * prompt, i.e. after this PutDamageEffect was applied.
  */
 export function SURVIVE_ON_TEN_ON_COIN_FLIP(
   store: StoreLike,
@@ -1093,6 +1097,12 @@ export function SURVIVE_ON_TEN_ON_COIN_FLIP(
   store.reduceEffect(state, checkHpEffect);
 
   if (effect.target.damage + effect.damage >= checkHpEffect.hp) {
+    if (state.phase === GamePhase.ATTACK) {
+      // The full damage is done, then the coin is flipped and 10 HP restored after all the damage
+      // (ruling 1770): RESOLVE_SURVIVE_COIN_FLIPS, before the attack's effects that ask questions.
+      ADD_PENDING_SURVIVE_COIN(effect.target, player, reason);
+      return;
+    }
     const coinFlip = new CoinFlipEffect(player);
     store.reduceEffect(state, coinFlip);
 

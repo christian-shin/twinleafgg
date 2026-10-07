@@ -16,6 +16,7 @@ import { Player } from '../state/player';
 import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
 import { PlayerType } from '../actions/play-card-action';
+import { RESOLVE_SURVIVE_COIN_FLIPS } from './survive-on-ten';
 import { OPEN_AFTER_DAMAGE_EFFECTS, RUN_AFTER_DAMAGE_EFFECTS, RUN_ATTACK_TRIGGERS, ATTACK_TRIGGERS_PENDING, RESOLVE_NEXT_ATTACK_TRIGGER, CLOSE_ATTACK_TRIGGERS } from './after-damage';
 
 export function cloneAttack(attack: Attack): Attack {
@@ -386,6 +387,8 @@ export function runDelegatedCopiedAttack(ctx: DelegatedCopiedAttackContext): Sta
   state = RUN_AFTER_DAMAGE_EFFECTS(state, attackEffect);
 
   if (!skipAfterAttack) {
+    RESOLVE_SURVIVE_COIN_FLIPS(store, state);
+
     const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack, attackEffect);
     state = store.reduceEffect(state, afterAttackEffect);
     state = store.reduceEffect(state, new AfterAttackTriggersEffect(player, opponent, clonedAttack));
@@ -466,6 +469,8 @@ export function* runDelegatedCopiedAttackGenerator(
   }
 
   if (!skipAfterAttack) {
+    RESOLVE_SURVIVE_COIN_FLIPS(store, state);
+
     const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack, attackEffect);
     state = store.reduceEffect(state, afterAttackEffect);
 
