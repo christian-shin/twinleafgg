@@ -1,3 +1,4 @@
+import { RETURN_CARDS_TO_OWNERS_DISCARD } from '../card-owner';
 import { getCardTarget } from "../../../simple-bot/simple-tactics/simple-tactics";
 import { GameError } from "../../game-error";
 import { GameMessage, GameLog } from "../../game-message";
@@ -465,6 +466,8 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
     const cards = effect.cards;
     const owner = StateUtils.findOwner(state, target);
     target.moveCardsTo(cards, owner.discard);
+    // A card always goes to its owner's discard pile (Advanced Rulebook C-01).
+    RETURN_CARDS_TO_OWNERS_DISCARD(state, owner.discard);
     return state;
   }
 

@@ -1,4 +1,5 @@
 import { Action } from '../actions/action';
+import { SET_CARD_OWNER } from '../card-owner';
 import { AddPlayerAction } from '../actions/add-player-action';
 import { Card } from '../card/card';
 import { CardList } from '../state/card-list';
@@ -743,6 +744,7 @@ export function setupPhaseReducer(store: StoreLike, state: State, action: Action
       player.deck.cards.forEach(c => {
         state.cardNames.push(c.fullName);
         c.id = state.cardNames.length - 1;
+        SET_CARD_OWNER(c, player);
       });
 
       state.players.push(player);
@@ -824,6 +826,7 @@ export function setupPhaseReducer(store: StoreLike, state: State, action: Action
         player.deck.cards.forEach(c => {
           state.cardNames.push(c.fullName);
           c.id = state.cardNames.length - 1;
+          SET_CARD_OWNER(c, player);
         });
 
         if (state.players.length === 2) {

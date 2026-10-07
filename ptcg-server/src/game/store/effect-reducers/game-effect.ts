@@ -1,3 +1,4 @@
+import { RETURN_CARDS_TO_OWNERS_DISCARD } from '../card-owner';
 import { GameError } from '../../game-error';
 import { GameLog, GameMessage } from '../../game-message';
 import { CardTag, CardType, SpecialCondition, SuperType } from '../card/card-types';
@@ -1025,6 +1026,9 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
         }
       }
     }
+
+    // A card always goes to its owner's discard pile (Advanced Rulebook C-01).
+    RETURN_CARDS_TO_OWNERS_DISCARD(state, destination);
 
     // Salvage orphan attachments when no Pokemon remain in the slot.
     // Tools live in tools[] (not cards[]), so they must be moved explicitly
