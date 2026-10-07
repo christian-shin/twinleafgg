@@ -17,6 +17,8 @@ interface LastAttack {
   source: PokemonCardList;
   sourcePokemon: PokemonCard | undefined;
   damagedActive: PokemonCardList[];
+  /** Every Pokémon (any zone) that took damage from the attack, as opposed to damage counters or a direct Knock Out. */
+  damaged: PokemonCardList[];
 }
 
 let last: LastAttack | undefined;
@@ -27,6 +29,7 @@ export function BEGIN_LAST_ATTACK(effect: AttackEffect) {
     source: effect.source,
     sourcePokemon: effect.source.getPokemonCard(),
     damagedActive: [],
+    damaged: [],
   };
 }
 
@@ -34,6 +37,13 @@ export function BEGIN_LAST_ATTACK(effect: AttackEffect) {
 export function RECORD_ACTIVE_DAMAGED(target: PokemonCardList) {
   if (last !== undefined && !last.damagedActive.includes(target)) {
     last.damagedActive.push(target);
+  }
+}
+
+/** The opponent's Pokémon took damage (not counters) from the attack in progress. */
+export function RECORD_DAMAGED(target: PokemonCardList) {
+  if (last !== undefined && !last.damaged.includes(target)) {
+    last.damaged.push(target);
   }
 }
 
@@ -67,6 +77,20 @@ export function ATTACKER_OF_KNOCK_OUT(state: State, effect: KnockOutEffect): Att
 export function ATTACK_THAT_DAMAGED_KNOCKED_OUT(state: State, effect: KnockOutEffect): AttackThatKnockedOut | undefined {
   const attack = ATTACKER_OF_KNOCK_OUT(state, effect);
   if (attack === undefined || last === undefined || !last.damagedActive.includes(effect.target)) {
+    return undefined;
+  }
+  return attack;
+}
+
+/**
+ * "Knocked Out by damage from an attack": the attacker of the opponent's attack in progress when the Pokémon being
+ * Knocked Out took damage from it, in any zone (Advanced Player's Rulebook E-04; rulings 648, 674). A Pokémon that
+ * is Knocked Out by an effect without damage (Annihilape's Destined Fight) or by counters doesn't count. Undefined
+ * when this Knock Out isn't one.
+ */
+export function KNOCKED_OUT_BY_ATTACK_DAMAGE(state: State, effect: KnockOutEffect): AttackThatKnockedOut | undefined {
+  const attack = ATTACKER_OF_KNOCK_OUT(state, effect);
+  if (attack === undefined || last === undefined || !last.damaged.includes(effect.target)) {
     return undefined;
   }
   return attack;

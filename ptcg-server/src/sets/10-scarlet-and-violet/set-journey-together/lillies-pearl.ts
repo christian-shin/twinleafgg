@@ -4,6 +4,7 @@ import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { IS_TOOL_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { KNOCKED_OUT_BY_ATTACK_DAMAGE } from '../../../game/store/prefabs/last-attack';
 
 
 export class LilliesPearl extends TrainerCard {
@@ -28,7 +29,7 @@ export class LilliesPearl extends TrainerCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (effect instanceof KnockOutEffect && effect.target.tools.includes(this) && effect.player.marker.hasMarker(effect.player.DAMAGE_DEALT_MARKER)) {
+    if (effect instanceof KnockOutEffect && effect.target.tools.includes(this) && KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect) !== undefined) {
 
       if (IS_TOOL_BLOCKED(store, state, effect.player, this)) { return state; }
 

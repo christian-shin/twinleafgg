@@ -3,7 +3,6 @@ import {
   CardTag,
   CardType,
   GameMessage,
-  GamePhase,
   PlayerType,
   PokemonCard,
   PowerType,
@@ -23,7 +22,7 @@ import {ADD_MARKER,
   REMOVE_MARKER_AT_END_OF_TURN,
   WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
-import { ATTACKER_OF_KNOCK_OUT } from '../../../game/store/prefabs/last-attack';
+import { KNOCKED_OUT_BY_ATTACK_DAMAGE } from '../../../game/store/prefabs/last-attack';
 
 export class MegaGengarex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -65,8 +64,9 @@ export class MegaGengarex extends PokemonCard {
       const player = effect.player; // owner of the Pokémon that was Knocked Out
       const opponent = StateUtils.getOpponent(state, player);
 
-      // Only during opponent's attack step
-      if (state.phase !== GamePhase.ATTACK || state.players[state.activePlayer] !== opponent) {
+      // Only when Knocked Out by damage from an attack of the opponent's Pokémon (E-04; rulings 648, 674)
+      const attack = KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect);
+      if (attack === undefined) {
         return state;
       }
 
@@ -90,7 +90,7 @@ export class MegaGengarex extends PokemonCard {
       }
 
       // The Pokémon that used the attack must be a Pokémon ex, wherever it is by now (switched to the Bench, ...)
-      const attackingPokemon = ATTACKER_OF_KNOCK_OUT(state, effect)?.pokemon;
+      const attackingPokemon = attack.pokemon;
       const attackerIsEx = attackingPokemon?.hasTag(CardTag.POKEMON_ex) === true;
       if (!attackerIsEx) {
         return state;
@@ -104,9 +104,8 @@ export class MegaGengarex extends PokemonCard {
       }
       effect.target.marker.addMarker(NON_STACK_MARKER, this);
 
-      if (effect.prizeCount > 0) {
-        effect.prizeCount -= 1;
-      }
+      // Prize modifiers add up and the total never goes below 0 (check-effect.ts floors it; ruling 1745)
+      effect.prizeCount -= 1;
     }
 
     if (WAS_ATTACK_USED(effect, 0, this)) {

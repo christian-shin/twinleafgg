@@ -294,7 +294,9 @@ export class GameRunner {
   }
 
   private decidePrompt(prompt: Prompt<any>, playerIdx: number): any {
-    if (this.script.length > 0) {
+    // A scripted turn answer (`{ "a": ... }`) waits for its turn decision; prompts in between use the policy
+    const first = this.script[0];
+    if (this.script.length > 0 && !(first !== null && typeof first === 'object' && !Array.isArray(first) && typeof first.a === 'string')) {
       return this.script.shift();
     }
     if (this.opts.answers) {
@@ -320,7 +322,17 @@ export class GameRunner {
 
   private decideTurn(options: TurnOption[], player: Player, playerIdx: number): number {
     if (this.script.length > 0) {
-      const want = stableStringify(this.script.shift());
+      const scripted = this.script.shift();
+      // `{ "a": "play" | "ability", "card_prefix": "PRE-100#" }`: use any copy of that card (instance ids depend on
+      // the shuffle)
+      if (scripted && typeof scripted.card_prefix === 'string') {
+        const j = options.findIndex(o => o.desc.a === scripted.a && String(o.desc.card).startsWith(scripted.card_prefix));
+        if (j === -1) {
+          throw new Error('scenario: scripted play not among options: ' + scripted.card_prefix);
+        }
+        return j;
+      }
+      const want = stableStringify(scripted);
       const i = options.findIndex(o => stableStringify(o.desc) === want);
       if (i === -1) {
         throw new Error('scenario: scripted answer not among options: ' + want);

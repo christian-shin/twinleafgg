@@ -39,6 +39,10 @@
  *   supporter_played / energy_attached / retreated: true   this turn's flags
  *   prizes_left: N               after every other edit, Prizes N..5 go to the
  *                                bottom of the deck (N Prize cards left)
+ *   deck_left: N                 last: cards from the top of the deck go to the
+ *                                discard pile until N cards are left
+ *
+ * Top level `sudden_death: true` marks the game as a Tiebreaker game.
  *
  * Every card is taken from the deck (first match from the top), else the
  * hand; a missing card is an error. Only the engines' own primitives are used
@@ -85,6 +89,7 @@ export interface ScenarioSide {
   energy_attached?: boolean;
   retreated?: boolean;
   prizes_left?: number;
+  deck_left?: number;
 }
 
 export interface Scenario {
@@ -93,6 +98,7 @@ export interface Scenario {
   opp?: ScenarioSide;
   coins?: boolean[];
   answers?: any[];
+  sudden_death?: boolean;
 }
 
 export function scenarioTurn(sc: Scenario): number {
@@ -271,6 +277,11 @@ function applySide(store: StoreLike, state: State, player: Player, side: Scenari
       player.prizes[i].moveTo(player.deck);
     }
   }
+  if (side.deck_left !== undefined) {
+    while (player.deck.cards.length > side.deck_left) {
+      player.deck.moveTo(player.discard, 1);
+    }
+  }
 }
 
 export function applyScenario(store: StoreLike, state: State, sc: Scenario): void {
@@ -287,5 +298,8 @@ export function applyScenario(store: StoreLike, state: State, sc: Scenario): voi
   }
   applySide(store, state, me, sc.me ?? {});
   applySide(store, state, opp, sc.opp ?? {});
+  if (sc.sudden_death) {
+    state.isSuddenDeath = true;
+  }
   Chance.force(sc.coins ?? []);
 }

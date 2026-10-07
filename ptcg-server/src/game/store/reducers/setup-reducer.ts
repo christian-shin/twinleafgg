@@ -644,7 +644,7 @@ function* allowExtraBenchPlacement(player: Player, chooseCardsOptions: any, stat
   }
 }
 
-function createPlayer(id: number, name: string, format?: Format): Player {
+export function createPlayer(id: number, name: string, format?: Format): Player {
   const player = new Player();
   player.id = id;
   player.name = name;
