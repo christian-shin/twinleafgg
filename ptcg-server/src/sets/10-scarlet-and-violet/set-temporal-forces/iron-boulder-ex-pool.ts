@@ -1,7 +1,7 @@
 import { PokemonCard, Stage, CardType, CardTag, StoreLike, State } from '../../../game';
 import { SuperType } from '../../../game/store/card/card-types';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { THIS_POKEMON_RETALIATES_ON_DAMAGE_DURING_OPPONENTS_NEXT_TURN } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
 
@@ -41,12 +41,12 @@ export class IronBoulderexTEFPool extends PokemonCard {
     }
 
     // Power Stomp
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       // Ruling 1652: "discard 2 Energy" counts Energy units and never uses more than 2 cards (ChooseEnergyPrompt).
       if (!effect.player.active.cards.some((c) => c.superType === SuperType.ENERGY)) {
         return state;
       }
-      return DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 2);
+      return DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 2);
     }
     return state;
   }

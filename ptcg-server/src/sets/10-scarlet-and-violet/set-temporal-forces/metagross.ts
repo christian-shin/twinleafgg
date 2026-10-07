@@ -4,7 +4,7 @@ import { Card, ChooseEnergyPrompt, GameMessage, State, StoreLike } from '../../.
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { NEXT_TURN_ATTACK_BONUS } from '../../../game/store/prefabs/attack-effects';
 
 export class Metagross extends PokemonCard {
@@ -45,7 +45,7 @@ export class Metagross extends PokemonCard {
     });
 
     // Luster Blast
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
 
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
@@ -59,7 +59,7 @@ export class Metagross extends PokemonCard {
         { allowCancel: false }
       ), energy => {
         const cards: Card[] = (energy || []).map(e => e.card);
-        const discardEnergy = new DiscardCardsEffect(effect, cards);
+        const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
         discardEnergy.target = player.active;
         store.reduceEffect(state, discardEnergy);
       });

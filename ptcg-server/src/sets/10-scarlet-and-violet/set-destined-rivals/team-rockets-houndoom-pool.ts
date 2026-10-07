@@ -1,7 +1,7 @@
 import { PokemonCard, Stage, CardType, CardTag, SpecialCondition, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { AddSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { DISCARD_UP_TO_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
 
 export class TeamRocketsHoundoomDRIPool extends PokemonCard {
@@ -41,8 +41,8 @@ export class TeamRocketsHoundoomDRIPool extends PokemonCard {
     }
 
     // Scorching Fire
-    if (WAS_ATTACK_USED(effect, 1, this)) {
-      return DISCARD_UP_TO_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 1, {}, 1);
+    if (AFTER_ATTACK(effect, 1, this)) {
+      return DISCARD_UP_TO_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 1, {}, 1);
     }
     return state;
   }

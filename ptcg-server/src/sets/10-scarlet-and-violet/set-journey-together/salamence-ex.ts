@@ -6,7 +6,7 @@ import { DiscardCardsEffect, PutDamageEffect } from '../../../game/store/effects
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { StateUtils } from '../../../game/store/state-utils';
 
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Salamenceex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex];
@@ -54,7 +54,7 @@ export class Salamenceex extends PokemonCard {
     }
 
     // Dragon Impact
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
 
       if (!player.active.cards.some((c) => c.superType === SuperType.ENERGY)) {
@@ -75,7 +75,7 @@ export class Salamenceex extends PokemonCard {
         ),
         (energy) => {
           const cards: Card[] = (energy || []).map((e) => e.card);
-          const discardEnergy = new DiscardCardsEffect(effect, cards);
+          const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
           discardEnergy.target = player.active;
           store.reduceEffect(state, discardEnergy);
         },
