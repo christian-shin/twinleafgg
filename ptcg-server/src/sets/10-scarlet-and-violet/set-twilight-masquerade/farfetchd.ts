@@ -95,6 +95,11 @@ export class Farfetchd extends PokemonCard {
         return state;
       }
 
+      // An Ability can't be used for no effect: the number of cards in a deck is public (Advanced Rulebook E-06, rulings 244, 782)
+      if (player.deck.cards.length === 0) {
+        return state;
+      }
+
       state = store.prompt(state, new ChooseCardsPrompt(
         player,
         GameMessage.CHOOSE_CARD_TO_HAND,
