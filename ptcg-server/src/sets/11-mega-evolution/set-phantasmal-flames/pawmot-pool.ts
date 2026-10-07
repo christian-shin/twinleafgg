@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { CONFIRMATION_PROMPT, THIS_POKEMON_DOES_DAMAGE_TO_ITSELF, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { CONFIRMATION_PROMPT, THIS_POKEMON_DOES_DAMAGE_TO_ITSELF, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { YOUR_OPPPONENTS_ACTIVE_POKEMON_IS_NOW_PARALYZED } from '../../../game/store/prefabs/attack-effects';
 
 // Ref: set-ancient-origins/golurk.ts (optional self-damage via CONFIRMATION_PROMPT)
@@ -29,11 +29,11 @@ export class PawmotPFLPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Voltaic Fist
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       return CONFIRMATION_PROMPT(store, state, effect.player, result => {
         if (result) {
-          THIS_POKEMON_DOES_DAMAGE_TO_ITSELF(store, state, effect, 60);
-          YOUR_OPPPONENTS_ACTIVE_POKEMON_IS_NOW_PARALYZED(store, state, effect);
+          THIS_POKEMON_DOES_DAMAGE_TO_ITSELF(store, state, effect.attackEffect, 60);
+          YOUR_OPPPONENTS_ACTIVE_POKEMON_IS_NOW_PARALYZED(store, state, effect.attackEffect);
         }
       });
     }

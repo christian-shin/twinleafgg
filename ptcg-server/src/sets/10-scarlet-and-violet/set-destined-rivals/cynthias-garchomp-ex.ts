@@ -6,7 +6,7 @@ import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-eff
 import { Effect } from '../../../game/store/effects/effect';
 
 import { DRAW_CARDS_UNTIL_YOU_HAVE_X_CARDS_IN_HAND } from '../../../game/store/prefabs/attack-effects';
-import { CONFIRMATION_PROMPT, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { CONFIRMATION_PROMPT, WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class CynthiasGarchompex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -39,7 +39,7 @@ export class CynthiasGarchompex extends PokemonCard {
   public name: string = "Cynthia's Garchomp ex";
   public fullName: string = "Cynthia's Garchomp ex DRI";
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       if (player.hand.cards.length >= 6 || player.deck.cards.length === 0) {
@@ -52,7 +52,7 @@ export class CynthiasGarchompex extends PokemonCard {
         player,
         (result) => {
           if (result) {
-            DRAW_CARDS_UNTIL_YOU_HAVE_X_CARDS_IN_HAND(6, effect, state);
+            DRAW_CARDS_UNTIL_YOU_HAVE_X_CARDS_IN_HAND(6, effect.attackEffect, state);
           }
         },
         GameMessage.WANT_TO_DRAW_UNTIL_6,

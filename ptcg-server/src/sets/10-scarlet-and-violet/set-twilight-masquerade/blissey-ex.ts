@@ -24,7 +24,7 @@ import {
 
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
-import {WAS_ATTACK_USED, WAS_POWER_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_POWER_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Blisseyex extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -142,7 +142,7 @@ export class Blisseyex extends PokemonCard {
       effect.player.marker.removeMarker(this.BLISSFUL_SWAP_MARKER, this);
     }
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       state = store.prompt(
