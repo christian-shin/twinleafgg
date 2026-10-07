@@ -320,7 +320,19 @@ export class GameRunner {
 
   private decideTurn(options: TurnOption[], player: Player, playerIdx: number): number {
     if (this.script.length > 0) {
-      const want = stableStringify(this.script.shift());
+      const entry = this.script.shift();
+      if (entry && entry.a === 'play' && typeof entry.name === 'string' && entry.card === undefined) {
+        // Scenario shorthand: play the (first) card of this name from the hand (card ids depend on the shuffle).
+        const j = options.findIndex(o => o.desc && o.desc.a === 'play'
+          && (player.hand.cards[(o.action as any).handIndex]?.name === entry.name
+            || player.hand.cards[(o.action as any).handIndex]?.fullName === entry.name)
+          && (entry.target === undefined || stableStringify(o.desc.target) === stableStringify(entry.target)));
+        if (j === -1) {
+          throw new Error('scenario: scripted play not among options: ' + entry.name);
+        }
+        return j;
+      }
+      const want = stableStringify(entry);
       const i = options.findIndex(o => stableStringify(o.desc) === want);
       if (i === -1) {
         throw new Error('scenario: scripted answer not among options: ' + want);
