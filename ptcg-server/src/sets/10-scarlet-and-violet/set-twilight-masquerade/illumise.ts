@@ -3,7 +3,7 @@ import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, ShuffleDeckPrompt, ChoosePokemonPrompt, GameError, GameMessage, PlayerType, SlotType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {MOVE_CARDS, AFTER_ATTACK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 
 export class Illumise extends PokemonCard {
 
@@ -37,11 +37,15 @@ export class Illumise extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
+    // Slowing Perfume can only be used on your first turn: refused before the attack does anything
     if (WAS_ATTACK_USED(effect, 0, this)) {
       if (state.turn != 2) {
         throw new GameError(GameMessage.CANNOT_USE_ATTACK);
       }
-      else {
+    }
+
+    if (AFTER_ATTACK(effect, 0, this)) {
+      {
         const player = effect.player;
         const opponent = StateUtils.getOpponent(state, player);
         const hasBench = opponent.bench.some((b) => b.cards.length > 0);
@@ -64,7 +68,7 @@ export class Illumise extends PokemonCard {
 
             targets.forEach((target) => {
               // An effect of the attack on that Pokémon: Mist Energy and the like prevent it (a probe without cards, ruling 1843)
-              const probe = new DiscardCardsEffect(effect, []);
+              const probe = new DiscardCardsEffect(effect.attackEffect, []);
               probe.target = target;
               store.reduceEffect(state, probe);
               if (probe.preventDefault) {

@@ -5,7 +5,7 @@ import { ChoosePokemonPrompt, GameError, GameMessage, PlayerType, ShuffleDeckPro
 import { Effect } from '../../../game/store/effects/effect';
 import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { DEFENDING_POKEMON_DOES_LESS_DAMAGE } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Sylveonex extends PokemonCard {
@@ -60,16 +60,19 @@ export class Sylveonex extends PokemonCard {
       return DEFENDING_POKEMON_DOES_LESS_DAMAGE(store, state, effect, this, 100);
     }
 
-    // Angelite
+    // Angelite: once per game, so the use is refused before the attack does anything
     if (WAS_ATTACK_USED(effect, 1, this)) {
-      const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
-      const benchCount = opponent.bench.filter((b) => b.cards.length > 0).length;
-
       if (effect.player.marker.hasMarker(this.ANGELITE_MARKER)) {
         throw new GameError(GameMessage.BLOCKED_BY_EFFECT);
       }
       effect.player.marker.addMarker(this.ANGELITE_MARKER, this);
+    }
+
+    // Angelite: the Benched Pokemon are chosen after the damage
+    if (AFTER_ATTACK(effect, 1, this)) {
+      const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
+      const benchCount = opponent.bench.filter((b) => b.cards.length > 0).length;
 
       if (benchCount === 0) {
         return state;
@@ -89,7 +92,7 @@ export class Sylveonex extends PokemonCard {
 
           targets.forEach((target) => {
             // An effect of the attack on that Pokémon: Mist Energy and the like prevent it (a probe without cards, ruling 1843)
-            const probe = new DiscardCardsEffect(effect, []);
+            const probe = new DiscardCardsEffect(effect.attackEffect, []);
             probe.target = target;
             store.reduceEffect(state, probe);
             if (probe.preventDefault) {

@@ -7,7 +7,7 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils } from '../../../game';
 import { PokemonCardList } from '../../../game/store/state/pokemon-card-list';
 import { Effect } from '../../../game/store/effects/effect';
-import {WAS_ATTACK_USED, SWITCH_ACTIVE_WITH_BENCHED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {SWITCH_ACTIVE_WITH_BENCHED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Golduck extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -43,7 +43,7 @@ export class Golduck extends PokemonCard {
     // Attack 2: Entangled Dive
     // Ref: set-pokemon-151/ditto.ts (moveTo player.discard to discard active + attached)
     // Ref: prefabs.ts SWITCH_ACTIVE_WITH_BENCHED (player chooses new active first)
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
