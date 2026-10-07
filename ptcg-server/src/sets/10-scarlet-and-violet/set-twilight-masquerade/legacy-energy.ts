@@ -1,10 +1,11 @@
 import { StoreLike } from '../../../game/store/store-like';
-import { State, GamePhase } from '../../../game/store/state/state';
+import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { EnergyCard, CardType, EnergyType, CardTag, StateUtils } from '../../../game';
+import { EnergyCard, CardType, EnergyType, CardTag } from '../../../game';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { IS_SPECIAL_ENERGY_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { KNOCKED_OUT_BY_ATTACK_DAMAGE } from '../../../game/store/prefabs/last-attack';
 
 export class LegacyEnergy extends EnergyCard {
   public provides: CardType[] = [CardType.COLORLESS];
@@ -36,9 +37,9 @@ If the Pokémon this card is attached to is Knocked Out by damage from an attack
 
     if (effect instanceof KnockOutEffect && effect.target.cards.includes(this)) {
       const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
 
-      if (state.phase !== GamePhase.ATTACK || state.players[state.activePlayer] != opponent) {
+      // "Knocked Out by damage from an attack from your opponent's Pokémon" (E-04; rulings 648, 674, 1745)
+      if (KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect) === undefined) {
         return state;
       }
 

@@ -30,7 +30,7 @@ import {
 import { AfterAttackEffect, AfterAttackTriggersEffect, BeforeDoingDamageEffect, EndTurnEffect } from '../effects/game-phase-effects';
 import { CoinFlipPrompt } from '../prompts/coin-flip-prompt';
 import { CardTarget, PlayerType, SlotType } from '../actions/play-card-action';
-import { ATTACKER_OF_KNOCK_OUT } from '../prefabs/last-attack';
+import { ATTACKER_OF_KNOCK_OUT, KNOCKED_OUT_BY_ATTACK_DAMAGE } from '../prefabs/last-attack';
 import { StateUtils } from '../state-utils';
 import { GamePhase, State } from '../state/state';
 import { StoreLike } from '../store-like';
@@ -733,7 +733,7 @@ export function gameReducer(store: StoreLike, state: State, effect: Effect): Sta
 
       if (state.phase === GamePhase.ATTACK &&
         state.players[state.activePlayer] === attacker &&
-        knockedOutOwner.marker.hasMarker(knockedOutOwner.DAMAGE_DEALT_MARKER)) {
+        KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect) !== undefined) {
         knockedOutOwner.pokemonKnockedOutByAttackDuringOpponentsLastTurn = true;
       }
 

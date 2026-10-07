@@ -3,9 +3,10 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import { GamePhase, PlayerType, PowerType, StateUtils } from '../../../game';
+import { PlayerType, PowerType } from '../../../game';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { KNOCKED_OUT_BY_ATTACK_DAMAGE } from '../../../game/store/prefabs/last-attack';
 
 export class Munkidoriex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -42,15 +43,12 @@ export class Munkidoriex extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof KnockOutEffect && effect.target.cards.includes(this)) {
       const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
-
       if (IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }
 
-      // Only when Knocked Out by damage from an attack from the opponent's Pokémon
-      if (state.phase !== GamePhase.ATTACK || state.players[state.activePlayer] !== opponent
-        || !player.marker.hasMarker(player.DAMAGE_DEALT_MARKER)) {
+      // Only when Knocked Out by damage from an attack from the opponent's Pokémon (E-04; rulings 648, 674)
+      if (KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect) === undefined) {
         return state;
       }
 

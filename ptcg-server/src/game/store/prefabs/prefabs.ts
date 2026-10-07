@@ -89,6 +89,7 @@ import {
 } from './deck-shuffle-animation';
 import { CAN_PLAY_TRAINER_CARD } from './trainer-prefabs';
 import { isDelegatingCopycat } from './copy-attack-delegation';
+import { KNOCKED_OUT_BY_ATTACK_DAMAGE } from './last-attack';
 export {
   IS_TRAINER_TARGET,
   BLOCK_TRAINER_TARGET,
@@ -1312,7 +1313,7 @@ export function IF_OPPONENTS_POKEMON_KO_BY_ATTACK_DAMAGE_TAKE_MORE_PRIZES(
     return state;
   }
 
-  if (!knockedOutOwner.marker.hasMarker(knockedOutOwner.DAMAGE_DEALT_MARKER)) {
+  if (KNOCKED_OUT_BY_ATTACK_DAMAGE(state, effect) === undefined) {
     return state;
   }
 
