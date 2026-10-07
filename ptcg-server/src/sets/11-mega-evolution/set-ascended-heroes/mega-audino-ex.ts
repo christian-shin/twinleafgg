@@ -17,7 +17,9 @@ import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-eff
 import { Effect } from '../../../game/store/effects/effect';
 import {WAS_ATTACK_USED,
   SHUFFLE_DECK,
-  MULTIPLE_COIN_FLIPS_PROMPT, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+  MULTIPLE_COIN_FLIPS_PROMPT, MOVE_CARDS,
+  AFTER_ATTACK,
+} from '../../../game/store/prefabs/prefabs';
 
 export class MegaAudinoex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -54,7 +56,7 @@ export class MegaAudinoex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Kaleidowaltz
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       return MULTIPLE_COIN_FLIPS_PROMPT(store, state, player, 3, (results) => {
