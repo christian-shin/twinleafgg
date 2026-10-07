@@ -294,7 +294,9 @@ export class GameRunner {
   }
 
   private decidePrompt(prompt: Prompt<any>, playerIdx: number): any {
-    if (this.script.length > 0) {
+    // A scripted turn answer (`{ "a": ... }`) waits for its turn decision; prompts in between use the policy
+    const first = this.script[0];
+    if (this.script.length > 0 && !(first !== null && typeof first === 'object' && !Array.isArray(first) && typeof first.a === 'string')) {
       return this.script.shift();
     }
     if (this.opts.answers) {
