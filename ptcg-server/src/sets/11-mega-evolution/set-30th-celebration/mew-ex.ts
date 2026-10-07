@@ -1,8 +1,8 @@
-import { PokemonCard, Stage, CardTag, CardType, PowerType, StoreLike, State, GameError, GameMessage, ConfirmPrompt } from '../../../game';
+import { PokemonCard, Stage, CardTag, CardType, PowerType, StoreLike, State, GameMessage, ConfirmPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { AfterAttackEffect } from '../../../game/store/effects/game-phase-effects';
-import { COPY_ATTACK_VIA_ABILITY } from '../../../game/store/prefabs/copy-attack-prefabs';
-import { WAS_POWER_USED, IS_ABILITY_BLOCKED, SWITCH_ACTIVE_WITH_BENCHED } from '../../../game/store/prefabs/prefabs';
+import { CheckPokemonAttacksEffect } from '../../../game/store/effects/check-effects';
+import { IS_ABILITY_BLOCKED, SWITCH_ACTIVE_WITH_BENCHED } from '../../../game/store/prefabs/prefabs';
 
 export class Mewex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -15,7 +15,7 @@ export class Mewex extends PokemonCard {
 
   public powers = [{
     name: 'Memory Helix',
-    useWhenInPlay: true,
+    useWhenInPlay: false,
     powerType: PowerType.ABILITY,
     text: 'This Pokémon can use the attacks of any of your Benched Pokémon. (You still need the necessary Energy to use each attack.)',
   }];
@@ -35,15 +35,21 @@ export class Mewex extends PokemonCard {
   public fullName: string = 'Mew ex 30C';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    // Memory Helix
-    if (WAS_POWER_USED(effect, 0, this)) {
+    // Memory Helix: a passive Ability; the attacks of the Benched Pokémon are this Pokémon's attack options
+    // (they run as this Pokémon's attacks, see UseAttackEffect.delegateFrom).
+    if (effect instanceof CheckPokemonAttacksEffect) {
       const player = effect.player;
-      if (IS_ABILITY_BLOCKED(store, state, player, this)) {
-        throw new GameError(GameMessage.BLOCKED_BY_EFFECT);
+      if (player.active.getPokemonCard() !== this || IS_ABILITY_BLOCKED(store, state, player, this)) {
+        return state;
       }
-      return COPY_ATTACK_VIA_ABILITY(store, state, effect, {
-        copycatCard: this,
-        filter: (cardList) => cardList !== player.active,
+      player.bench.forEach(b => {
+        const benched = b.getPokemonCard();
+        if (benched !== undefined) {
+          benched.attacks.forEach(attack => {
+            effect.attacks.push(attack);
+            effect.copiedAttacks.push({ attack, source: benched });
+          });
+        }
       });
     }
 

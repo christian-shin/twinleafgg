@@ -64,6 +64,7 @@ export function playerTurnReducer(store: StoreLike, state: State, action: Action
 
       const pokemonCard = player.active.getPokemonCard();
       let attacks: Attack[] = [];
+      const copiedAttacks: { attack: Attack, source: PokemonCard }[] = [];
 
       if (pokemonCard) {
         attacks = [...pokemonCard.attacks];
@@ -78,6 +79,7 @@ export function playerTurnReducer(store: StoreLike, state: State, action: Action
           const attackEffect = new CheckPokemonAttacksEffect(player);
           state = store.reduceEffect(state, attackEffect);
           attacks = [...attacks, ...attackEffect.attacks];
+          copiedAttacks.push(...attackEffect.copiedAttacks);
         }
       });
 
@@ -85,14 +87,20 @@ export function playerTurnReducer(store: StoreLike, state: State, action: Action
       state = store.reduceEffect(state, attackEffect);
 
       attacks = [...attacks, ...attackEffect.attacks];
+      copiedAttacks.push(...attackEffect.copiedAttacks);
 
-      const attack = attacks.find(a => a.name === action.name);
+      // An attack copied from a Benched Pokémon (Memory Helix) is named by its source card too.
+      const attack = action.from !== undefined
+        ? copiedAttacks.find(c => c.attack.name === action.name && c.source.fullName === action.from)?.attack
+        : attacks.find(a => a.name === action.name);
 
       if (attack === undefined) {
         throw new GameError(GameMessage.UNKNOWN_ATTACK);
       }
 
       const useAttackEffect = new UseAttackEffect(player, attack);
+      // An attack of a Benched Pokémon that the active Pokémon can use (Mew ex Memory Helix) runs as the active Pokémon's.
+      useAttackEffect.delegateFrom = copiedAttacks.find(c => c.attack === attack)?.source;
       state = store.reduceEffect(state, useAttackEffect);
 
       state.lastAttack = attack;

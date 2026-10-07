@@ -1,3 +1,4 @@
+import { CheckPokemonAttacksEffect } from '../effects/check-effects';
 import { Effect } from '../effects/effect';
 import { AfterAttackEffect, EndTurnEffect, BetweenTurnsEffect, BeginTurnEffect, DrawCardForTurnEffect, DrewTopdeckEffect } from '../effects/game-phase-effects';
 import { GameError } from '../../game-error';
@@ -472,8 +473,23 @@ export function gamePhaseReducer(store: StoreLike, state: State, effect: Effect)
         // "This Pokémon can't use [attack]" only locks an attack the Pokémon has: a Pokémon that copied
         // the attack (Slowking's Seek Inspiration, Metronome, ...) used its own attack, so the copy
         // doesn't lock the copied attack's name (Rulings Compendium: Slowking can copy it again).
-        cardList.cannotUseAttacksNextTurn = cardList.cannotUseAttacksNextTurnPending.filter(name =>
-          cardList.cards.some(c => c instanceof PokemonCard && c.attacks.some(a => a.name === name)));
+        // Memory Helix is different: Mew ex uses the attack itself, so the lock keeps an attack name that
+        // is among the Active Pokémon's offered (copied) attacks.
+        let copiedNames: string[] | undefined;
+        cardList.cannotUseAttacksNextTurn = cardList.cannotUseAttacksNextTurnPending.filter(name => {
+          if (cardList.cards.some(c => c instanceof PokemonCard && c.attacks.some(a => a.name === name))) {
+            return true;
+          }
+          if (cardList !== player.active) {
+            return false;
+          }
+          if (copiedNames === undefined) {
+            const check = new CheckPokemonAttacksEffect(player);
+            store.reduceEffect(state, check);
+            copiedNames = check.copiedAttacks.map(c => c.attack.name);
+          }
+          return copiedNames.includes(name);
+        });
         cardList.cannotUseAttacksNextTurnPending = [];
       }
 
