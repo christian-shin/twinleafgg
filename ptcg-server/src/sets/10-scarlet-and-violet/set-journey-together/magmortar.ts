@@ -5,7 +5,7 @@ import { PowerEffect } from '../../../game/store/effects/game-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { BetweenTurnsEffect } from '../../../game/store/effects/game-phase-effects';
 import { AddSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Magmortar extends PokemonCard {
   public stage: Stage = Stage.STAGE_1;
@@ -76,12 +76,12 @@ export class Magmortar extends PokemonCard {
     }
 
     // Searing Flame
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       return COIN_FLIP_PROMPT(store, state, player, result => {
         if (result === true) {
-          const specialCondition = new AddSpecialConditionsEffect(effect, [SpecialCondition.BURNED]);
+          const specialCondition = new AddSpecialConditionsEffect(effect.attackEffect, [SpecialCondition.BURNED]);
           return store.reduceEffect(state, specialCondition);
         }
       });

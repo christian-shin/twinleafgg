@@ -3,7 +3,7 @@ import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { FLIP_COIN_TO_PREVENT_DAMAGE_AND_EFFECTS_DURING_OPPONENTS_NEXT_TURN } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Spewpa extends PokemonCard {
@@ -30,8 +30,8 @@ export class Spewpa extends PokemonCard {
   public fullName: string = 'Spewpa M3';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      return FLIP_COIN_TO_PREVENT_DAMAGE_AND_EFFECTS_DURING_OPPONENTS_NEXT_TURN(store, state, effect, this);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      return FLIP_COIN_TO_PREVENT_DAMAGE_AND_EFFECTS_DURING_OPPONENTS_NEXT_TURN(store, state, effect.attackEffect, this);
     }
     return state;
   }

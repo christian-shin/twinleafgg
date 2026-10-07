@@ -4,7 +4,7 @@ import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
 import { AddSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Litten extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -27,12 +27,12 @@ export class Litten extends PokemonCard {
   public fullName: string = 'Litten TEF';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       return COIN_FLIP_PROMPT(store, state, player, result => {
         if (result) {
-          const specialCondition = new AddSpecialConditionsEffect(effect, [SpecialCondition.PARALYZED]);
+          const specialCondition = new AddSpecialConditionsEffect(effect.attackEffect, [SpecialCondition.PARALYZED]);
           return store.reduceEffect(state, specialCondition);
         }
       });

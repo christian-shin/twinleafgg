@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { COIN_FLIP_PROMPT, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { PREVENT_DAMAGE, PREVENT_EFFECTS_OF_ATTACKS } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Marill extends PokemonCard {
@@ -32,11 +32,11 @@ export class Marill extends PokemonCard {
   public fullName: string = 'Marill MC';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       COIN_FLIP_PROMPT(store, state, effect.player, result => {
         if (result) {
-          PREVENT_DAMAGE(store, state, effect, this);
-          PREVENT_EFFECTS_OF_ATTACKS(store, state, effect, this);
+          PREVENT_DAMAGE(store, state, effect.attackEffect, this);
+          PREVENT_EFFECTS_OF_ATTACKS(store, state, effect.attackEffect, this);
         }
       });
     }

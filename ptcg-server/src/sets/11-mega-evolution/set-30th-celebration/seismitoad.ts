@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { OPPONENT_COIN_FLIP_CANCEL_TRAINER_CARDS } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Seismitoad extends PokemonCard {
@@ -35,8 +35,8 @@ export class Seismitoad extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Quaking Fist
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      return OPPONENT_COIN_FLIP_CANCEL_TRAINER_CARDS(store, state, effect, this);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      return OPPONENT_COIN_FLIP_CANCEL_TRAINER_CARDS(store, state, effect.attackEffect, this);
     }
 
     return state;

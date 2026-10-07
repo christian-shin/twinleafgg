@@ -6,7 +6,7 @@ import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-eff
 import { Effect } from '../../../game/store/effects/effect';
 
 import { AttackEffect } from '../../../game/store/effects/game-effects';
-import { AFTER_ATTACK, WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
 
 export class Zapdos extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -38,12 +38,12 @@ export class Zapdos extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       return COIN_FLIP_PROMPT(store, state, player, result => {
         if (result === true) {
-          const specialConditionEffect = new AddSpecialConditionsEffect(effect, [SpecialCondition.PARALYZED]);
+          const specialConditionEffect = new AddSpecialConditionsEffect(effect.attackEffect, [SpecialCondition.PARALYZED]);
           store.reduceEffect(state, specialConditionEffect);
         }
       });
