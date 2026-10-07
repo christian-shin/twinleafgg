@@ -221,6 +221,27 @@ function nextTurnPlayerOrder(state: State): number[] {
   return [next, next === 0 ? 1 : 0];
 }
 
+/**
+ * True when checkWinner would end the game or start a Tiebreaker: a player has no Pokémon in play (an Active spot
+ * waiting for a promotion from the Bench does not count) or no Prize cards left.
+ */
+function winConditionMet(state: State): boolean {
+  return state.players.some(player =>
+    (player.active.cards.length === 0 && !player.bench.some(b => b.cards.length > 0))
+    || player.prizes.every(p => p.cards.length === 0));
+}
+
+/**
+ * A Knock Out effect at step 2 (Maractus JTG's Explosive Needle) can put counters on a Pokémon that is then Knocked
+ * Out in a further round. Every effect has to resolve before the winner is determined, so that round's Knock Outs
+ * and Prizes count before the game ends (Rulings 1577, 1584, 1403).
+ */
+function knockOutPendingBeforeWinner(store: StoreLike, state: State, announced: (PokemonCard | undefined)[]): boolean {
+  // A Pokémon whose Knock Out was announced in this round and prevented stays at 0 HP; it is not a new Knock Out.
+  return winConditionMet(state)
+    && findKoPokemons(store, state).some(ko => !announced.includes(ko.cardList.getPokemonCard()));
+}
+
 function choosePrizeCards(store: StoreLike, state: State, prizeGroups: PrizeGroup[][]): ChoosePrizePrompt[] {
   const prompts: ChoosePrizePrompt[] = [];
   let tookLastPrize = false;
@@ -481,6 +502,7 @@ export function* executeCheckState(next: Function, store: StoreLike, state: Stat
   // leave play and the Prizes are counted.
   const pokemonsToDiscard = findKoPokemons(store, state);
   const announcedKnockOuts: { playerNum: number, knockOutEffect: KnockOutEffect }[] = [];
+  const announcedPokemon = pokemonsToDiscard.map(ko => ko.cardList.getPokemonCard());
   for (const pokemonToDiscard of pokemonsToDiscard) {
     const owner = state.players[pokemonToDiscard.playerNum];
     const knockOutEffect = new KnockOutEffect(owner, pokemonToDiscard.cardList);
@@ -567,6 +589,9 @@ export function* executeCheckState(next: Function, store: StoreLike, state: Stat
   // Pokémon are promoted and their effects resolve before the winner is determined (ruling 820, 1584).
   const prizesTaken = state.players.map(p => p.prizes.every(pr => pr.cards.length === 0));
   if (prizesTaken.some(taken => taken) && !prizesTaken.every(taken => taken)) {
+    if (knockOutPendingBeforeWinner(store, state, announcedPokemon)) {
+      return yield* executeCheckState(next, store, state, onComplete);
+    }
     return checkWinner(store, state, onComplete);
   }
 
@@ -606,6 +631,10 @@ export function* executeCheckState(next: Function, store: StoreLike, state: Stat
     if (store.hasPrompts()) {
       yield store.waitPrompt(state, () => next());
     }
+  }
+
+  if (knockOutPendingBeforeWinner(store, state, announcedPokemon)) {
+    return yield* executeCheckState(next, store, state, onComplete);
   }
 
   checkWinner(store, state, onComplete);

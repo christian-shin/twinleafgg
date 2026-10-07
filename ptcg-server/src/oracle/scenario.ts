@@ -175,6 +175,10 @@ function resetPlayer(player: Player): void {
   player.discard.moveTo(player.deck);
   for (const prize of player.prizes) {
     prize.moveTo(player.deck);
+    // A fresh board: Prize cards a card effect turned face up before the scenario turn are face down again
+    prize.isSecret = true;
+    prize.isPublic = false;
+    prize.faceUpPrize = false;
   }
   player.stadium.moveTo(player.deck);
   for (const slot of [...player.bench, player.active]) {
