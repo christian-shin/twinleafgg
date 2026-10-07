@@ -168,7 +168,11 @@ function startNextTurn(store: StoreLike, state: State): State {
 
 function handleSpecialConditions(store: StoreLike, state: State, effect: BetweenTurnsEffect) {
   const player = effect.player;
-  for (const sp of player.active.specialConditions) {
+  // Pokémon Checkup step 1 (Advanced Player's Rulebook I-F): Poisoned, Burned, Asleep, Paralyzed, whatever
+  // order the Special Conditions were applied in (the coin flips follow this order).
+  const checkupOrder = [SpecialCondition.POISONED, SpecialCondition.BURNED, SpecialCondition.ASLEEP, SpecialCondition.PARALYZED];
+  const present = player.active.specialConditions.slice();
+  for (const sp of checkupOrder.filter(c => present.includes(c))) {
     const flipsForSleep: CoinFlipPrompt[] = [];
 
     switch (sp) {
