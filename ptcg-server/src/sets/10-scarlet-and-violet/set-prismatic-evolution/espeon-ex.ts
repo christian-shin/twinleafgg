@@ -4,7 +4,7 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, PlayerType, ShuffleDeckPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
+import { PutDamageEffect, ignoresDefenderEffects, DevolveEffect } from '../../../game/store/effects/attack-effects';
 import {DEVOLVE_POKEMON, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class Espeonex extends PokemonCard {
@@ -66,7 +66,12 @@ export class Espeonex extends PokemonCard {
 
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card) => {
         if (cardList.getPokemons().length > 1) {
-          DEVOLVE_POKEMON(store, state, cardList, opponent.deck);
+          // An effect of the attack on that Pokémon: Mist Energy and the like prevent it.
+          const devolve = new DevolveEffect(effect, cardList);
+          store.reduceEffect(state, devolve);
+          if (!devolve.preventDefault) {
+            DEVOLVE_POKEMON(store, state, cardList, opponent.deck);
+          }
         }
       });
 

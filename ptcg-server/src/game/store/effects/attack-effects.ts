@@ -29,6 +29,7 @@ export enum AttackEffects {
   AFTER_WEAKNESS_AND_RESISTANCE_EFFECT = 'AFTER_WEAKNESS_AND_RESISTANCE_EFFECT',
   MOVE_OPPONENT_ENERGY_EFFECT = 'MOVE_OPPONENT_ENERGY_EFFECT',
   MOVE_COUNTERS_EFFECT = 'MOVE_COUNTERS_EFFECT',
+  DEVOLVE_EFFECT = 'DEVOLVE_EFFECT',
 }
 
 export abstract class AbstractAttackEffect {
@@ -184,6 +185,19 @@ export class MoveCountersAttackEffect extends AbstractAttackEffect implements Ef
     this.source = source;
     this.target = target;
     this.damage = damage;
+  }
+}
+
+// Devolves a Pokemon as an effect of an attack (Espeon ex's Amazez): an effect on that Pokemon, so Mist Energy
+// and the other "prevent all effects of attacks" protections stop it (Advanced Rulebook C-13, ruling 1724).
+// Reducer-less: the card devolves the Pokemon unless the effect was prevented.
+export class DevolveEffect extends AbstractAttackEffect implements Effect {
+  readonly type: string = AttackEffects.DEVOLVE_EFFECT;
+  public preventDefault = false;
+
+  constructor(base: AttackEffect | AbstractAttackEffect, target: PokemonCardList) {
+    super(base);
+    this.target = target;
   }
 }
 
