@@ -17,7 +17,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class TeamRocketsMurkrow extends PokemonCard {
@@ -101,8 +101,8 @@ export class TeamRocketsMurkrow extends PokemonCard {
       );
     }
 
-    if (WAS_ATTACK_USED(effect, 1, this)) {
-      return OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK(store, state, effect, this);
+    if (AFTER_ATTACK(effect, 1, this)) {
+      return OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK(store, state, effect.attackEffect, this);
     }
 
     return state;
