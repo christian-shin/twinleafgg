@@ -92,6 +92,19 @@ function* handHasStarter(next: Function, store: StoreLike, state: State, player:
   }
 }
 
+/**
+ * A card that can go onto the Bench during setup: a Basic Pokémon, or a card played "as a Basic" during
+ * setup (Snorlax Doll, ruling 1478). A Pokémon whose Ability only lets it start face down as the Active
+ * Pokémon (Cinderace's Explosiveness, ruling 1714) is not a Basic and can't be Benched (ruling 264;
+ * Advanced Rulebook I-G, steps 6 and 7).
+ */
+function canBenchAtSetup(state: State, c: Card): boolean {
+  if (c instanceof PokemonCard) {
+    return c.stage === Stage.BASIC || sandboxAllPokemonBasicEnabled(state);
+  }
+  return c.tags.includes(CardTag.PLAY_DURING_SETUP);
+}
+
 function putStartingPokemonsAndPrizes(player: Player, cards: Card[], state: State): void {
   if (cards.length === 0) {
     return;
@@ -99,10 +112,15 @@ function putStartingPokemonsAndPrizes(player: Player, cards: Card[], state: Stat
   // Place Active (face-down)
   player.hand.moveCardTo(cards[0], player.active);
   player.active.isSecret = true;
-  // Place Bench (face-down)
+  // Place Bench (face-down); a card that can't be Benched stays in hand
+  let benched = 0;
   for (let i = 1; i < cards.length; i++) {
-    player.hand.moveCardTo(cards[i], player.bench[i - 1]);
-    player.bench[i - 1].isSecret = true;
+    if (!canBenchAtSetup(state, cards[i])) {
+      continue;
+    }
+    player.hand.moveCardTo(cards[i], player.bench[benched]);
+    player.bench[benched].isSecret = true;
+    benched++;
   }
   // Pre-Release format uses 4 prize cards, all other formats use 6
   const prizeCount = state.gameSettings?.format === Format.PRE_RELEASE ? 4 : 6;
@@ -626,7 +644,7 @@ function* allowExtraBenchPlacement(player: Player, chooseCardsOptions: any, stat
   player.active.cards.forEach(c => inPlayIds.add(c.id));
   const newBasics = player.hand.cards
     .map((c, idx) => ({ c, idx }))
-    .filter(({ c }) => isStartingPokemonCandidate(state, c) && !inPlayIds.has(c.id));
+    .filter(({ c }) => isStartingPokemonCandidate(state, c) && canBenchAtSetup(state, c) && !inPlayIds.has(c.id));
   if (newBasics.length > 0) {
     const blocked = player.hand.cards.map((c, idx) => newBasics.some(nb => nb.idx === idx) ? -1 : idx).filter(idx => idx !== -1);
     // Use CHOOSE_STARTING_POKEMONS as fallback prompt message
