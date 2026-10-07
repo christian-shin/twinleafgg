@@ -4,7 +4,7 @@ import { GameMessage, PlayerType, PowerType, SlotType, StateUtils, StoreLike, St
 import { Effect } from '../../../game/store/effects/effect';
 import { PutCountersEffect, PutDamageEffect } from '../../../game/store/effects/attack-effects';
 import { ChoosePokemonPrompt } from '../../../game/store/prompts/choose-pokemon-prompt';
-import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { IS_ABILITY_BLOCKED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { SURVIVE_ON_TEN_ON_COIN_FLIP } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class Annihilape extends PokemonCard {
@@ -54,7 +54,7 @@ export class Annihilape extends PokemonCard {
       SURVIVE_ON_TEN_ON_COIN_FLIP(store, state, effect, owner, this.powers[0].name);
     }
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
@@ -77,7 +77,7 @@ export class Annihilape extends PokemonCard {
           }
           const dest = picked[0];
           // Damage counters placed by an attack are an effect of the attack (Mist Energy, ... prevent them)
-          const putCounters = new PutCountersEffect(effect, 50);
+          const putCounters = new PutCountersEffect(effect.attackEffect, 50);
           putCounters.target = dest;
           store.reduceEffect(state, putCounters);
         },
