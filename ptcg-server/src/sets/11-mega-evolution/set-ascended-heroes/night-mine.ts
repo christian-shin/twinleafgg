@@ -6,6 +6,9 @@ import { TrainerType, CardType, CardTag } from '../../../game/store/card/card-ty
 import { CheckAttackCostEffect } from '../../../game/store/effects/check-effects';
 import { IS_STADIUM_EFFECT_BLOCKED } from '../../../game/store/prefabs/stadium-effect';
 import { StateUtils } from '../../../game/store/state-utils';
+import { GameError } from '../../../game/game-error';
+import { GameMessage } from '../../../game/game-message';
+import { UseStadiumEffect } from '../../../game/store/effects/game-effects';
 
 export class NightMine extends TrainerCard {
   public trainerType: TrainerType = TrainerType.STADIUM;
@@ -19,6 +22,10 @@ export class NightMine extends TrainerCard {
     "Attacks used by each Tera Pokémon in play (both yours and your opponent's) cost [C] more.";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+    // Automatically active: a Stadium without "that player may" can't be announced and used (Advanced Rulebook B-04).
+    if (effect instanceof UseStadiumEffect && StateUtils.getStadiumCard(state) === this) {
+      throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+    }
     if (effect instanceof CheckAttackCostEffect && StateUtils.getStadiumCard(state) === this) {
       const player = effect.player;
       const pokemonCard = player.active.getPokemonCard();

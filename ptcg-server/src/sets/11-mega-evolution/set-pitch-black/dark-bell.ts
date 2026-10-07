@@ -4,6 +4,7 @@ import { StoreLike, State, StateUtils, Player, GameError, GameMessage } from '..
 import { Effect } from '../../../game/store/effects/effect';
 import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effects';
 import { ADD_CONFUSION_TO_PLAYER_ACTIVE, TRAINER_TARGET_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { WOULD_CHANGE_SPECIAL_CONDITIONS } from '../../../game/store/prefabs/special-condition-change';
 import { WAS_TRAINER_USED } from '../../../game/store/prefabs/trainer-prefabs';
 
 export class DarkBell extends TrainerCard {
@@ -54,8 +55,10 @@ export class DarkBell extends TrainerCard {
         }
         const checkType = new CheckPokemonTypeEffect(active);
         store.reduceEffect(state, checkType);
-        return !checkType.cardTypes.includes(CardType.DARK);
+        return !checkType.cardTypes.includes(CardType.DARK)
+          && WOULD_CHANGE_SPECIAL_CONDITIONS(active, [SpecialCondition.CONFUSED]);
       });
+      // (Advanced Rulebook B-01, ruling 962: a Pokemon that is already Confused changes nothing)
       if (!hasNonDarkActive) {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }

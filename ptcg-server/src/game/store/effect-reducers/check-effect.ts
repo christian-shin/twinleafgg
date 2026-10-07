@@ -670,6 +670,14 @@ export function checkStateReducer(store: StoreLike, state: State, effect: Effect
   if (effect instanceof CheckRetreatCostEffect) {
     if (effect.player.active.zeroRetreatCostNextTurn || effect.noRetreatCost) {
       effect.cost = [];
+    } else {
+      for (let i = 0; i < effect.costReduction; i++) {
+        const index = effect.cost.indexOf(CardType.COLORLESS);
+        if (index === -1) {
+          break;
+        }
+        effect.cost.splice(index, 1);
+      }
     }
     return state;
   }

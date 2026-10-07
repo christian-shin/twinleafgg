@@ -7,6 +7,9 @@ import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game/store/state-utils';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { TRAINER_TARGET_BLOCKED } from '../../../game/store/prefabs/prefabs';
+import { WOULD_CHANGE_SPECIAL_CONDITIONS } from '../../../game/store/prefabs/special-condition-change';
+import { GameError } from '../../../game/game-error';
+import { GameMessage } from '../../../game/game-message';
 
 export class DangerousLaser extends TrainerCard {
   public trainerType: TrainerType = TrainerType.ITEM;
@@ -28,6 +31,12 @@ export class DangerousLaser extends TrainerCard {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       const active = opponent.active;
+
+      // Can't be played when the Active Pokemon is already Burned and Confused (Advanced Rulebook B-01, ruling 962).
+      // An effect that blocks the conditions still lets the card be played (ruling 269).
+      if (!WOULD_CHANGE_SPECIAL_CONDITIONS(active, [SpecialCondition.BURNED, SpecialCondition.CONFUSED])) {
+        throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
+      }
 
       if (!TRAINER_TARGET_BLOCKED(store, state, player, this, active)) {
         active.addSpecialCondition(SpecialCondition.BURNED);

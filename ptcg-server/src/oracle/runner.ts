@@ -322,12 +322,18 @@ export class GameRunner {
   }
 
   /**
-   * A scripted play may name its card instead of an instance id (ids depend on the shuffle):
-   * {"a": "play", "card": "Switch SVI", "target": {...}} matches the first legal play of a card of
-   * that full name (or name) in hand with that target (the target is optional).
+   * Scripted plays that name a card instead of its instance id (ids depend on the shuffle):
+   *  - `{ "a": "play" | "ability", "card_prefix": "PRE-100#" }`: any copy of that card;
+   *  - `{ "a": "play", "card" | "name": "<card name or full name>", "target"?: {...} }`: the first legal play of a hand
+   *    card of that name (and target, when given).
+   * Returns the option index, -1 when the answer is not of this form or finds no option.
    */
-  private findScriptedPlayByName(options: TurnOption[], player: Player, scripted: any): number {
-    if (scripted?.a !== 'play' || typeof scripted.card !== 'string' || scripted.card.includes('#')) {
+  private findScriptedByCard(options: TurnOption[], player: Player, scripted: any): number {
+    if (scripted && typeof scripted.card_prefix === 'string') {
+      return options.findIndex(o => o.desc.a === scripted.a && String(o.desc.card).startsWith(scripted.card_prefix));
+    }
+    const name = scripted?.a === 'play' ? (typeof scripted.name === 'string' ? scripted.name : scripted.card) : undefined;
+    if (typeof name !== 'string' || name.includes('#')) {
       return -1;
     }
     const wantTarget = scripted.target === undefined ? undefined : stableStringify(scripted.target);
@@ -336,7 +342,7 @@ export class GameRunner {
         return false;
       }
       const card = player.hand.cards[(o.action as PlayCardAction).handIndex];
-      if (card === undefined || (card.fullName !== scripted.card && card.name !== scripted.card)) {
+      if (card === undefined || (card.fullName !== name && card.name !== name)) {
         return false;
       }
       return wantTarget === undefined || stableStringify(o.desc.target) === wantTarget;
@@ -346,19 +352,10 @@ export class GameRunner {
   private decideTurn(options: TurnOption[], player: Player, playerIdx: number): number {
     if (this.script.length > 0) {
       const scripted = this.script.shift();
-      // `{ "a": "play" | "ability", "card_prefix": "PRE-100#" }`: use any copy of that card (instance ids depend on
-      // the shuffle)
-      if (scripted && typeof scripted.card_prefix === 'string') {
-        const j = options.findIndex(o => o.desc.a === scripted.a && String(o.desc.card).startsWith(scripted.card_prefix));
-        if (j === -1) {
-          throw new Error('scenario: scripted play not among options: ' + scripted.card_prefix);
-        }
-        return j;
-      }
       const want = stableStringify(scripted);
       let i = options.findIndex(o => stableStringify(o.desc) === want);
       if (i === -1) {
-        i = this.findScriptedPlayByName(options, player, scripted);
+        i = this.findScriptedByCard(options, player, scripted);
       }
       if (i === -1) {
         throw new Error('scenario: scripted answer not among options: ' + want);

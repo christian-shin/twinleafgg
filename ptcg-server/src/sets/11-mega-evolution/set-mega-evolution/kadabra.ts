@@ -38,6 +38,11 @@ export class Kadabra extends PokemonCard {
     if (JUST_EVOLVED(effect, this)) {
       const player = effect.player;
 
+      // An Ability can't be used for no effect: the number of cards in a deck is public (Advanced Rulebook A-02, E-05, rulings 244, 782)
+      if (player.deck.cards.length === 0) {
+        return state;
+      }
+
       if (IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }

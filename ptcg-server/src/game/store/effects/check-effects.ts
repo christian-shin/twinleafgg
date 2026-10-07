@@ -140,6 +140,13 @@ export class CheckRetreatCostEffect implements Effect {
    * whichever handler runs first, so the cost is emptied after all handlers ran.
    */
   public noRetreatCost = false;
+  /**
+   * "The Retreat Cost is [C] less" effects (Air Balloon, Rescue Board) add their amount here instead of removing
+   * Energy from `cost` at once. Effects that make the cost more and effects that make it less stack and are calculated
+   * together, whatever order they are applied in (Advanced Rulebook D-11, D-12), so the reduction is applied once, after
+   * all handlers ran (check-effect.ts).
+   */
+  public costReduction = 0;
 
   constructor(player: Player) {
     this.player = player;
