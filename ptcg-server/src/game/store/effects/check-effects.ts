@@ -45,6 +45,8 @@ export class CheckPokemonAttacksEffect implements Effect {
   public preventDefault = false;
   public player: Player;
   public attacks: Attack[];
+  /** Attacks of other Pokémon that the active Pokémon uses as its own (Mew ex Memory Helix), with their source card. */
+  public copiedAttacks: { attack: Attack, source: PokemonCard }[] = [];
 
   constructor(player: Player) {
     this.player = player;
