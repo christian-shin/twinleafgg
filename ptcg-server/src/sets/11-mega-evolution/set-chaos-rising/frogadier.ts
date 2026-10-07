@@ -11,7 +11,7 @@ import {
 } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { Card } from '../../../game/store/card/card';
-import {WAS_ATTACK_USED, MOVE_CARDS, SHOW_CARDS_TO_PLAYER } from '../../../game/store/prefabs/prefabs';
+import {MOVE_CARDS, SHOW_CARDS_TO_PLAYER, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 function* useCallingJutsu(
   next: Function,
@@ -83,8 +83,8 @@ export class Frogadier extends PokemonCard {
   public fullName: string = 'Frogadier M4';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      const generator = useCallingJutsu(() => generator.next(), store, state, effect);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const generator = useCallingJutsu(() => generator.next(), store, state, effect.attackEffect);
       return generator.next().value;
     }
     return state;

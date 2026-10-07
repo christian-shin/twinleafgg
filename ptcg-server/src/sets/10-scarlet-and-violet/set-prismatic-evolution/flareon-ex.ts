@@ -14,7 +14,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { PlayerType } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { PutDamageEffect, ignoresDefenderEffects } from '../../../game/store/effects/attack-effects';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 function* useBurningCharge(
   next: Function,
@@ -103,8 +103,8 @@ export class Flareonex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Burning Charge
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      const generator = useBurningCharge(() => generator.next(), store, state, effect);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const generator = useBurningCharge(() => generator.next(), store, state, effect.attackEffect);
       return generator.next().value;
     }
 

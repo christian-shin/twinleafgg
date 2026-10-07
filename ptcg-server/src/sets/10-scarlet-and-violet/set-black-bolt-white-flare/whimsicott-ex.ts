@@ -20,7 +20,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { AttachEnergyPrompt } from '../../../game/store/prompts/attach-energy-prompt';
 import { ShowCardsPrompt } from '../../../game/store/prompts/show-cards-prompt';
 import { ShuffleDeckPrompt } from '../../../game/store/prompts/shuffle-prompt';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 function* useEnergyGift(
   next: Function,
@@ -94,8 +94,8 @@ export class Whimsicottex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Energy Gift
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      const generator = useEnergyGift(() => generator.next(), store, state, effect);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const generator = useEnergyGift(() => generator.next(), store, state, effect.attackEffect);
       return generator.next().value;
     }
     // Wonder Cotton

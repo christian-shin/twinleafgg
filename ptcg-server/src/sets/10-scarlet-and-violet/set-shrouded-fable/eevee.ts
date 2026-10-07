@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType, EnergyType } from '../../../game/store/card/card-types';
 import { Card, ChooseCardsPrompt, EnergyCard, GameMessage, ShowCardsPrompt, ShuffleDeckPrompt, State, StateUtils, StoreLike } from '../../../game';
 import { AttackEffect, Effect } from '../../../game/store/effects/game-effects';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 function* useColorfulCatch(next: Function, store: StoreLike, state: State, effect: AttackEffect): IterableIterator<State> {
   const player = effect.player;
@@ -76,8 +76,8 @@ export class Eevee extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      const generator = useColorfulCatch(() => generator.next(), store, state, effect);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const generator = useColorfulCatch(() => generator.next(), store, state, effect.attackEffect);
       return generator.next().value;
     }
 

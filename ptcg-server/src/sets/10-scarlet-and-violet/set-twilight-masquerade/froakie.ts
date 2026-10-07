@@ -5,7 +5,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { PlayPokemonFromDeckEffect } from '../../../game/store/effects/play-card-effects';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { GameMessage } from '../../../game/game-message';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 function* useFlock(next: Function, store: StoreLike, state: State,
   effect: AttackEffect): IterableIterator<State> {
@@ -91,8 +91,8 @@ export class Froakie extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      const generator = useFlock(() => generator.next(), store, state, effect);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const generator = useFlock(() => generator.next(), store, state, effect.attackEffect);
       return generator.next().value;
     }
 

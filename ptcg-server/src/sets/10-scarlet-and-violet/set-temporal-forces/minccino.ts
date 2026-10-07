@@ -5,7 +5,7 @@ import { StoreLike, State, GameMessage, PlayerType, SlotType, StateUtils } from 
 import { DiscardEnergyPrompt, DiscardEnergyTransfer } from '../../../game/store/prompts/discard-energy-prompt';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { Effect } from '../../../game/store/effects/effect';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 function* useCleaningUp(next: Function, store: StoreLike, state: State,
   effect: AttackEffect): IterableIterator<State> {
@@ -95,8 +95,8 @@ export class Minccino extends PokemonCard {
   public fullName: string = 'Minccino TEF';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 1, this)) {
-      const generator = useCleaningUp(() => generator.next(), store, state, effect);
+    if (AFTER_ATTACK(effect, 1, this)) {
+      const generator = useCleaningUp(() => generator.next(), store, state, effect.attackEffect);
       return generator.next().value;
     }
 
