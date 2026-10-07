@@ -17,7 +17,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import {MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { OPPONENTS_POKEMON_CANNOT_USE_THAT_ATTACK } from '../../../game/store/prefabs/effect-of-attack-prefabs';
 
 export class TeamRocketsMurkrow extends PokemonCard {
@@ -52,7 +52,7 @@ export class TeamRocketsMurkrow extends PokemonCard {
   public fullName: string = "Team Rocket's Murkrow DRI";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 

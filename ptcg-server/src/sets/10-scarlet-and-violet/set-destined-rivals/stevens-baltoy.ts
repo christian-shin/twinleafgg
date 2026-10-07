@@ -6,7 +6,7 @@ import { PlayPokemonFromDeckEffect } from '../../../game/store/effects/play-card
 import {
   GET_PLAYER_BENCH_SLOTS,
   SHUFFLE_DECK,
-  WAS_ATTACK_USED,
+  AFTER_ATTACK,
 } from '../../../game/store/prefabs/prefabs';
 
 export class StevensBaltoy extends PokemonCard {
@@ -41,7 +41,7 @@ export class StevensBaltoy extends PokemonCard {
   public fullName: string = "Steven's Baltoy DRI";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const slots = GET_PLAYER_BENCH_SLOTS(player);
 

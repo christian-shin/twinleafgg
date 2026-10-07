@@ -5,7 +5,7 @@ import { State } from '../../../game/store/state/state';
 import { StoreLike } from '../../../game/store/store-like';
 import { Effect } from '../../../game/store/effects/effect';
 import { ChooseCardsPrompt, GameMessage, ShowCardsPrompt, StateUtils } from '../../../game';
-import { MOVE_CARDS, SHUFFLE_DECK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, SHUFFLE_DECK, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Charcadet extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -35,7 +35,7 @@ export class Charcadet extends PokemonCard {
   public fullName: string = 'Charcadet M2';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       const opponent = StateUtils.getOpponent(state, player);

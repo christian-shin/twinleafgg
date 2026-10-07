@@ -5,7 +5,9 @@ import { StoreLike, State, ChooseCardsPrompt } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { GameMessage } from '../../../game/game-message';
 import {WAS_ATTACK_USED,
-  WAS_POKEMON_KNOCKED_OUT_DURING_OPPONENTS_LAST_TURN, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+  WAS_POKEMON_KNOCKED_OUT_DURING_OPPONENTS_LAST_TURN, MOVE_CARDS,
+  AFTER_ATTACK,
+} from '../../../game/store/prefabs/prefabs';
 
 export class IronLeaves extends PokemonCard {
   protected _tags = [CardTag.FUTURE];
@@ -40,7 +42,7 @@ export class IronLeaves extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Recovery Net
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       const pokemonCount = player.discard.cards.filter((c) => {

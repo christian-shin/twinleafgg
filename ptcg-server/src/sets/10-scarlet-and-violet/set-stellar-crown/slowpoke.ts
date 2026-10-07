@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, State, StoreLike, GameMessage, ChooseCardsPrompt, SuperType, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Slowpoke extends PokemonCard {
 
@@ -35,7 +35,7 @@ export class Slowpoke extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       const hasPokemonInDiscard = player.discard.cards.some(c => {

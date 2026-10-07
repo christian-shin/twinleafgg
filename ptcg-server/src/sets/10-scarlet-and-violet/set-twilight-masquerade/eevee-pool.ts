@@ -3,7 +3,7 @@ import {
   StoreLike, SuperType,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { SHUFFLE_DECK, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { SHUFFLE_DECK, WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { FLIP_A_COIN_IF_HEADS_DEAL_MORE_DAMAGE } from '../../../game/store/prefabs/attack-effects';
 
 // Ref: set-delta-reign/sandshrew.ts (Ascension)
@@ -37,7 +37,7 @@ export class EeveeTWMPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Ascension
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       if (player.deck.cards.length === 0) {

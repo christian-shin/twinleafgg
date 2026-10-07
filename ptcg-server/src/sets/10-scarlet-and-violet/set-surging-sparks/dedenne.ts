@@ -2,7 +2,7 @@ import { ChooseCardsPrompt, GameMessage, State, StoreLike } from '../../../game'
 import { CardType, Stage, SuperType } from '../../../game/store/card/card-types';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
-import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, SHOW_CARDS_TO_PLAYER, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Dedenne extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -33,7 +33,7 @@ export class Dedenne extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = effect.opponent;
 
