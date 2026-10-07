@@ -83,11 +83,17 @@ export class AfterAttackEffect implements Effect {
   public player: Player;
   public opponent: Player;
   public attack: Attack;
+  /**
+   * The AttackEffect of the attack that just did its damage. Effect text that is asked after the
+   * damage (Advanced Player's Rulebook A-01 step 5, C-07) keeps access to the attack's state through it.
+   */
+  public attackEffect: AttackEffect;
 
-  constructor(player: Player, opponent: Player, attack: Attack) {
+  constructor(player: Player, opponent: Player, attack: Attack, attackEffect: AttackEffect) {
     this.player = player;
     this.opponent = opponent;
     this.attack = attack;
+    this.attackEffect = attackEffect;
   }
 }
 

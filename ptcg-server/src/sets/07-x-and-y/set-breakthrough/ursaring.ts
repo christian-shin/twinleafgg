@@ -67,7 +67,7 @@ export class Ursaring extends PokemonCard {
         const cardList = result[0];
         opponent.switchPokemon(cardList);
 
-        const afterDamage = new DealDamageEffect(effect as AttackEffect, 50);
+        const afterDamage = new DealDamageEffect(effect as unknown as AttackEffect, 50);
         afterDamage.target = opponent.active;
         store.reduceEffect(state, afterDamage);
       });

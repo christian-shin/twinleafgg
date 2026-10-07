@@ -386,7 +386,7 @@ export function runDelegatedCopiedAttack(ctx: DelegatedCopiedAttackContext): Sta
   state = RUN_AFTER_DAMAGE_EFFECTS(state, attackEffect);
 
   if (!skipAfterAttack) {
-    const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack);
+    const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack, attackEffect);
     state = store.reduceEffect(state, afterAttackEffect);
     state = store.reduceEffect(state, new AfterAttackTriggersEffect(player, opponent, clonedAttack));
     state = RUN_ATTACK_TRIGGERS(store, state, attackEffect);
@@ -466,7 +466,7 @@ export function* runDelegatedCopiedAttackGenerator(
   }
 
   if (!skipAfterAttack) {
-    const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack);
+    const afterAttackEffect = new AfterAttackEffect(player, opponent, clonedAttack, attackEffect);
     state = store.reduceEffect(state, afterAttackEffect);
 
     if (store.hasPrompts()) {

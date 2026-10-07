@@ -446,7 +446,7 @@ export function PUT_X_DAMAGE_COUNTERS_IN_ANY_WAY_YOU_LIKE(
 export function SHUFFLE_THIS_POKEMON_AND_ALL_ATTACHED_CARDS_INTO_YOUR_DECK(
   store: StoreLike,
   state: State,
-  effect: AfterAttackEffect) {
+  effect: AttackEffect | AfterAttackEffect) {
   const player = effect.player;
 
   state = MOVE_POKEMON_OFF_BOARD(store, state, player.active, {
@@ -461,7 +461,7 @@ export function SHUFFLE_THIS_POKEMON_AND_ALL_ATTACHED_CARDS_INTO_YOUR_DECK(
 export function PUT_THIS_POKEMON_AND_ALL_ATTACHED_CARDS_INTO_YOUR_HAND(
   store: StoreLike,
   state: State,
-  effect: AfterAttackEffect) {
+  effect: AttackEffect | AfterAttackEffect) {
   const player = effect.player;
 
   return MOVE_POKEMON_OFF_BOARD(store, state, player.active, {

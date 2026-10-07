@@ -67,7 +67,7 @@ export class Druddigon extends PokemonCard {
         const cardList = result[0];
         opponent.switchPokemon(cardList);
 
-        const damageEffect = new DealDamageEffect(effect as AttackEffect, 30);
+        const damageEffect = new DealDamageEffect(effect as unknown as AttackEffect, 30);
         damageEffect.target = opponent.active;
         store.reduceEffect(state, damageEffect);
       });

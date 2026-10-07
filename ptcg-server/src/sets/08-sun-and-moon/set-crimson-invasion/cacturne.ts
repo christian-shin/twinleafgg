@@ -80,7 +80,7 @@ export class Cacturne extends PokemonCard {
         const cardList = result[0];
         opponent.switchPokemon(cardList);
 
-        const damageEffect = new DealDamageEffect(effect as AttackEffect, 40);
+        const damageEffect = new DealDamageEffect(effect as unknown as AttackEffect, 40);
         damageEffect.target = opponent.active;
         store.reduceEffect(state, damageEffect);
       });

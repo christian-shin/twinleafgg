@@ -382,7 +382,7 @@ function* useAttack(next: Function, store: StoreLike, state: State, effect: UseA
       yield store.waitPrompt(state, () => next());
     }
 
-    const afterAttackEffect = new AfterAttackEffect(effect.player, opponent, attack);
+    const afterAttackEffect = new AfterAttackEffect(effect.player, opponent, attack, attackEffect);
     state = store.reduceEffect(state, afterAttackEffect);
 
     if (store.hasPrompts()) {

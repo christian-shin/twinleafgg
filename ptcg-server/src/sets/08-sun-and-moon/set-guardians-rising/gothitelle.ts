@@ -70,7 +70,7 @@ export class Gothitelle extends PokemonCard {
         const cardList = result[0];
         opponent.switchPokemon(cardList);
 
-        const afterDamage = new DealDamageEffect(effect as AttackEffect, 30);
+        const afterDamage = new DealDamageEffect(effect as unknown as AttackEffect, 30);
         afterDamage.target = opponent.active;
         store.reduceEffect(state, afterDamage);
       });

@@ -70,7 +70,7 @@ export class Nidoking extends PokemonCard {
         const cardList = result[0];
         opponent.switchPokemon(cardList);
 
-        const damageEffect = new DealDamageEffect(effect as AttackEffect, 50);
+        const damageEffect = new DealDamageEffect(effect as unknown as AttackEffect, 50);
         damageEffect.target = opponent.active;
         store.reduceEffect(state, damageEffect);
       });
