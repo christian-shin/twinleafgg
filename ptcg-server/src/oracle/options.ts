@@ -361,6 +361,11 @@ export function randomAnswer(state: State, prompt: Prompt<any>, rng: Rng, cancel
   if (opts.allowCancel === true) {
     return null;
   }
+  // The random tries found nothing (e.g. Metal Maker's Attach prompt, min 0, with only non-[M] Energy in the top
+  // cards): an empty answer is legal whenever the prompt's minimum is 0
+  if (opts.min === 0 && isValid(state, prompt, [])) {
+    return [];
+  }
   return undefined;
 }
 
