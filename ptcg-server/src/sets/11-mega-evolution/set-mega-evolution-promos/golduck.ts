@@ -73,7 +73,8 @@ export class Golduck extends PokemonCard {
       let energyCount = 0;
       checkProvidedEnergyEffect.energyMap.forEach(em => {
         energyCount += em.provides.filter(cardType => {
-          return cardType === CardType.WATER;
+          // Energy that provides every type counts as a [W] Energy (Advanced Rulebook D-08)
+          return cardType === CardType.WATER || cardType === CardType.ANY;
         }).length;
       });
       effect.damage += energyCount * 20;

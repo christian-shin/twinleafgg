@@ -118,7 +118,7 @@ export class Azumarillex extends PokemonCard {
       const checkProvidedEnergyEffect = new CheckProvidedEnergyEffect(player, player.active);
       store.reduceEffect(state, checkProvidedEnergyEffect);
       checkProvidedEnergyEffect.energyMap.forEach((energy) => {
-        if (energy.provides.includes(CardType.PSYCHIC)) {
+        if (energy.provides.includes(CardType.PSYCHIC) || energy.provides.includes(CardType.ANY)) {
           psychicEnergyCount++;
         }
       });

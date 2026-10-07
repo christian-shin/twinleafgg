@@ -47,9 +47,10 @@ export class Heatran extends PokemonCard {
 
       let totalDiscarded = 0;
 
-      // Discard all [M] Energy only; each card discarded this way adds 50 damage.
+      // Discard all [M] Energy only (Energy that provides every type included: Advanced Rulebook D-08); each card
+      // discarded this way adds 50 damage.
       const cards: Card[] = checkProvidedEnergy.energyMap
-        .filter(e => e.provides.includes(CardType.METAL))
+        .filter(e => e.provides.includes(CardType.METAL) || e.provides.includes(CardType.ANY))
         .map(e => e.card);
       const discardEnergy = new DiscardCardsEffect(effect, cards);
       discardEnergy.target = player.active;

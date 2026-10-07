@@ -6,11 +6,11 @@ import { CardType, PokemonCard,
   Card,
   GameMessage,
   DiscardEnergyPrompt,
-  EnergyType,
   PlayerType,
   SlotType,
   SuperType,
   CardTag, } from '../../../game';
+import { CardTarget } from '../../../game/store/actions/play-card-action';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import {
   CheckProvidedEnergyEffect,
@@ -18,6 +18,7 @@ import {
 } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { BLOCKED_NON_TYPE_ENERGY } from '../../../game/store/prefabs/costs';
 
 export class EthansMagcargo extends PokemonCard {
   public stage = Stage.STAGE_1;
@@ -85,6 +86,15 @@ export class EthansMagcargo extends PokemonCard {
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
 
+      // "[R] Energy": every Energy that provides [R], including an Energy that provides every type (Legacy
+      // Energy, Prism Energy on a Basic Pokémon) (Advanced Rulebook D-08).
+      const blockedMap: { source: CardTarget, blocked: number[] }[] = [];
+      const activeBlocked = BLOCKED_NON_TYPE_ENERGY(store, state, player, player.active,
+        { player: PlayerType.BOTTOM_PLAYER, slot: SlotType.ACTIVE, index: 0 }, CardType.FIRE);
+      if (activeBlocked !== undefined) {
+        blockedMap.push(activeBlocked);
+      }
+
       state = store.prompt(
         state,
         new DiscardEnergyPrompt(
@@ -92,8 +102,8 @@ export class EthansMagcargo extends PokemonCard {
           GameMessage.CHOOSE_ENERGIES_TO_DISCARD,
           PlayerType.BOTTOM_PLAYER,
           [SlotType.ACTIVE], // Card source is target Pokemon
-          { superType: SuperType.ENERGY, energyType: EnergyType.BASIC, name: 'Fire Energy' },
-          { min: 0, max: 5, allowCancel: false },
+          { superType: SuperType.ENERGY },
+          { min: 0, max: 5, allowCancel: false, blockedMap },
         ),
         (energy) => {
           const cards: Card[] = (energy || []).map((e) => e.card);

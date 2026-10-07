@@ -2,7 +2,6 @@ import {
   CardTag,
   CardType,
   DiscardEnergyPrompt,
-  EnergyCard,
   GameMessage,
   PlayerType,
   PokemonCard,
@@ -16,6 +15,7 @@ import {
 import { CardTarget } from '../../../game/store/actions/play-card-action';
 import { Effect } from '../../../game/store/effects/effect';
 import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import { BLOCKED_NON_TYPE_ENERGY, ENERGY_CARDS_THAT_PROVIDE_TYPE } from '../../../game/store/prefabs/costs';
 
 export class MegaCharizardXex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -47,15 +47,11 @@ export class MegaCharizardXex extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 0, this)) {
       const player = effect.player;
 
+      // "[R] Energy": every Energy that provides [R] as it is provided now, including an Energy that provides
+      // every type (Legacy Energy, Prism Energy on a Basic Pokémon) (Advanced Rulebook D-08).
       let totalEnergy = 0;
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList) => {
-        const basicEnergyCount = cardList.cards.filter(
-          (card) =>
-            card.superType === SuperType.ENERGY &&
-            ((card as EnergyCard).provides.includes(CardType.FIRE) ||
-              (card as EnergyCard).provides.includes(CardType.ANY)),
-        ).length;
-        totalEnergy += basicEnergyCount;
+        totalEnergy += ENERGY_CARDS_THAT_PROVIDE_TYPE(store, state, player, cardList, CardType.FIRE).length;
       });
 
       // Nothing to discard (a copied Inferno X, the copycat has no [R] Energy): no damage, and no
@@ -70,20 +66,10 @@ export class MegaCharizardXex extends PokemonCard {
       const blockedMap: { source: CardTarget; blocked: number[] }[] = [];
 
       player.forEachPokemon(PlayerType.BOTTOM_PLAYER, (cardList, card, target) => {
-        const blockedIndices: number[] = [];
-        cardList.cards.forEach((energyCard, index) => {
-          if (energyCard.superType === SuperType.ENERGY) {
-            // Block energy that doesn't provide Fire or Any type
-            if (
-              !(energyCard as EnergyCard).provides.includes(CardType.FIRE) &&
-              !(energyCard as EnergyCard).provides.includes(CardType.ANY)
-            ) {
-              blockedIndices.push(index);
-            }
-          }
-        });
-        if (blockedIndices.length > 0) {
-          blockedMap.push({ source: target, blocked: blockedIndices });
+        // Block energy that doesn't provide Fire or Any type
+        const entry = BLOCKED_NON_TYPE_ENERGY(store, state, player, cardList, target, CardType.FIRE);
+        if (entry !== undefined) {
+          blockedMap.push(entry);
         }
       });
 
