@@ -33,7 +33,9 @@ export class NightTimeAcademy extends TrainerCard {
 
       const player = effect.player;
 
-      if (player.deck.cards.length === 0 || player.hand.cards.length === 0) {
+      // Putting a card on top of an empty deck still changes the game state (Advanced Rulebook B-04), so only an
+      // empty hand blocks the effect.
+      if (player.hand.cards.length === 0) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
 
