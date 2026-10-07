@@ -3,7 +3,7 @@ import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike, State, StateUtils, Card, GameMessage, ChooseCardsPrompt } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class NsPurrloin extends PokemonCard {
   protected _tags = [CardTag.NS];
@@ -30,7 +30,7 @@ export class NsPurrloin extends PokemonCard {
   public fullName: string = "N's Purrloin JTG";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 

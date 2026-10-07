@@ -6,7 +6,7 @@ import { Card, ChooseCardsPrompt, GameMessage, PokemonCard, StateUtils } from '.
 
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
-import {WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Luxrayex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -51,7 +51,7 @@ export class Luxrayex extends PokemonCard {
   public fullName: string = 'Luxray ex TWM';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
