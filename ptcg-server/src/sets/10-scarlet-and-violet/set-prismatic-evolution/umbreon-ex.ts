@@ -20,7 +20,7 @@ import {
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { TAKE_X_PRIZES, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { TAKE_X_PRIZES, WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Umbreonex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -61,14 +61,14 @@ export class Umbreonex extends PokemonCard {
       store.reduceEffect(state, specialConditionEffect);
     }
 
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
 
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
 
       const cards: Card[] = checkProvidedEnergy.energyMap.map((e) => e.card);
-      const discardEnergy = new DiscardCardsEffect(effect, cards);
+      const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
       discardEnergy.target = player.active;
       store.reduceEffect(state, discardEnergy);
 

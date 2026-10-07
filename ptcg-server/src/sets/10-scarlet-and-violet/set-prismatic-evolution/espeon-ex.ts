@@ -5,7 +5,7 @@ import { StoreLike, State, StateUtils, PlayerType, ShuffleDeckPrompt } from '../
 import { Effect } from '../../../game/store/effects/effect';
 
 import { PutDamageEffect, ignoresDefenderEffects, DevolveEffect } from '../../../game/store/effects/attack-effects';
-import {DEVOLVE_POKEMON, WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {DEVOLVE_POKEMON, WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Espeonex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -60,14 +60,14 @@ export class Espeonex extends PokemonCard {
     }
 
     // Amethyst
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
       opponent.forEachPokemon(PlayerType.TOP_PLAYER, (cardList, card) => {
         if (cardList.getPokemons().length > 1) {
           // An effect of the attack on that Pokémon: Mist Energy and the like prevent it.
-          const devolve = new DevolveEffect(effect, cardList);
+          const devolve = new DevolveEffect(effect.attackEffect, cardList);
           store.reduceEffect(state, devolve);
           if (!devolve.preventDefault) {
             DEVOLVE_POKEMON(store, state, cardList, opponent.deck);

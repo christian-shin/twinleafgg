@@ -20,7 +20,7 @@ import { KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON } from '../../../game/store/prefabs/
 import { Effect } from '../../../game/store/effects/effect';
 
 import { AttachEnergyEffect } from '../../../game/store/effects/play-card-effects';
-import { TERA_RULE, WAS_ATTACK_USED, COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import { TERA_RULE, COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class AlolanExeggutorex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -89,7 +89,7 @@ export class AlolanExeggutorex extends PokemonCard {
     }
 
     // Swinging Sphene
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       const blocked: CardTarget[] = [];
@@ -109,7 +109,7 @@ export class AlolanExeggutorex extends PokemonCard {
           if (opponentActive && opponentActive.stage !== Stage.BASIC) {
             return state;
           } else {
-            KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect);
+            KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect.attackEffect);
           }
         }
         if (!result) {
@@ -129,7 +129,7 @@ export class AlolanExeggutorex extends PokemonCard {
               (selected) => {
                 const targets = selected || [];
                 targets.forEach((target) => {
-                  KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect, target);
+                  KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect.attackEffect, target);
                 });
               },
             );
