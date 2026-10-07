@@ -5,6 +5,9 @@ import { CheckPokemonTypeEffect } from '../../../game/store/effects/check-effect
 import { Effect } from '../../../game/store/effects/effect';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
 import { IS_STADIUM_EFFECT_BLOCKED } from '../../../game/store/prefabs/stadium-effect';
+import { GameError } from '../../../game/game-error';
+import { GameMessage } from '../../../game/game-message';
+import { UseStadiumEffect } from '../../../game/store/effects/game-effects';
 
 export class LushForest extends TrainerCard {
   public cardImage: string = 'assets/cardback.png';
@@ -17,6 +20,10 @@ export class LushForest extends TrainerCard {
   public text = 'Each player\'s [G] Pokémon can evolve into [G] Pokémon during the turn they play those Pokémon, except during their first turn.';
 
   reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+    // Automatically active: a Stadium without "that player may" can't be announced and used (Advanced Rulebook B-04).
+    if (effect instanceof UseStadiumEffect && StateUtils.getStadiumCard(state) === this) {
+      throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+    }
     if (effect instanceof PlayPokemonEffect && StateUtils.getStadiumCard(state) === this) {
       const player = effect.player;
       if (state.turn <= 2 || !pokemonHasCardType(effect.pokemonCard, CardType.GRASS)) {

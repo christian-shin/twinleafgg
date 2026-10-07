@@ -7,6 +7,9 @@ import { PutCountersEffect } from '../../../game/store/effects/attack-effects';
 import { MoveDamageCountersEffect, PlaceDamageCountersEffect } from '../../../game/store/effects/game-effects';
 import { StateUtils } from '../../../game/store/state-utils';
 import { IS_STADIUM_EFFECT_BLOCKED } from '../../../game/store/prefabs/stadium-effect';
+import { GameError } from '../../../game/game-error';
+import { GameMessage } from '../../../game/game-message';
+import { UseStadiumEffect } from '../../../game/store/effects/game-effects';
 
 export class BattleColosseum extends TrainerCard {
   public trainerType: TrainerType = TrainerType.STADIUM;
@@ -19,6 +22,10 @@ export class BattleColosseum extends TrainerCard {
   public text: string = 'Prevent all damage counters from being placed on Benched Pokémon (both yours and your opponent\'s) by effects of attacks and Abilities from the opponent\'s Pokémon. (Damage from attacks is still taken.)';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
+    // Automatically active: a Stadium without "that player may" can't be announced and used (Advanced Rulebook B-04).
+    if (effect instanceof UseStadiumEffect && StateUtils.getStadiumCard(state) === this) {
+      throw new GameError(GameMessage.CANNOT_USE_STADIUM);
+    }
     if (effect instanceof MoveDamageCountersEffect && StateUtils.getStadiumCard(state) === this) {
       const activePlayer = state.players[state.activePlayer];
       const opponentOfActive = StateUtils.getOpponent(state, activePlayer);
