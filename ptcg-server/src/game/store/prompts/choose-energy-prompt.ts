@@ -49,7 +49,7 @@ export class ChooseEnergyPrompt extends Prompt<EnergyMap[]> {
     if (result === null) {
       return this.options.allowCancel;
     }
-    if (!StateUtils.checkExactEnergy(result, this.cost)) {
+    if (!StateUtils.checkEnergyPayment(result, this.cost)) {
       return false;
     }
     return true;

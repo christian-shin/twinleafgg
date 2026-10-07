@@ -132,6 +132,35 @@ export class StateUtils {
   }
 
   /**
+   * Whether `energy` is an allowed payment for an "Energy cost" that is discarded or paid by choosing Energy cards
+   * (Retreat Cost, "discard N Energy"). Ruling 1652 (retreat; Advanced Rulebook C-01 for Ignition Energy):
+   * "you can discard a number of Energy cards equal to the total cost, or you can discard until you've fulfilled the Energy
+   * requirement; but you cannot discard more Energy cards than the total cost" - e.g. cost 2: 1 or 2 Double Turbo Energy,
+   * and one Ignition Energy providing 3 pays a 1-Energy or a 3-Energy discard.
+   * So the cost must be met, and the payment must either have as many cards as the cost has Energy, or be a sequence of
+   * discards that first met the cost with its last card (some card cannot be left out); never more cards than the cost.
+   */
+  public static checkEnergyPayment(energy: EnergyMap[], cost: CardType[]): boolean {
+    if (!StateUtils.checkEnoughEnergy(energy, cost)) {
+      return false;
+    }
+    if (StateUtils.checkExactEnergy(energy, cost)) {
+      return true;
+    }
+    if (energy.length > cost.length) {
+      return false;
+    }
+    if (energy.length === cost.length) {
+      return true;
+    }
+    return energy.some((_, i) => {
+      const rest = energy.slice();
+      rest.splice(i, 1);
+      return !StateUtils.checkEnoughEnergy(rest, cost);
+    });
+  }
+
+  /**
    * Returns true when every energy entry has the same provides array.
    * Used to skip the energy selection prompt when all options are interchangeable.
    */
