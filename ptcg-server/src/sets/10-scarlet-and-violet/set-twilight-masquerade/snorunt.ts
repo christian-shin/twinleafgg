@@ -5,7 +5,7 @@ import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { StateUtils } from '../../../game/store/state-utils';
-import { MOVE_CARD_TO, SHOW_CARDS_TO_PLAYER, SHUFFLE_DECK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARD_TO, SHOW_CARDS_TO_PLAYER, SHUFFLE_DECK, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Snorunt extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -31,7 +31,7 @@ export class Snorunt extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 

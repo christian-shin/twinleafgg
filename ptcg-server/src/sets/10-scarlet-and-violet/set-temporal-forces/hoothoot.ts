@@ -4,7 +4,7 @@ import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
 import { GameMessage, PokemonCard, ShowCardsPrompt, StateUtils } from '../../../game';
 
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Hoothoot extends PokemonCard {
 
@@ -43,7 +43,7 @@ export class Hoothoot extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
 
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
