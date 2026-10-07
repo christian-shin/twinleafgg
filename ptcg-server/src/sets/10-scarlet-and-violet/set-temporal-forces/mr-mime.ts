@@ -5,7 +5,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 
 import { AddSpecialConditionsEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class MrMime extends PokemonCard {
 
@@ -52,13 +52,16 @@ export class MrMime extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
       const cardList = StateUtils.findCardList(state, this) as PokemonCardList;
 
-      if (cardList !== player.active) {
+      if (cardList !== effect.player.active) {
         throw new GameError(GameMessage.CANNOT_USE_POWER);
       }
+    }
+
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
 
       const chooseSupporter = (blocked: number[]): State => store.prompt(state, new ChooseCardsPrompt(
         player,
