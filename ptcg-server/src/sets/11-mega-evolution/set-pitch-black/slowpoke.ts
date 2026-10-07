@@ -2,9 +2,8 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, SuperType } from '../../../game/store/card/card-types';
 import { GameMessage, StoreLike, State } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prompt';
-import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Slowpoke extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -37,9 +36,9 @@ export class Slowpoke extends PokemonCard {
   public fullName: string = 'Slowpoke M5';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const self = this;
-      const attackEffect = effect as AttackEffect;
+      const attackEffect = effect.attackEffect;
       const player = attackEffect.player;
       function* yeetCards(next: Function): IterableIterator<State> {
         const max = player.hand.cards.length;

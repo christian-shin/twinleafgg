@@ -6,7 +6,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prompt';
 import { StateUtils } from '../../../game/store/state-utils';
 import { GameMessage } from '../../../game/game-message';
-import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class TeamRocketsPorygon extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -33,7 +33,7 @@ export class TeamRocketsPorygon extends PokemonCard {
   public fullName: string = "Team Rocket's Porygon DRI";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 

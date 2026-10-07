@@ -3,7 +3,7 @@ import { CardType, EnergyType, Stage, SuperType } from '../../../game/store/card
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
 import { KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON } from '../../../game/store/prefabs/attack-effects';
-import { MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { State } from '../../../game/store/state/state';
 import { StoreLike } from '../../../game/store/store-like';
 
@@ -37,7 +37,7 @@ export class Hydrapple extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Hydra Breath
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       let grassEnergies = 0;
@@ -63,7 +63,7 @@ export class Hydrapple extends PokemonCard {
         }
 
         MOVE_CARDS(store, state, player.hand, player.discard, { cards: cards });
-        KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect);
+        KNOCK_OUT_OPPONENTS_ACTIVE_POKEMON(store, state, effect.attackEffect);
       });
     }
 
