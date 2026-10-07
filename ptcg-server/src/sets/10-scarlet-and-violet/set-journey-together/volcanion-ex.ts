@@ -22,7 +22,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
 import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
 import { AddSpecialConditionsPowerEffect } from '../../../game/store/effects/check-effects';
-import {WAS_ATTACK_USED, WAS_POWER_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+import {AFTER_ATTACK, WAS_POWER_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { WOULD_CHANGE_SPECIAL_CONDITIONS } from '../../../game/store/prefabs/special-condition-change';
 
 export class Volcanionex extends PokemonCard {
@@ -96,7 +96,7 @@ export class Volcanionex extends PokemonCard {
     }
 
     // Heat Cyclone
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const hasBench = player.bench.some((b) => b.cards.length > 0);
 
@@ -119,7 +119,7 @@ export class Volcanionex extends PokemonCard {
           transfers = transfers || [];
           for (const transfer of transfers) {
             const target = StateUtils.getTarget(state, player, transfer.to);
-            MOVE_CARDS(store, state, player.active, target, { cards: [transfer.card], sourceCard: this, afterDamageOf: effect });
+            MOVE_CARDS(store, state, player.active, target, { cards: [transfer.card], sourceCard: this });
           }
         },
       );
