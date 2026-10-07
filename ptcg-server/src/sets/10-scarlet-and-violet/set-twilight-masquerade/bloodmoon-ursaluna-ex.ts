@@ -53,12 +53,6 @@ export class BloodmoonUrsalunaex extends PokemonCard {
         return state;
       }
 
-      const index = effect.cost.indexOf(CardType.COLORLESS);
-
-      if (index === -1) {
-        return state;
-      }
-
       const remainingPrizes = opponent.getPrizeLeft();
 
       const prizeToColorlessReduction: { [key: number]: number } = {
@@ -72,12 +66,7 @@ export class BloodmoonUrsalunaex extends PokemonCard {
       const colorlessToRemove =
         prizeToColorlessReduction[remainingPrizes as keyof typeof prizeToColorlessReduction] || 0;
 
-      for (let i = 0; i < colorlessToRemove; i++) {
-        const index = effect.cost.indexOf(CardType.COLORLESS);
-        if (index !== -1) {
-          effect.cost.splice(index, 1);
-        }
-      }
+      effect.costReduction += colorlessToRemove;
       return state;
     }
 

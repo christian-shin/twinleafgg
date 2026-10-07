@@ -1,12 +1,9 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { TrainerType, CardTag, CardType } from '../../../game/store/card/card-types';
+import { TrainerType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
-import {
-  CheckAttackCostEffect,
-  CheckProvidedEnergyEffect,
-} from '../../../game/store/effects/check-effects';
+import { CheckAttackCostEffect } from '../../../game/store/effects/check-effects';
 import { ToolEffect } from '../../../game/store/effects/play-card-effects';
 
 export class SparklingCrystal extends TrainerCard {
@@ -42,35 +39,8 @@ export class SparklingCrystal extends TrainerCard {
       }
 
       if (pokemonCard && pokemonCard.hasTag(CardTag.POKEMON_TERA)) {
-        const checkEnergy = new CheckProvidedEnergyEffect(effect.player);
-        store.reduceEffect(state, checkEnergy);
-
-        const availableEnergy = [...checkEnergy.energyMap.flatMap((e) => e.provides)];
-
-        if (effect.cost.length > 0) {
-          // A list of matched energies (one entry per printed cost slot we can cover).
-          const contained: CardType[] = [];
-          for (const costType of effect.cost) {
-            if (costType === CardType.COLORLESS && availableEnergy.length > 0) {
-              contained.push(availableEnergy.splice(0, 1)[0]);
-              continue;
-            }
-            let i = availableEnergy.indexOf(costType);
-            if (i > -1) {
-              contained.push(availableEnergy.splice(i, 1)[0]);
-              continue;
-            }
-            // Rainbow / Double Dragon / similar: provides CardType.ANY units that must pay typed costs too.
-            i = availableEnergy.indexOf(CardType.ANY);
-            if (i > -1) {
-              contained.push(availableEnergy.splice(i, 1)[0]);
-            }
-          }
-          //If the contained pool is met or one less than the cost, then it's good.
-          if (contained.length >= effect.cost.length - 1) {
-            effect.cost = contained;
-          }
-        }
+        // "Costs 1 Energy less" of any type: applied with the other cost changes after all handlers ran (check-effect.ts)
+        effect.anyEnergyReduction = true;
       }
     }
     return state;

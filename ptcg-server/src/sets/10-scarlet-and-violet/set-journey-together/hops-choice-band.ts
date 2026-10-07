@@ -1,5 +1,5 @@
 import { TrainerCard } from '../../../game/store/card/trainer-card';
-import { TrainerType, CardTag, CardType } from '../../../game/store/card/card-types';
+import { TrainerType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike } from '../../../game/store/store-like';
 import { State } from '../../../game/store/state/state';
 import { Effect } from '../../../game/store/effects/effect';
@@ -31,8 +31,6 @@ export class HopsChoiceBand extends TrainerCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (effect instanceof CheckAttackCostEffect && effect.player.active.tools.includes(this)) {
-      const index = effect.cost.indexOf(CardType.COLORLESS);
-
       // Try to reduce ToolEffect, to check if something is blocking the tool from working
       try {
         const stub = new ToolEffect(effect.player, this);
@@ -41,15 +39,10 @@ export class HopsChoiceBand extends TrainerCard {
         return state;
       }
 
-      // No cost to reduce
-      if (index === -1) {
-        return state;
-      }
-
       const hopsPokemon = effect.player.active.getPokemonCard();
 
       if (hopsPokemon && hopsPokemon.hasTag(CardTag.HOPS)) {
-        effect.cost.splice(index, 1);
+        effect.costReduction += 1;
       }
 
       return state;

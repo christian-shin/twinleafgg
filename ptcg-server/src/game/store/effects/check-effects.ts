@@ -175,6 +175,15 @@ export class CheckAttackCostEffect implements Effect {
   public setCost: CardType[] | undefined = undefined;
   /** "Ignore all [C] Energy in the cost": the [C] that other effects add are ignored as well. */
   public ignoreColorless = false;
+  /**
+   * "The attack costs [C] less" effects (Counter Gain, Hop's Choice Band, Incineroar ex, Crabominable, Bloodmoon
+   * Ursaluna ex) add their amount here instead of removing [C] from `cost` at once. Effects that make the cost more
+   * and effects that make it less stack and are calculated together, whatever order they are applied in
+   * (Advanced Rulebook D-11, D-12), so the reduction is applied once, after all handlers ran (check-effect.ts).
+   */
+  public costReduction = 0;
+  /** "The attack costs 1 Energy less" of any type (Sparkling Crystal), applied after the [C] reductions. */
+  public anyEnergyReduction = false;
 
   constructor(player: Player, attack: Attack) {
     this.player = player;

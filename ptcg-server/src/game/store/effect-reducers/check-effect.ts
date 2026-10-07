@@ -658,6 +658,44 @@ export function checkStateReducer(store: StoreLike, state: State, effect: Effect
       }
     }
 
+    // Reductions and increases are calculated together, whatever order the handlers ran in (Advanced Rulebook D-11, D-12)
+    for (let i = 0; i < effect.costReduction; i++) {
+      const index = effect.cost.indexOf(CardType.COLORLESS);
+      if (index === -1) {
+        break;
+      }
+      effect.cost.splice(index, 1);
+    }
+
+    // "Costs 1 Energy less" (any type): the Energy attached to the Pokémon covers each cost slot, one slot may stay open
+    if (effect.anyEnergyReduction && effect.cost.length > 0) {
+      const checkEnergy = new CheckProvidedEnergyEffect(effect.player);
+      store.reduceEffect(state, checkEnergy);
+      const availableEnergy = [...checkEnergy.energyMap.flatMap(e => e.provides)];
+      // A list of matched energies (one entry per printed cost slot we can cover).
+      const contained: CardType[] = [];
+      for (const costType of effect.cost) {
+        if (costType === CardType.COLORLESS && availableEnergy.length > 0) {
+          contained.push(availableEnergy.splice(0, 1)[0]);
+          continue;
+        }
+        let i = availableEnergy.indexOf(costType);
+        if (i > -1) {
+          contained.push(availableEnergy.splice(i, 1)[0]);
+          continue;
+        }
+        // Rainbow / Double Dragon / similar: provides CardType.ANY units that must pay typed costs too.
+        i = availableEnergy.indexOf(CardType.ANY);
+        if (i > -1) {
+          contained.push(availableEnergy.splice(i, 1)[0]);
+        }
+      }
+      // If the contained pool is met or one less than the cost, then it's good.
+      if (contained.length >= effect.cost.length - 1) {
+        effect.cost = contained;
+      }
+    }
+
     // A cost that an effect set or ignored is final (see CheckAttackCostEffect.setCost)
     if (effect.setCost !== undefined) {
       effect.cost = [...effect.setCost];
