@@ -1,3 +1,4 @@
+import { Chance } from '../../core/chance';
 import { GameError } from '../../game-error';
 import { AFTER_DAMAGE_OR_NOW } from './after-damage';
 import { GameMessage, GameLog } from '../../game-message';
@@ -1979,7 +1980,8 @@ export function MOVE_CARDS_TO_HAND(store: StoreLike, state: State, player: Playe
   });
 }
 
-export type TopDeckRemainderDestination = 'shuffle' | 'bottom' | 'discard' | 'lostzone';
+/** 'shuffleBottom': shuffle the other cards, then put them on the bottom of the deck (Metang's Metal Maker). */
+export type TopDeckRemainderDestination = 'shuffle' | 'bottom' | 'shuffleBottom' | 'discard' | 'lostzone';
 
 function cardMatchesPartialFilter(card: Card, filter: Partial<Card>): boolean {
   return matchesPromptFilter(card, filter);
@@ -2006,7 +2008,16 @@ function moveRemainingTopDeckCards(
     return;
   }
 
-  if (remainderDestination === 'bottom') {
+  if (remainderDestination === 'shuffleBottom') {
+    // "Shuffle the other cards and put them on the bottom of your deck" (Advanced Rulebook E-35)
+    const perm = Chance.shuffle(topCards.cards.length);
+    const copy = topCards.cards.slice();
+    for (let i = 0; i < perm.length; i++) {
+      topCards.cards[i] = copy[perm[i]];
+    }
+  }
+
+  if (remainderDestination === 'bottom' || remainderDestination === 'shuffleBottom') {
     player.deck.cards.push(...topCards.cards);
     topCards.cards = [];
     return;

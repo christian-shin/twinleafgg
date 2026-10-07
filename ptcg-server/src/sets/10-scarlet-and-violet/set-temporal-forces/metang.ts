@@ -93,7 +93,7 @@ export class Metang extends PokemonCard {
         {
           energyFilter: { energyType: EnergyType.BASIC },
           validCardTypes: [CardType.METAL],
-          remainderDestination: 'bottom'
+          remainderDestination: 'shuffleBottom'
         }
       );
     }
