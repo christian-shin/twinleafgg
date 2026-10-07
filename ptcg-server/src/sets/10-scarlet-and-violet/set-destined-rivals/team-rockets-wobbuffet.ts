@@ -14,7 +14,7 @@ import {
 import { Effect } from '../../../game/store/effects/effect';
 import { MoveCountersAttackEffect } from '../../../game/store/effects/attack-effects';
 import { MoveDamageCountersEffect } from '../../../game/store/effects/game-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class TeamRocketsWobbuffet extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -49,7 +49,7 @@ export class TeamRocketsWobbuffet extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Rocket Mirror
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       // checking for a damaged rockets pokemon on the bench
@@ -103,7 +103,7 @@ export class TeamRocketsWobbuffet extends PokemonCard {
 
           // Moving the counters onto a Pokémon that prevents the effects of attacks (Mist Energy,
           // Repelling Veil, ...) removes them from the Benched Pokémon but places none (ruling 1665).
-          const moveEffect = new MoveCountersAttackEffect(effect, source, effect.opponent.active, damageOnRocket);
+          const moveEffect = new MoveCountersAttackEffect(effect.attackEffect, source, effect.opponent.active, damageOnRocket);
           state = store.reduceEffect(state, moveEffect);
 
           moveEffect.source.damage -= moveEffect.damage;

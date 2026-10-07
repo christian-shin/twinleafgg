@@ -4,7 +4,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { HealEffect } from '../../../game/store/effects/game-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class ScreamTailTEFPool extends PokemonCard {
   protected _tags = [CardTag.ANCIENT];
@@ -36,7 +36,7 @@ export class ScreamTailTEFPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Supportive Singing
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const blocked: CardTarget[] = [];
       let hasAncient = false;

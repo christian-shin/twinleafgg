@@ -5,7 +5,7 @@ import { Effect } from '../../../game/store/effects/effect';
 
 import { CheckHpEffect, CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { AddSpecialConditionsEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Alakazam extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -41,11 +41,11 @@ export class Alakazam extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Strange Hacking
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
-      const specialCondition = new AddSpecialConditionsEffect(effect, [SpecialCondition.CONFUSED]);
+      const specialCondition = new AddSpecialConditionsEffect(effect.attackEffect, [SpecialCondition.CONFUSED]);
       store.reduceEffect(state, specialCondition);
 
       const maxAllowedDamage: DamageMap[] = [];
@@ -74,14 +74,14 @@ export class Alakazam extends PokemonCard {
             // Moving counters off or onto a Pokémon that prevents the effects of attacks (Mist Energy,
             // Repelling Veil, ...): they stay on a protected source and are lost on a protected
             // destination (ruling 1665). The probes place 0 counters, so they only ask who prevents.
-            const fromCheck = new PutCountersEffect(effect, 0);
+            const fromCheck = new PutCountersEffect(effect.attackEffect, 0);
             fromCheck.target = source;
             store.reduceEffect(state, fromCheck);
             if (fromCheck.preventDefault) {
               continue;
             }
             source.damage -= 10;
-            const toCheck = new PutCountersEffect(effect, 0);
+            const toCheck = new PutCountersEffect(effect.attackEffect, 0);
             toCheck.target = target;
             store.reduceEffect(state, toCheck);
             if (!toCheck.preventDefault) {

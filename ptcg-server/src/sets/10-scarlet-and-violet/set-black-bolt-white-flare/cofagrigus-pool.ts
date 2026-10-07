@@ -5,7 +5,7 @@ import {
 import { Effect } from '../../../game/store/effects/effect';
 import { MoveCountersAttackEffect } from '../../../game/store/effects/attack-effects';
 import { MoveDamageCountersEffect } from '../../../game/store/effects/game-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { YOUR_OPPPONENTS_ACTIVE_POKEMON_IS_NOW_CONFUSED } from '../../../game/store/prefabs/attack-effects';
 
 // Ref: prefabs.ts MOVE_DAMAGE_FROM_YOUR_BENCH_TO_OPPONENTS_ACTIVE (same move, any opposing target)
@@ -39,7 +39,7 @@ export class CofagrigusWHTPool extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Extended Damagriiigus
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const hasDamagedBench = player.bench.some(b => b.cards.length > 0 && b.damage > 0);
       if (!hasDamagedBench) {
@@ -87,7 +87,7 @@ export class CofagrigusWHTPool extends PokemonCard {
             return;
           }
 
-          const moveEffect = new MoveCountersAttackEffect(effect, source, targets[0], damageToMove);
+          const moveEffect = new MoveCountersAttackEffect(effect.attackEffect, source, targets[0], damageToMove);
           state = store.reduceEffect(state, moveEffect);
 
           moveEffect.source.damage -= moveEffect.damage;

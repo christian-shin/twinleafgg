@@ -11,7 +11,7 @@ import {
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { PlaceDamageCountersEffect } from '../../../game/store/effects/game-effects';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
 import { countHideNSneakPokemonInDiscard } from './hide-n-sneak';
 
 export class Spiritomb extends PokemonCard {
@@ -41,8 +41,11 @@ export class Spiritomb extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Ref: set-dark-explorers/kyogre-ex.ts (Dual Splash — choose opponent Pokémon incl. Active)
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const player = effect.player;
       effect.damage = 0;
+    }
+
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const player = effect.player;
 
       if (countHideNSneakPokemonInDiscard(player) < 13) {
         return state;

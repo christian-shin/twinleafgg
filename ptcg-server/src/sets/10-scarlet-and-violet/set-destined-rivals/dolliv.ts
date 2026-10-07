@@ -2,7 +2,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, ChoosePokemonPrompt, GameMessage, PlayerType, SlotType } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { HealTargetEffect } from '../../../game/store/effects/attack-effects';
 
 export class Dolliv extends PokemonCard {
@@ -37,7 +37,7 @@ export class Dolliv extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Nutrients
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       return store.prompt(state, new ChoosePokemonPrompt(
@@ -50,7 +50,7 @@ export class Dolliv extends PokemonCard {
         if (!targets || targets.length === 0) {
           return;
         }
-        const damageEffect = new HealTargetEffect(effect, 40);
+        const damageEffect = new HealTargetEffect(effect.attackEffect, 40);
         damageEffect.target = targets[0];
         store.reduceEffect(state, damageEffect);
       });
