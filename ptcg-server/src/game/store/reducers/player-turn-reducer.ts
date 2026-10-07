@@ -89,7 +89,10 @@ export function playerTurnReducer(store: StoreLike, state: State, action: Action
       attacks = [...attacks, ...attackEffect.attacks];
       copiedAttacks.push(...attackEffect.copiedAttacks);
 
-      const attack = attacks.find(a => a.name === action.name);
+      // An attack copied from a Benched Pokémon (Memory Helix) is named by its source card too.
+      const attack = action.from !== undefined
+        ? copiedAttacks.find(c => c.attack.name === action.name && c.source.fullName === action.from)?.attack
+        : attacks.find(a => a.name === action.name);
 
       if (attack === undefined) {
         throw new GameError(GameMessage.UNKNOWN_ATTACK);

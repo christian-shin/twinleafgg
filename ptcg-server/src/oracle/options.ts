@@ -736,6 +736,7 @@ export function turnCandidates(store: any, state: State, player: Player): TurnOp
 
   // Attacks: active Pokémon's attacks, attacks granted by effects, bench attacks.
   const names = new Set<string>();
+  const copied = new Map<string, { name: string, from: string }>();
   const active = player.active.getPokemonCard();
   if (active) {
     active.attacks.forEach(a => names.add(a.name));
@@ -749,12 +750,21 @@ export function turnCandidates(store: any, state: State, player: Player): TurnOp
   try {
     const check = new CheckPokemonAttacksEffect(player);
     store.reduceEffect(state, check);
-    check.attacks.forEach((a: any) => names.add(a.name));
+    // Attacks copied from a Benched Pokémon (Mew ex Memory Helix) carry their source card: `from`.
+    const copiedAttacks = new Set<any>(check.copiedAttacks.map((c: any) => c.attack));
+    check.copiedAttacks.forEach((c: any) => copied.set(c.attack.name + '\u0000' + c.source.fullName, { name: c.attack.name, from: c.source.fullName }));
+    check.attacks.filter((a: any) => !copiedAttacks.has(a)).forEach((a: any) => names.add(a.name));
   } catch {
     // ignored; trial dispatch decides
   }
-  for (const name of Array.from(names).sort()) {
-    out.push({ desc: { a: 'attack', name }, action: new AttackAction(player.id, name) });
+  const attackKeys = [...Array.from(names), ...Array.from(copied.keys())].sort();
+  for (const key of attackKeys) {
+    const c = copied.get(key);
+    if (c !== undefined && !names.has(key)) {
+      out.push({ desc: { a: 'attack', name: c.name, from: c.from }, action: new AttackAction(player.id, c.name, c.from) });
+    } else {
+      out.push({ desc: { a: 'attack', name: key }, action: new AttackAction(player.id, key) });
+    }
   }
 
   // Pokémon abilities in play, in hand and in discard.
@@ -828,7 +838,7 @@ export function describeAction(state: State, player: Player, action: Action): an
     return { a: 'play', card: cardRef(card), target: tgt(target) };
   }
   if (action instanceof AttackAction) {
-    return { a: 'attack', name: action.name };
+    return action.from === undefined ? { a: 'attack', name: action.name } : { a: 'attack', name: action.name, from: action.from };
   }
   if (action instanceof UseAbilityAction) {
     const d: any = { a: 'ability', name: action.name, source: tgt(action.target) };

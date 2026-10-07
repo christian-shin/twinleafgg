@@ -7,7 +7,9 @@ export class AttackAction implements Action {
 
   constructor(
     public clientId: number,
-    public name: string
+    public name: string,
+    /** Full name of the Benched Pokémon whose attack this is, for an attack copied by Memory Helix. */
+    public from?: string
   ) { }
 
 }
