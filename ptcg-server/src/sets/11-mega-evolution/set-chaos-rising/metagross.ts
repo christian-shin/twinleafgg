@@ -5,13 +5,12 @@ import {
   StoreLike,
   State,
   StateUtils,
-  SlotType,
   GameMessage,
   ConfirmPrompt,
 } from '../../../game';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { AFTER_ATTACK, SWITCH_OUT_OPPONENT_ACTIVE_POKEMON, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
-import { DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON } from '../../../game/store/prefabs/costs';
+import { DISCARD_X_ENERGY_FROM_THIS_POKEMON, ENERGY_CARDS_THAT_PROVIDE_TYPE } from '../../../game/store/prefabs/costs';
 
 export class Metagross extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -65,15 +64,12 @@ export class Metagross extends PokemonCard {
         (confirm) => {
           if (confirm) {
             effect.damage += 150;
-            return DISCARD_UP_TO_X_TYPE_ENERGY_FROM_YOUR_POKEMON(
-              store,
-              state,
-              effect,
-              3,
-              CardType.METAL,
-              3,
-              [SlotType.ACTIVE],
-            );
+            // Ruling 1652: "discard 3 [M] Energy" counts Energy units and never uses more than 3 cards
+            // (ChooseEnergyPrompt for [M][M][M]; fewer than 3 discards as many as it can). No prompt without [M] Energy.
+            if (ENERGY_CARDS_THAT_PROVIDE_TYPE(store, state, player, player.active, CardType.METAL).length === 0) {
+              return state;
+            }
+            return DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 3, CardType.METAL);
           }
         },
       );
