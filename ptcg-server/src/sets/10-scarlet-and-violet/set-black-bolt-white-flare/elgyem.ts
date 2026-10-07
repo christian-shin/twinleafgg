@@ -2,7 +2,7 @@ import { CardType, Stage } from '../../../game/store/card/card-types';
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
 import { State, StoreLike } from '../../../game';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { MOVE_AN_ENERGY_FROM_OPPONENTS_POKEMON_TO_ANOTHER } from '../../../game/store/prefabs/attack-effects';
 
 export class Elgyem extends PokemonCard {
@@ -35,8 +35,8 @@ export class Elgyem extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Attack 1: Slight Shift
     // Ref: set-unbroken-bonds/tentacruel.ts (Wicked Tentacles)
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      return MOVE_AN_ENERGY_FROM_OPPONENTS_POKEMON_TO_ANOTHER(store, state, effect);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      return MOVE_AN_ENERGY_FROM_OPPONENTS_POKEMON_TO_ANOTHER(store, state, effect.attackEffect);
     }
 
     return state;

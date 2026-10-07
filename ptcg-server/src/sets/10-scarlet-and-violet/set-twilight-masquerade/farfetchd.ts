@@ -14,7 +14,7 @@ import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
-import {IS_ABILITY_BLOCKED, MOVE_CARDS, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import {IS_ABILITY_BLOCKED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Farfetchd extends PokemonCard {
 
@@ -60,7 +60,7 @@ export class Farfetchd extends PokemonCard {
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     // Mach Cut
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 
@@ -80,7 +80,7 @@ export class Farfetchd extends PokemonCard {
       ), (selected) => {
         const cards = selected || [];
         if (cards.length > 0) {
-          const discardEnergy = new DiscardCardsEffect(effect, cards);
+          const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
           discardEnergy.target = opponent.active;
           store.reduceEffect(state, discardEnergy);
         }

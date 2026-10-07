@@ -7,7 +7,7 @@ import { ChooseCardsPrompt } from '../../../game/store/prompts/choose-cards-prom
 import { SuperType } from '../../../game/store/card/card-types';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { CardTag } from '../../../game/store/card/card-types';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Turtonator extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -40,7 +40,7 @@ export class Turtonator extends PokemonCard {
   public fullName: string = 'Turtonator SSP';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
       const opponentActive = opponent.active;
@@ -62,7 +62,7 @@ export class Turtonator extends PokemonCard {
         { min: 1, max: 1, allowCancel: false }
       ), selected => {
         if (selected && selected.length > 0) {
-          const discardEffect = new DiscardCardsEffect(effect, selected);
+          const discardEffect = new DiscardCardsEffect(effect.attackEffect, selected);
           discardEffect.target = opponentActive;
           store.reduceEffect(state, discardEffect);
         }

@@ -10,7 +10,7 @@ import {
   StateUtils,
 } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import {CONFIRMATION_PROMPT, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import {CONFIRMATION_PROMPT, WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { MoveOpponentEnergyEffect } from '../../../game/store/effects/attack-effects';
 
 export class TeamRocketsZapdos extends PokemonCard {
@@ -47,7 +47,7 @@ export class TeamRocketsZapdos extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Jamming Wave
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = effect.opponent;
 
@@ -77,7 +77,7 @@ export class TeamRocketsZapdos extends PokemonCard {
               for (const transfer of transfers) {
                 const target = StateUtils.getTarget(state, player, transfer.to);
                 // An effect of the attack on the Defending Pokémon: Mist Energy and the like prevent it (ruling 1843)
-                const moveEffect = new MoveOpponentEnergyEffect(effect, transfer.card, opponent.active, target);
+                const moveEffect = new MoveOpponentEnergyEffect(effect.attackEffect, transfer.card, opponent.active, target);
                 store.reduceEffect(state, moveEffect);
               }
             },

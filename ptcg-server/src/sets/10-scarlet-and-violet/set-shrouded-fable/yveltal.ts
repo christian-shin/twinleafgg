@@ -5,7 +5,7 @@ import { StoreLike, State } from '../../../game';
 
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect, PutCountersEffect } from '../../../game/store/effects/attack-effects';
-import { WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, COIN_FLIP_PROMPT, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Yveltal extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -49,7 +49,7 @@ export class Yveltal extends PokemonCard {
     }
 
     // Destructive Beam
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
 
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
@@ -71,7 +71,7 @@ export class Yveltal extends PokemonCard {
             { min: 1, max: 1, allowCancel: false }
           ), selected => {
             card = selected[0];
-            return store.reduceEffect(state, new DiscardCardsEffect(effect, [card]));
+            return store.reduceEffect(state, new DiscardCardsEffect(effect.attackEffect, [card]));
           });
         }
       });
