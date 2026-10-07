@@ -21,6 +21,7 @@ import { GameSettings } from '../game/core/game-settings';
 import { Chance, ChanceEvent, Rng } from '../game/core/chance';
 import { OracleHooks } from '../game/core/oracle-hooks';
 import { Player } from '../game/store/state/player';
+import { PlayCardAction } from '../game/store/actions/play-card-action';
 import { Snapshot, withRollback } from './rollback';
 import { canonicalState, stableStringify, fnv1a64 } from './canonical';
 import {
@@ -318,10 +319,36 @@ export class GameRunner {
     return randomAnswer(state, prompt, this.policyRng);
   }
 
+  /**
+   * A scripted play may name its card instead of an instance id (ids depend on the shuffle):
+   * {"a": "play", "card": "Switch SVI", "target": {...}} matches the first legal play of a card of
+   * that full name (or name) in hand with that target (the target is optional).
+   */
+  private findScriptedPlayByName(options: TurnOption[], player: Player, scripted: any): number {
+    if (scripted?.a !== 'play' || typeof scripted.card !== 'string' || scripted.card.includes('#')) {
+      return -1;
+    }
+    const wantTarget = scripted.target === undefined ? undefined : stableStringify(scripted.target);
+    return options.findIndex(o => {
+      if (o.desc.a !== 'play') {
+        return false;
+      }
+      const card = player.hand.cards[(o.action as PlayCardAction).handIndex];
+      if (card === undefined || (card.fullName !== scripted.card && card.name !== scripted.card)) {
+        return false;
+      }
+      return wantTarget === undefined || stableStringify(o.desc.target) === wantTarget;
+    });
+  }
+
   private decideTurn(options: TurnOption[], player: Player, playerIdx: number): number {
     if (this.script.length > 0) {
-      const want = stableStringify(this.script.shift());
-      const i = options.findIndex(o => stableStringify(o.desc) === want);
+      const scripted = this.script.shift();
+      const want = stableStringify(scripted);
+      let i = options.findIndex(o => stableStringify(o.desc) === want);
+      if (i === -1) {
+        i = this.findScriptedPlayByName(options, player, scripted);
+      }
       if (i === -1) {
         throw new Error('scenario: scripted answer not among options: ' + want);
       }
