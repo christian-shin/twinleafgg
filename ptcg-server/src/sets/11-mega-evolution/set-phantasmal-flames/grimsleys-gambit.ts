@@ -1,4 +1,5 @@
-import { TrainerCard, TrainerType, StoreLike, State, Card, CardList, ChooseCardsPrompt, GameError, GameMessage, ShuffleDeckPrompt, SuperType, CardType, Player } from '../../../game';
+import { TrainerCard, TrainerType, StoreLike, State, Card, CardList, ChooseCardsPrompt, GameError, GameMessage, SuperType, CardType, Player } from '../../../game';
+import { Chance } from '../../../game/core/chance';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
@@ -83,9 +84,14 @@ export class GrimsleysGambit extends TrainerCard {
           openSlots[index].pokemonPlayedTurn = state.turn;
         });
 
-        state = store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
-          deckTop.applyOrder(order);
-        });
+        // Shuffle the other cards (the looked-at cards, not the deck) before they go to the bottom (Advanced Rulebook E-35)
+        if (deckTop.cards.length > 0) {
+          const perm = Chance.shuffle(deckTop.cards.length);
+          const copy = deckTop.cards.slice();
+          for (let i = 0; i < perm.length; i++) {
+            deckTop.cards[i] = copy[perm[i]];
+          }
+        }
 
         state = MOVE_CARDS(store, state, deckTop, player.deck, { toBottom: true });
         state = MOVE_CARDS(store, state, player.supporter, player.discard, { cards: [effect.trainerCard] });

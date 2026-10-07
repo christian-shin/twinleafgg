@@ -4,6 +4,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { StateUtils, StoreLike, State, Player } from '../../../game';
 import { GameError, GameMessage } from '../../../game';
+import { Chance } from '../../../game/core/chance';
 import { CardList } from '../../../game/store/state/card-list';
 import {DRAW_CARDS, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
@@ -42,6 +43,13 @@ export class SpecialRedCard extends TrainerCard {
       }
       const cardsInHand = opponent.hand.cards.length;
       if (cardsInHand > 0) {
+        // "Your opponent shuffles their hand": the hand is put on the bottom in a random order (Advanced Rulebook E-35)
+        const hand = opponent.hand.cards;
+        const perm = Chance.shuffle(hand.length);
+        const copy = hand.slice();
+        for (let i = 0; i < perm.length; i++) {
+          hand[i] = copy[perm[i]];
+        }
         const deckBottom = new CardList();
         MOVE_CARDS(store, state, opponent.hand, deckBottom, { sourceCard: this });
         MOVE_CARDS(store, state, deckBottom, opponent.deck, { sourceCard: this });
