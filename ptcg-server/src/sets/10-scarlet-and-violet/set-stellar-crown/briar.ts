@@ -1,7 +1,7 @@
 import { CardTag, GameError, GameMessage, GamePhase, Player, State, StateUtils, StoreLike, TrainerCard, TrainerType, PokemonCard } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { KnockOutEffect } from '../../../game/store/effects/game-effects';
-import { EndTurnEffect } from '../../../game/store/effects/game-phase-effects';
+import { BetweenTurnsEffect } from '../../../game/store/effects/game-phase-effects';
 import { TrainerEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 import { KNOCKED_OUT_BY_ATTACK_DAMAGE } from '../../../game/store/prefabs/last-attack';
@@ -37,8 +37,9 @@ During this turn, if your opponent's Active Pokémon is Knocked Out by damage fr
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
 
     // "During this turn": the bonus ends with the turn it was played in (it used to stay set until
-    // the next knock-out of any Active Pokémon, by either player)
-    if (effect instanceof EndTurnEffect) {
+    // the next knock-out of any Active Pokémon, by either player). The Knock Out check of the attack comes
+    // after EndTurnEffect (flow chart step 8, still this turn), so the flag is cleared in Pokémon Checkup.
+    if (effect instanceof BetweenTurnsEffect) {
       this.extraPrizes = false;
     }
 
