@@ -128,11 +128,11 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
 
     // Apply damage reduction (or increase via negative values) for "during opponent's next turn" effects
     if (!ignoresDefenderEffects(effect) && shouldApplyDamageReduction(target, effect.source)) {
-      effect.damage = Math.max(0, effect.damage - target.damageReductionNextTurn);
+      effect.damage -= target.damageReductionNextTurn;
     }
 
     if (effect.source.attackDamageReductionAfterWeaknessNextTurn > 0) {
-      effect.damage = Math.max(0, effect.damage - effect.source.attackDamageReductionAfterWeaknessNextTurn);
+      effect.damage -= effect.source.attackDamageReductionAfterWeaknessNextTurn;
     }
 
     // Apply extra damage for "during your next turn, the Defending Pokemon takes more damage" effects
@@ -142,6 +142,9 @@ export function attackReducer(store: StoreLike, state: State, effect: Effect): S
       && target.defendingPokemonExtraDamageAttackerId === effect.player.id) {
       effect.damage += target.defendingPokemonExtraDamageNextTurn;
     }
+
+    // Step 5 (Advanced Rulebook B-05): every effect on the Pokemon taking the damage was summed; 0 or less ends the calculation here
+    effect.damage = Math.max(0, effect.damage);
 
     // Survive at 10 HP during opponent's next turn
     const surviveOpts = getActiveSurviveOnTenHpOptions(target);

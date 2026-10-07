@@ -104,7 +104,7 @@ export class MegaDiancieex extends PokemonCard {
       if (IS_ABILITY_BLOCKED(store, state, player, this)) {
         return state;
       }
-      effect.damage = Math.max(0, effect.damage - 30);
+      effect.damage -= 30;
     }
 
     return state;
