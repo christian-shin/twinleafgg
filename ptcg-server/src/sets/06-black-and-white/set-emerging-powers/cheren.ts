@@ -33,6 +33,10 @@ export class Cheren extends TrainerCard {
         throw new GameError(GameMessage.CANNOT_PLAY_THIS_CARD);
       }
 
+      if (player.supporterTurn > 0) {
+        throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
+      }
+
       DRAW_CARDS(store, state, player, 3);
     }
 
