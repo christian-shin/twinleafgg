@@ -105,6 +105,12 @@ export function playTrainerReducer(store: StoreLike, state: State, effect: Effec
       throw new GameError(GameMessage.BLOCKED_BY_EFFECT);
     }
 
+    // One Supporter card per turn (basic rule): enforced here, so a
+    // Supporter card that forgets its own check can't be played twice.
+    if (player.supporterTurn > 0) {
+      throw new GameError(GameMessage.SUPPORTER_ALREADY_PLAYED);
+    }
+
     return withOptionalCoinFlipCancelTrainer(store, state, player, effect.trainerCard, () => {
       const playTrainer = new TrainerEffect(player, effect.trainerCard, effect.target);
       state = store.reduceEffect(state, playTrainer);
