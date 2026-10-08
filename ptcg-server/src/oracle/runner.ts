@@ -23,7 +23,7 @@ import { OracleHooks } from '../game/core/oracle-hooks';
 import { Player } from '../game/store/state/player';
 import { PlayCardAction } from '../game/store/actions/play-card-action';
 import { Snapshot, withRollback } from './rollback';
-import { canonicalState, stableStringify, fnv1a64 } from './canonical';
+import { canonicalState, observableState, stableStringify, fnv1a64 } from './canonical';
 import {
   classifyPrompt, describePrompt, decodeAnswer, randomAnswer, infoAnswer, encodeAnswer,
   turnCandidates, describeAction, playerIndex, TurnOption,
@@ -68,6 +68,8 @@ export interface TraceStep {
   c: ChanceEvent[];
   /** Canonical state hash at the next decision (or at game end). */
   h: string;
+  /** Hash of the player-observable projection of that state (`observableState`). */
+  o?: string;
   /** Effect types propagated while resolving this step. */
   e?: string[];
   s?: any;
@@ -82,10 +84,10 @@ export interface Trace {
     scenario?: Scenario;
   };
   /** Chance consumed and hash reached before the first decision. */
-  start: { c: ChanceEvent[]; h: string; e?: string[]; s?: any };
+  start: { c: ChanceEvent[]; h: string; o?: string; e?: string[]; s?: any };
   steps: TraceStep[];
   /** Where the scenario edits were applied: before step `step`, giving hash `h`. */
-  scenario?: { step: number; h: string };
+  scenario?: { step: number; h: string; o?: string };
   result: {
     status: 'finished' | 'cap' | 'stuck' | 'error';
     winner: number;
@@ -200,9 +202,11 @@ export class GameRunner {
     return e;
   }
 
-  private canonical(): { h: string, s?: any } {
-    const json = stableStringify(canonicalState(this.state));
-    return { h: fnv1a64(json), s: this.opts.keepStates ? JSON.parse(json) : undefined };
+  private canonical(): { h: string, o: string, s?: any } {
+    const can = canonicalState(this.state);
+    const json = stableStringify(can);
+    const o = fnv1a64(stableStringify(observableState(can)));
+    return { h: fnv1a64(json), o, s: this.opts.keepStates ? JSON.parse(json) : undefined };
   }
 
   /** Legal turn options for the active player, by trial dispatch. */
@@ -429,7 +433,7 @@ export class GameRunner {
       this.settle();
     } finally {
       const can = this.canonical();
-      start = { c: this.takeChance(), h: can.h, e: this.takeEffects(), s: can.s };
+      start = { c: this.takeChance(), h: can.h, o: can.o, e: this.takeEffects(), s: can.s };
     }
 
     try {
@@ -458,7 +462,8 @@ export class GameRunner {
           if (opts.scenario && scenarioAt === undefined && state.turn >= scenarioTurn(opts.scenario)) {
             applyScenario(store, state, opts.scenario);
             this.script = (opts.scenario.answers ?? []).slice();
-            scenarioAt = { step: steps.length, h: this.canonical().h };
+            const at = this.canonical();
+            scenarioAt = { step: steps.length, h: at.h, o: at.o };
           }
           const player = state.players[state.activePlayer];
           const options = this.legalTurnOptions(player);
@@ -482,6 +487,7 @@ export class GameRunner {
           const can = this.canonical();
           step.c = this.takeChance();
           step.h = can.h;
+          step.o = can.o;
           step.e = this.takeEffects();
           step.s = can.s;
           steps.push(step);

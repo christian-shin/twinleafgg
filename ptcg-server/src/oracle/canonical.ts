@@ -343,6 +343,48 @@ export function fnv1a64(text: string): string {
   return hi.toString(16).padStart(8, '0') + lo.toString(16).padStart(8, '0');
 }
 
+/** Slot fields a player can observe: the Pokémon, its attachments, damage and conditions. */
+const OBSERVABLE_SLOT_KEYS = ['cards', 'energies', 'tools', 'damage', 'specialConditions', 'poisonDamage', 'burnDamage'];
+/** Player zones a player can observe (the deck as a set: its order is hidden). */
+const OBSERVABLE_PLAYER_KEYS = ['hand', 'discard', 'lostzone', 'stadium', 'supporter', 'prizes', 'faceUpPrizes'];
+const OBSERVABLE_STATE_KEYS = ['phase', 'turn', 'activePlayer', 'winner'];
+
+/**
+ * The player-observable projection of a canonical state (PLAN.md 8.5): what
+ * the observable comparator compares. Identical to Rust `observable_json`.
+ */
+export function observableState(can: any): any {
+  const slot = (s: any) => {
+    const o: any = {};
+    for (const k of OBSERVABLE_SLOT_KEYS) {
+      if (s !== undefined && s[k] !== undefined) {
+        o[k] = s[k];
+      }
+    }
+    return o;
+  };
+  const out: any = {};
+  for (const k of OBSERVABLE_STATE_KEYS) {
+    if (can[k] !== undefined) {
+      out[k] = can[k];
+    }
+  }
+  out.players = (can.players ?? []).map((p: any) => {
+    const o: any = {
+      deck: (p.deck ?? []).slice().sort(cmp),
+      active: slot(p.active),
+      bench: (p.bench ?? []).map((b: any) => slot(b)),
+    };
+    for (const k of OBSERVABLE_PLAYER_KEYS) {
+      if (p[k] !== undefined) {
+        o[k] = p[k];
+      }
+    }
+    return o;
+  });
+  return out;
+}
+
 export function stateHash(state: State): string {
   return fnv1a64(stableStringify(canonicalState(state)));
 }
