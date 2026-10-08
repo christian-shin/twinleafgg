@@ -22,7 +22,7 @@ import { MovedToActiveEffect, PowerEffect } from '../../../game/store/effects/ga
 import {MOVED_TO_ACTIVE_THIS_TURN,
   REMOVE_MARKER_AT_END_OF_TURN,
   SHUFFLE_DECK,
-  WAS_ATTACK_USED, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
+  AFTER_ATTACK, MOVE_CARDS } from '../../../game/store/prefabs/prefabs';
 
 export class Yanmegaex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex];
@@ -129,7 +129,7 @@ export class Yanmegaex extends PokemonCard {
       );
     }
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const hasBench = player.bench.some((b) => b.cards.length > 0);
 
@@ -155,7 +155,7 @@ export class Yanmegaex extends PokemonCard {
           transfers = transfers || [];
           for (const transfer of transfers) {
             const target = StateUtils.getTarget(state, player, transfer.to);
-            MOVE_CARDS(store, state, player.active, target, { cards: [transfer.card], sourceCard: this, afterDamageOf: effect });
+            MOVE_CARDS(store, state, player.active, target, { cards: [transfer.card], sourceCard: this });
           }
         },
       );

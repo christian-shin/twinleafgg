@@ -5,7 +5,7 @@ import { StoreLike, State, StateUtils, PlayerType, ShuffleDeckPrompt } from '../
 import { Effect } from '../../../game/store/effects/effect';
 
 import { PutDamageEffect, ignoresDefenderEffects, DevolveEffect } from '../../../game/store/effects/attack-effects';
-import {DEVOLVE_POKEMON, WAS_ATTACK_USED, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
+import {DEVOLVE_POKEMON, MOVE_CARDS, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Espeonex extends PokemonCard {
   protected _tags = [CardTag.POKEMON_ex, CardTag.POKEMON_TERA];
@@ -48,7 +48,7 @@ export class Espeonex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     // Psych Out
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const opponent = StateUtils.getOpponent(state, player);
 

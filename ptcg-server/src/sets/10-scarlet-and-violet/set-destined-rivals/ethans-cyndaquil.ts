@@ -1,7 +1,7 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType, CardTag } from '../../../game/store/card/card-types';
 import { StoreLike, State } from '../../../game';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { Effect } from '../../../game/store/effects/effect';
 import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
 
@@ -30,8 +30,8 @@ export class EthansCyndaquil extends PokemonCard {
   public fullName: string = "Ethan's Cyndaquil DRI";
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 1);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 1);
     }
     return state;
   }

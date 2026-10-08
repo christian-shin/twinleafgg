@@ -19,7 +19,7 @@ import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/
 import {
   IS_ABILITY_BLOCKED,
   SWITCH_ACTIVE_WITH_BENCHED,
-  WAS_ATTACK_USED,
+  AFTER_ATTACK,
   WAS_POWER_USED,
 } from '../../../game/store/prefabs/prefabs';
 
@@ -111,8 +111,8 @@ export class MegaDragoniteex extends PokemonCard {
     }
 
     // Ryuno Glide attack
-    if (WAS_ATTACK_USED(effect, 0, this)) {
-      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 2);
+    if (AFTER_ATTACK(effect, 0, this)) {
+      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 2);
     }
 
     return state;

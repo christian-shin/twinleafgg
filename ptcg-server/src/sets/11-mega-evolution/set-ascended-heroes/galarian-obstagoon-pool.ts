@@ -1,6 +1,6 @@
 import { PokemonCard, Stage, CardType, StoreLike, State, StateUtils } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { DISCARD_UP_TO_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
 
 export class GalarianObstagoonASCPool extends PokemonCard {
@@ -40,8 +40,8 @@ export class GalarianObstagoonASCPool extends PokemonCard {
     }
 
     // Punk Smash
-    if (WAS_ATTACK_USED(effect, 1, this)) {
-      return DISCARD_UP_TO_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 1, {}, 1);
+    if (AFTER_ATTACK(effect, 1, this)) {
+      return DISCARD_UP_TO_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 1, {}, 1);
     }
 
     return state;

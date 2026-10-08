@@ -3,7 +3,7 @@ import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { Effect } from '../../../game/store/effects/effect';
 
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Duraludon extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -36,7 +36,7 @@ export class Duraludon extends PokemonCard {
   public fullName: string = 'Duraludon SSP';
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
-    if (WAS_ATTACK_USED(effect, 1, this)) {
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
 
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
@@ -50,7 +50,7 @@ export class Duraludon extends PokemonCard {
         { allowCancel: false }
       ), energy => {
         const cards: Card[] = (energy || []).map(e => e.card);
-        const discardEnergy = new DiscardCardsEffect(effect, cards);
+        const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
         discardEnergy.target = player.active;
         store.reduceEffect(state, discardEnergy);
       });

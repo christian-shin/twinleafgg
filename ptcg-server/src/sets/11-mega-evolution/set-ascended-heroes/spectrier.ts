@@ -1,7 +1,7 @@
 import { PokemonCard } from '../../../game/store/card/pokemon-card';
 import { Stage, CardType } from '../../../game/store/card/card-types';
 import { StoreLike, State, ChoosePokemonPrompt, GameMessage, SlotType, PlayerType } from '../../../game';
-import { DISCARD_ALL_ENERGY_FROM_POKEMON, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { DISCARD_ALL_ENERGY_FROM_POKEMON, WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { Effect } from '../../../game/store/effects/effect';
 import { PutCountersEffect } from '../../../game/store/effects/attack-effects';
 
@@ -37,6 +37,10 @@ export class Spectrier extends PokemonCard {
 
     if (WAS_ATTACK_USED(effect, 1, this)) {
       DISCARD_ALL_ENERGY_FROM_POKEMON(store, state, effect, this);
+    }
+
+    // "Place 12 damage counters on 1 of your opponent's Pokémon": the Pokémon is chosen after the damage (C-07)
+    if (AFTER_ATTACK(effect, 1, this)) {
       const player = effect.player;
 
       return store.prompt(state, new ChoosePokemonPrompt(
@@ -49,7 +53,7 @@ export class Spectrier extends PokemonCard {
         if (!targets || targets.length === 0) {
           return;
         }
-        const damageEffect = new PutCountersEffect(effect, 120);
+        const damageEffect = new PutCountersEffect(effect.attackEffect, 120);
         damageEffect.target = targets[0];
         store.reduceEffect(state, damageEffect);
       });
