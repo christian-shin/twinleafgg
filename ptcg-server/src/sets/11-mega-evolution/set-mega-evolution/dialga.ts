@@ -43,9 +43,7 @@ export class Dialga extends PokemonCard {
       state = store.reduceEffect(state, checkEnergy);
 
       const energyCards = checkEnergy.energyMap.map(em => em.card);
-      if (energyCards.length === 0) {
-        return state;
-      }
+      // Ruling 1822: the bonus is available even with no Energy to shuffle.
 
       return store.prompt(state, new ConfirmPrompt(
         player.id,
@@ -55,7 +53,9 @@ export class Dialga extends PokemonCard {
           energyCards.forEach(card => {
             MOVE_CARDS(store, state, cardList, player.deck, { cards: [card], sourceCard: this, afterDamageOf: effect });
           });
-          SHUFFLE_DECK_AFTER_DAMAGE(store, state, effect, player);
+          if (energyCards.length > 0) {
+            SHUFFLE_DECK_AFTER_DAMAGE(store, state, effect, player);
+          }
           effect.damage += 80;
         }
       });
