@@ -1,7 +1,7 @@
 import { PokemonCard, Stage, CardType, StoreLike, State, CardTag } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
 import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Reshiramex extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -42,8 +42,11 @@ export class Reshiramex extends PokemonCard {
 
       // Apply additional damage based on prizes taken
       effect.damage += additionalDamage;
+    }
 
-      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 1);
+    // "Discard an Energy from this Pokémon": the damage is fixed, so the choice is asked after it
+    if (AFTER_ATTACK(effect, 1, this)) {
+      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 1);
     }
     return state;
   }

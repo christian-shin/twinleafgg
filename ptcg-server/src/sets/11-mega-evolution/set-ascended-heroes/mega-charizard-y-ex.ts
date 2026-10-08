@@ -1,6 +1,6 @@
 import { CardTag, CardType, PokemonCard, Stage, State, StoreLike } from '../../../game';
 import { Effect } from '../../../game/store/effects/effect';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
 import { THIS_ATTACK_DOES_X_DAMAGE_TO_1_OF_YOUR_OPPONENTS_POKEMON } from '../../../game/store/prefabs/attack-effects';
 
@@ -32,8 +32,12 @@ export class MegaCharizardYex extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 3);
       THIS_ATTACK_DOES_X_DAMAGE_TO_1_OF_YOUR_OPPONENTS_POKEMON(280, effect, store, state);
+    }
+
+    // "Discard 3 Energy from this Pokémon": the damage is fixed, so the choice is asked after it
+    if (AFTER_ATTACK(effect, 0, this)) {
+      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 3);
     }
     return state;
   }

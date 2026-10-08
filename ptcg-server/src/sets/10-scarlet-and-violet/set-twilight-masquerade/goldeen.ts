@@ -3,7 +3,7 @@ import { Attack, Card, ChooseCardsPrompt, GameMessage, PokemonCard, Power, Power
 
 import { Effect } from '../../../game/store/effects/effect';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
-import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
+import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED, AFTER_ATTACK, COIN_FLIP_PROMPT } from '../../../game/store/prefabs/prefabs';
 
 export class Goldeen extends PokemonCard {
   public stage: Stage = Stage.BASIC;
@@ -34,14 +34,18 @@ export class Goldeen extends PokemonCard {
 
   public reduceEffect(store: StoreLike, state: State, effect: Effect): State {
     if (WAS_ATTACK_USED(effect, 0, this)) {
-      const player = effect.player;
-      const opponent = StateUtils.getOpponent(state, player);
-
       // Festival Lead: this attack may be used twice while Festival Grounds is in play and the Ability works.
       // Set on every use, before any early return, so the flag can't stay stale from an earlier use.
       const stadiumCard = StateUtils.getStadiumCard(state);
       this.attacks[0].barrage = !IS_ABILITY_BLOCKED(store, state, effect.player, this)
         && stadiumCard !== undefined && stadiumCard.name === 'Festival Grounds';
+
+    }
+
+    // The coin and the Energy to discard are asked after the damage (A-01 step 5)
+    if (AFTER_ATTACK(effect, 0, this)) {
+      const player = effect.player;
+      const opponent = StateUtils.getOpponent(state, player);
 
       // Defending Pokemon has no energy cards attached
       if (!opponent.active.cards.some(c => c.superType === SuperType.ENERGY)) {
@@ -60,7 +64,7 @@ export class Goldeen extends PokemonCard {
             { min: 1, max: 1, allowCancel: false }
           ), selected => {
             card = selected[0];
-            return store.reduceEffect(state, new DiscardCardsEffect(effect, [card]));
+            return store.reduceEffect(state, new DiscardCardsEffect(effect.attackEffect, [card]));
           });
         }
       });

@@ -18,7 +18,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import {
   DAMAGED_FROM_FULL_HP,
   IS_ABILITY_BLOCKED,
-  WAS_ATTACK_USED,
+  AFTER_ATTACK,
 } from '../../../game/store/prefabs/prefabs';
 
 export class Pikachuex extends PokemonCard {
@@ -66,7 +66,7 @@ export class Pikachuex extends PokemonCard {
       }
     }
 
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
 
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
@@ -83,7 +83,7 @@ export class Pikachuex extends PokemonCard {
         ),
         (energy) => {
           const cards: Card[] = (energy || []).map((e) => e.card);
-          const discardEnergy = new DiscardCardsEffect(effect, cards);
+          const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
           discardEnergy.target = player.active;
           store.reduceEffect(state, discardEnergy);
         },

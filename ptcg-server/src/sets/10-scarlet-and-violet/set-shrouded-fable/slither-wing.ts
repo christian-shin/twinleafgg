@@ -6,7 +6,7 @@ import { StoreLike } from '../../../game/store/store-like';
 import { Effect } from '../../../game/store/effects/effect';
 import { PlayerType, StateUtils } from '../../../game';
 import { DISCARD_X_ENERGY_FROM_THIS_POKEMON } from '../../../game/store/prefabs/costs';
-import { WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { WAS_ATTACK_USED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class SlitherWing extends PokemonCard {
   public regulationMark = 'H';
@@ -65,8 +65,8 @@ export class SlitherWing extends PokemonCard {
       }
     }
 
-    if (WAS_ATTACK_USED(effect, 1, this)) {
-      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect, 2);
+    if (AFTER_ATTACK(effect, 1, this)) {
+      DISCARD_X_ENERGY_FROM_THIS_POKEMON(store, state, effect.attackEffect, 2);
     }
     return state;
   }

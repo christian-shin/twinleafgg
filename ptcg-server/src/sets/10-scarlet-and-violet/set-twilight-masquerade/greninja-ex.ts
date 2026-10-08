@@ -91,6 +91,29 @@ export class Greninjaex extends PokemonCard {
     if (WAS_ATTACK_USED(effect, 1, this)) {
       const player = effect.player;
 
+      // 2 of your opponent's Pokémon (all of them when the opponent has fewer)
+      const opponent = StateUtils.getOpponent(state, player);
+      const max = Math.min(2, 1 + opponent.bench.filter((b) => b.cards.length > 0).length);
+      state = store.prompt(
+        state,
+        new ChoosePokemonPrompt(
+          player.id,
+          GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
+          PlayerType.TOP_PLAYER,
+          [SlotType.ACTIVE, SlotType.BENCH],
+          { min: max, max: max, allowCancel: false },
+        ),
+        (selected) => {
+          const targets = selected || [];
+          DAMAGE_OPPONENT_POKEMON(store, state, effect, 120, targets);
+        },
+      );
+    }
+
+    // "Discard 2 Energy from this Pokémon": the damage is fixed, so the choice is asked after it
+    if (AFTER_ATTACK(effect, 1, this)) {
+      const player = effect.player;
+
       const checkProvidedEnergy = new CheckProvidedEnergyEffect(player);
       state = store.reduceEffect(state, checkProvidedEnergy);
 
@@ -104,27 +127,10 @@ export class Greninjaex extends PokemonCard {
           { allowCancel: false },
         ),
         (energy) => {
-          // 2 of your opponent's Pokémon (all of them when the opponent has fewer)
-          const opponent = StateUtils.getOpponent(state, player);
-          const max = Math.min(2, 1 + opponent.bench.filter((b) => b.cards.length > 0).length);
-          return store.prompt(
-            state,
-            new ChoosePokemonPrompt(
-              player.id,
-              GameMessage.CHOOSE_POKEMON_TO_DAMAGE,
-              PlayerType.TOP_PLAYER,
-              [SlotType.ACTIVE, SlotType.BENCH],
-              { min: max, max: max, allowCancel: false },
-            ),
-            (selected) => {
-              const targets = selected || [];
-              DAMAGE_OPPONENT_POKEMON(store, state, effect, 120, targets);
-              const cards: Card[] = (energy || []).map((e) => e.card);
-              const discardEnergy = new DiscardCardsEffect(effect, cards);
-              discardEnergy.target = player.active;
-              store.reduceEffect(state, discardEnergy);
-            },
-          );
+          const cards: Card[] = (energy || []).map((e) => e.card);
+          const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
+          discardEnergy.target = player.active;
+          store.reduceEffect(state, discardEnergy);
         },
       );
     }

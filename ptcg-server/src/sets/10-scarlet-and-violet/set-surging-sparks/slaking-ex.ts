@@ -17,7 +17,7 @@ import { Effect } from '../../../game/store/effects/effect';
 import { AttackEffect } from '../../../game/store/effects/game-effects';
 import { CheckProvidedEnergyEffect } from '../../../game/store/effects/check-effects';
 import { DiscardCardsEffect } from '../../../game/store/effects/attack-effects';
-import { IS_ABILITY_BLOCKED, WAS_ATTACK_USED } from '../../../game/store/prefabs/prefabs';
+import { IS_ABILITY_BLOCKED, AFTER_ATTACK } from '../../../game/store/prefabs/prefabs';
 
 export class Slakingex extends PokemonCard {
   public stage: Stage = Stage.STAGE_2;
@@ -78,7 +78,7 @@ export class Slakingex extends PokemonCard {
     }
 
     // Great Swing
-    if (WAS_ATTACK_USED(effect, 0, this)) {
+    if (AFTER_ATTACK(effect, 0, this)) {
       const player = effect.player;
       const cardList = StateUtils.findCardList(state, this) as PokemonCardList;
 
@@ -96,7 +96,7 @@ export class Slakingex extends PokemonCard {
         ),
         (energy) => {
           const cards: Card[] = (energy || []).map((e) => e.card);
-          const discardEnergy = new DiscardCardsEffect(effect, cards);
+          const discardEnergy = new DiscardCardsEffect(effect.attackEffect, cards);
           discardEnergy.target = player.active;
           store.reduceEffect(state, discardEnergy);
         },
