@@ -60,12 +60,14 @@ export class DeliveryBox extends TrainerCard {
           ), () => {
           });
         }
+        // Printed order: search, reveal, shuffle, then the turn ends (it used to end
+        // before the search was answered).
         store.prompt(state, new ShuffleDeckPrompt(player.id), order => {
           player.deck.applyOrder(order);
+          const endTurnEffect = new EndTurnEffect(player);
+          store.reduceEffect(state, endTurnEffect);
         });
       });
-      const endTurnEffect = new EndTurnEffect(player);
-      store.reduceEffect(state, endTurnEffect);
       return state;
     }
     return state;

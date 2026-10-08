@@ -148,6 +148,12 @@ export class AntiqueCoverFossil extends TrainerCard {
         return state;
       }
 
+      // Only attacks used by the opponent's Pokémon (printed text); it used to
+      // block the effects of its owner's attacks too.
+      if (effect.player === StateUtils.findOwner(state, effect.target)) {
+        return state;
+      }
+
       if (sourceCard) {
         // Try to reduce PowerEffect, to check if something is blocking our ability
         try {
