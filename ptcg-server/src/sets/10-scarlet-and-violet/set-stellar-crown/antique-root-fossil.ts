@@ -1,6 +1,6 @@
-import { CardTag, CardType, GameError, GameLog, GameMessage, Player, PokemonCard, PokemonType, Power, PowerType, Stage, State, StateUtils, StoreLike, TrainerCard, TrainerType } from "../../../game";
+import { CardTag, CardType, GameError, GameLog, GameMessage, Player, PlayerType, PokemonCard, PokemonType, Power, PowerType, Stage, State, StateUtils, StoreLike, TrainerCard, TrainerType } from "../../../game";
 import { AddSpecialConditionsEffect } from "../../../game/store/effects/attack-effects";
-import { CheckAttackCostEffect } from "../../../game/store/effects/check-effects";
+import { CheckAttackCostEffect, CheckTableStateEffect } from "../../../game/store/effects/check-effects";
 import { Effect } from "../../../game/store/effects/effect";
 import { RetreatEffect } from "../../../game/store/effects/game-effects";
 import { PlayItemEffect, PlayPokemonEffect } from "../../../game/store/effects/play-card-effects";
@@ -102,6 +102,19 @@ export class AntiqueRootFossil extends TrainerCard {
     // Prevent retreat
     if (effect instanceof RetreatEffect && effect.player.active.getPokemonCard() === this) {
       throw new GameError(GameMessage.CANNOT_RETREAT);
+    }
+
+    // Can't be affected by Special Conditions from any source: conditions added
+    // directly (not through an AddSpecialConditionsEffect) are cleared at the
+    // next table check.
+    if (effect instanceof CheckTableStateEffect) {
+      state.players.forEach(p => {
+        p.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+          if (cardList.getPokemonCard() === this as unknown as PokemonCard && cardList.specialConditions.length > 0) {
+            cardList.clearAllSpecialConditions();
+          }
+        });
+      });
     }
 
     // Prevent special conditions

@@ -8,6 +8,7 @@ import {
 } from '../../../game/store/card/card-types';
 import {
   GameError,
+  PlayerType,
   GameLog,
   GameMessage,
   Player,
@@ -20,11 +21,13 @@ import {
 } from '../../../game';
 import {
   AbstractAttackEffect,
+  AddSpecialConditionsEffect,
   ApplyWeaknessEffect,
   PutDamageEffect,
   DealDamageEffect,
 } from '../../../game/store/effects/attack-effects';
 import { PowerEffect, RetreatEffect } from '../../../game/store/effects/game-effects';
+import { CheckTableStateEffect } from '../../../game/store/effects/check-effects';
 import { PlayItemEffect, PlayPokemonEffect } from '../../../game/store/effects/play-card-effects';
 import { MOVE_CARDS, WAS_POWER_USED } from '../../../game/store/prefabs/prefabs';
 
@@ -84,6 +87,24 @@ export class AntiqueCoverFossil extends TrainerCard {
   }
 
   public reduceEffect(store: StoreLike, state: State, effect: any): State {
+    // Can't be affected by Special Conditions (printed text).
+    if (effect instanceof AddSpecialConditionsEffect && effect.target.getPokemonCard() === this as unknown as PokemonCard) {
+      effect.preventDefault = true;
+      return state;
+    }
+    // Can't be affected by Special Conditions from any source: conditions added
+    // directly (not through an AddSpecialConditionsEffect) are cleared at the
+    // next table check.
+    if (effect instanceof CheckTableStateEffect) {
+      state.players.forEach(p => {
+        p.forEachPokemon(PlayerType.BOTTOM_PLAYER, cardList => {
+          if (cardList.getPokemonCard() === this as unknown as PokemonCard && cardList.specialConditions.length > 0) {
+            cardList.clearAllSpecialConditions();
+          }
+        });
+      });
+    }
+
     if (WAS_POWER_USED(effect, 0, this)) {
       const player = effect.player;
       const cardList = StateUtils.findCardList(state, this);
