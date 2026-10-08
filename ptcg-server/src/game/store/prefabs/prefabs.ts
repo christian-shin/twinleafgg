@@ -804,8 +804,10 @@ export function PUT_SPECIFIC_ENERGY_FROM_THIS_POKEMON_INTO_HAND(
         const toHandEffect = new CardsToHandEffect(effect, cards);
         toHandEffect.target = player.active;
         store.reduceEffect(state, toHandEffect);
-        options?.onEnergyMoved?.();
       }
+      // Ruling 1822: "you may ... and have this attack do N more damage" gives
+      // the bonus even when nothing could be put into the hand.
+      options?.onEnergyMoved?.();
     },
   );
 }
